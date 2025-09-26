@@ -140,7 +140,7 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
       className="bg-white rounded-lg shadow-md p-6 max-w-sm mx-auto"
       id={`gym-${gym.code}`}
     >
-      <div className="gym-header mb-4 text-left">
+      <div className="gym-header mb-4 text-center">
         <h3 className="text-lg font-semibold text-gray-700 mb-1">{gym.name}</h3>
         <span className="inline-block px-3 py-1 rounded-full bg-brand-warm text-white text-sm font-medium">
           {gym.code}
@@ -170,19 +170,16 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
       {/* Color Swatches */}
       <div className="color-rows space-y-2 mb-4">
         {gym.colors.map((color) => (
-          <div key={color.id} className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-8 h-8 rounded border cursor-pointer transition-transform hover:scale-105"
-                style={{ backgroundColor: color.color_hex }}
-                onClick={() => editColor(color.id, color.color_hex)}
-              />
-              <span className="text-sm font-mono text-gray-600 select-all">
-                {color.color_hex}
-              </span>
-            </div>
-            
-            <div className="flex gap-1">
+          <div key={color.id} className="flex items-center justify-center gap-3">
+            <div 
+              className="w-8 h-8 rounded border cursor-pointer transition-transform hover:scale-105"
+              style={{ backgroundColor: color.color_hex }}
+              onClick={() => editColor(color.id, color.color_hex)}
+            />
+            <span className="text-sm font-mono text-gray-600 select-all">
+              {color.color_hex}
+            </span>
+            <div className="flex gap-1 ml-auto">
               <Button
                 variant="outline"
                 size="sm"
@@ -208,18 +205,20 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
 
       {/* Copy Buttons */}
       <div className="space-y-2 mb-4">
-        <Button
-          onClick={() => copyGymColors(true)}
-          className="w-full text-sm py-2 bg-brand-warm hover:bg-brand-warm/80 text-white"
-        >
-          Copy All {gym.code} Colors
-        </Button>
-        <Button
-          onClick={() => copyGymColors(false)}
-          className="w-full text-sm py-2 bg-brand-cool hover:bg-brand-cool/80 text-white"
-        >
-          Copy {gym.code} Colors (No #)
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            onClick={() => copyGymColors(true)}
+            className="text-sm py-2 bg-brand-warm hover:bg-brand-warm/80 text-white"
+          >
+            Copy All Colors
+          </Button>
+          <Button
+            onClick={() => copyGymColors(false)}
+            className="text-sm py-2 bg-brand-cool hover:bg-brand-cool/80 text-white"
+          >
+            Copy Colors (No #)
+          </Button>
+        </div>
 
         <Link to={`/gym/${gym.code}`} className="w-full">
           <Button className="w-full text-sm py-2 bg-brand-soft hover:bg-brand-soft/80 text-white">
