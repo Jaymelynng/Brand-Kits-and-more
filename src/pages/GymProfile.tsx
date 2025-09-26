@@ -260,9 +260,9 @@ const GymProfile = () => {
             background: `linear-gradient(45deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
           }}
         />
-        <div className="relative container mx-auto px-6 py-12">
+        <div className="relative container mx-auto px-6 py-8">
           {/* Navigation */}
-          <div className="flex items-center gap-4 mb-12">
+          <div className="flex items-center gap-4 mb-8">
             <Link to="/">
               <Button 
                 variant="outline" 
@@ -275,9 +275,9 @@ const GymProfile = () => {
             </Link>
           </div>
 
-          {/* Hero Content */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-3 mb-6">
+          {/* Compact Hero Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-3 mb-4">
               <span 
                 className="px-4 py-2 rounded-full text-white font-bold text-lg tracking-wider"
                 style={{ backgroundColor: primaryColor }}
@@ -286,19 +286,22 @@ const GymProfile = () => {
               </span>
             </div>
             
-            <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
               {gym.name}
             </h1>
             
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
               Official brand hub with complete asset library, color palette, and logo collection
             </p>
+          </div>
 
-            {/* Main Logo Showcase */}
+          {/* Two-Column Hero Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Left: Main Logo Showcase */}
             {mainLogo && (
-              <div className="mb-12">
+              <div className="flex flex-col items-center">
                 <div 
-                  className="inline-flex items-center justify-center w-80 h-48 rounded-2xl shadow-2xl border-4 border-white/20 backdrop-blur-sm"
+                  className="flex items-center justify-center w-full max-w-md h-48 rounded-2xl shadow-2xl border-4 border-white/20 backdrop-blur-sm mb-6"
                   style={{ 
                     background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` 
                   }}
@@ -311,7 +314,7 @@ const GymProfile = () => {
                 </div>
                 <Button
                   onClick={() => downloadLogo(mainLogo.file_url, mainLogo.filename)}
-                  className="mt-6 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                   style={{ 
                     backgroundColor: primaryColor,
                   }}
@@ -321,74 +324,69 @@ const GymProfile = () => {
                 </Button>
               </div>
             )}
-          </div>
-        </div>
-      </div>
 
-      {/* Content Section */}
-      <div className="container mx-auto px-6 pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
-          {/* Brand Colors - Now First */}
-          <Card className="lg:col-span-2 bg-white/50 backdrop-blur-sm border-white/20 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between text-2xl">
-                🎨 Brand Colors
-                <Button
-                  onClick={copyAllColors}
-                  size="sm"
-                  className="text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy All
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {gym.colors.map((color, index) => (
-                  <div 
-                    key={color.id}
-                    className="group flex items-center gap-4 p-4 rounded-xl hover:bg-white/60 transition-all duration-300 cursor-pointer border border-white/20 hover:border-white/40 hover:shadow-lg"
-                    onClick={() => copyColor(color.color_hex)}
+            {/* Right: Brand Colors */}
+            <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl h-fit">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center justify-between text-xl">
+                  🎨 Brand Colors
+                  <Button
+                    onClick={copyAllColors}
+                    size="sm"
+                    className="text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                    style={{ backgroundColor: primaryColor }}
                   >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy All
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  {gym.colors.map((color, index) => (
                     <div 
-                      className="w-16 h-16 rounded-xl shadow-lg border-2 border-white/30 flex-shrink-0 group-hover:scale-105 transition-transform duration-300"
-                      style={{ backgroundColor: color.color_hex }}
-                    />
-                    <div className="flex-1">
-                      <div className="font-mono text-lg font-bold text-foreground">
-                        {color.color_hex}
-                      </div>
-                      <div className="text-sm text-muted-foreground font-medium">
-                        Primary Color {index + 1}
+                      key={color.id}
+                      className="group flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-all duration-300 cursor-pointer border border-white/20 hover:border-white/40 hover:shadow-lg"
+                      onClick={() => copyColor(color.color_hex)}
+                    >
+                      <div 
+                        className="w-12 h-12 rounded-lg shadow-lg border-2 border-white/30 flex-shrink-0 group-hover:scale-105 transition-transform duration-300"
+                        style={{ backgroundColor: color.color_hex }}
+                      />
+                      <div className="flex-1">
+                        <div className="font-mono text-base font-bold text-foreground">
+                          {color.color_hex}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          Primary Color {index + 1}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-          {/* Brand Stats */}
-          <Card className="lg:col-span-2 bg-white/50 backdrop-blur-sm border-white/20 shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-2xl">📊 Brand Assets</CardTitle>
+          {/* Brand Stats - Compact */}
+          <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl">📊 Brand Assets</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="text-center p-6 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-4 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
                   <div 
-                    className="text-4xl font-bold mb-2"
+                    className="text-3xl font-bold mb-1"
                     style={{ color: primaryColor }}
                   >
                     {gym.logos.length}
                   </div>
                   <div className="text-sm font-medium text-muted-foreground">Logo Variations</div>
                 </div>
-                <div className="text-center p-6 rounded-xl" style={{ backgroundColor: `${secondaryColor}15` }}>
+                <div className="text-center p-4 rounded-xl" style={{ backgroundColor: `${secondaryColor}15` }}>
                   <div 
-                    className="text-4xl font-bold mb-2"
+                    className="text-3xl font-bold mb-1"
                     style={{ color: secondaryColor }}
                   >
                     {gym.colors.length}
@@ -399,7 +397,10 @@ const GymProfile = () => {
             </CardContent>
           </Card>
         </div>
+      </div>
 
+      {/* Content Section */}
+      <div className="container mx-auto px-6 pb-12">
         {/* Upload Interface - Conditional */}
         {showUpload && (
           <Card className="lg:col-span-4 bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8 animate-fade-in">
