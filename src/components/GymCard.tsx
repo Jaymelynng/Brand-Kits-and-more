@@ -10,9 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 interface GymCardProps {
   gym: GymWithColors;
   editMode: boolean;
+  showAllLogos?: boolean;
 }
 
-export const GymCard = ({ gym, editMode }: GymCardProps) => {
+export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) => {
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [uploadProgress, setUploadProgress] = useState<{ total: number; completed: number } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -311,7 +312,7 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
       </div>
 
       {/* Logo Grid Section */}
-      {gym.logos.length > 0 && (
+      {showAllLogos && gym.logos.length > 0 && (
         <div className="space-y-3 mb-4">
           <h4 className="text-sm font-medium text-gray-700">All Logos</h4>
           <div className="space-y-3">

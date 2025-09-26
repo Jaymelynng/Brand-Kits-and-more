@@ -191,6 +191,7 @@ const Index = () => {
                 key={gym.id} 
                 gym={gym} 
                 editMode={editMode}
+                showAllLogos={false}
               />
             ))}
           </div>
