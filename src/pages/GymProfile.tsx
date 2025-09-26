@@ -1,10 +1,11 @@
 import { useParams, Link } from "react-router-dom";
-import { useGyms, useSetMainLogo } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo } from "@/hooks/useGyms";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { ArrowLeft, Download, Copy, Star } from "lucide-react";
-import { useState } from "react";
+import { Progress } from "@/components/ui/progress";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2 } from "lucide-react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -12,8 +13,13 @@ const GymProfile = () => {
   const { gymCode } = useParams<{ gymCode: string }>();
   const { data: gyms = [], isLoading, error } = useGyms();
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const setMainLogoMutation = useSetMainLogo();
+  const uploadLogoMutation = useUploadLogo();
+  const deleteLogoMutation = useDeleteLogo();
 
   const gym = gyms.find(g => g.code === gymCode);
 
@@ -72,6 +78,86 @@ const GymProfile = () => {
           variant: "destructive",
           description: 'Failed to update main logo',
           duration: 2000,
+        });
+      }
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const files = Array.from(e.dataTransfer.files);
+    handleFileUpload(files);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    handleFileUpload(files);
+  };
+
+  const handleFileUpload = (files: File[]) => {
+    if (!gym) return;
+    
+    files.forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: "destructive",
+          description: `${file.name} is not an image file`,
+        });
+        return;
+      }
+
+      const fileKey = `${file.name}-${Date.now()}`;
+      setUploadingFiles(prev => ({ ...prev, [fileKey]: 0 }));
+
+      uploadLogoMutation.mutate(
+        { gymId: gym.id, file },
+        {
+          onSuccess: () => {
+            setUploadingFiles(prev => {
+              const { [fileKey]: _, ...rest } = prev;
+              return rest;
+            });
+            toast({
+              description: `${file.name} uploaded successfully!`,
+            });
+          },
+          onError: () => {
+            setUploadingFiles(prev => {
+              const { [fileKey]: _, ...rest } = prev;
+              return rest;
+            });
+            toast({
+              variant: "destructive",
+              description: `Failed to upload ${file.name}`,
+            });
+          }
+        }
+      );
+    });
+  };
+
+  const handleDeleteLogo = (logoId: string, filename: string) => {
+    deleteLogoMutation.mutate(logoId, {
+      onSuccess: () => {
+        toast({
+          description: `${filename} deleted successfully!`,
+        });
+      },
+      onError: () => {
+        toast({
+          variant: "destructive",
+          description: `Failed to delete ${filename}`,
         });
       }
     });
@@ -204,6 +290,57 @@ const GymProfile = () => {
             </CardContent>
           </Card>
 
+          {/* Upload Interface */}
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <CardTitle>📤 Upload New Logos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div
+                className={cn(
+                  "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
+                  isDragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                )}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <div className="text-lg font-medium mb-2">
+                  {isDragOver ? "Drop files here" : "Click to upload or drag and drop"}
+                </div>
+                <div className="text-sm text-muted-foreground mb-4">
+                  Support for PNG, JPG, SVG files
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Upload Progress */}
+              {Object.keys(uploadingFiles).length > 0 && (
+                <div className="mt-6 space-y-3">
+                  <div className="text-sm font-medium">Uploading files...</div>
+                  {Object.entries(uploadingFiles).map(([fileKey, progress]) => (
+                    <div key={fileKey} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="truncate">{fileKey.split('-')[0]}</span>
+                        <span>{Math.round(progress)}%</span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Logo Gallery Carousel */}
           {gym.logos.length > 0 && (
             <Card className="lg:col-span-3">
@@ -240,43 +377,54 @@ const GymProfile = () => {
                                 {logo.filename}
                               </div>
                               
-                              {/* Action Buttons */}
-                              <div className="flex flex-col gap-2">
-                                <Button
-                                  onClick={() => downloadLogo(logo.file_url, logo.filename)}
-                                  size="sm"
-                                  className="w-full bg-brand-cool hover:bg-brand-cool/80 text-white"
-                                >
-                                  <Download className="w-4 h-4 mr-2" />
-                                  Download
-                                </Button>
-                                
-                                <Button
-                                  onClick={() => copyUrl(logo.file_url)}
-                                  size="sm"
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full",
-                                    copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
-                                  )}
-                                >
-                                  <Copy className="w-4 h-4 mr-2" />
-                                  {copiedStates[logo.file_url] ? 'Copied!' : 'Copy URL'}
-                                </Button>
-                                
-                                {!logo.is_main_logo && (
-                                  <Button
-                                    onClick={() => setMainLogo(logo.id)}
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
-                                    disabled={setMainLogoMutation.isPending}
-                                  >
-                                    <Star className="w-4 h-4 mr-2" />
-                                    {setMainLogoMutation.isPending ? 'Setting...' : 'Set as Main'}
-                                  </Button>
-                                )}
-                              </div>
+                               {/* Action Buttons */}
+                               <div className="flex flex-col gap-2">
+                                 <Button
+                                   onClick={() => downloadLogo(logo.file_url, logo.filename)}
+                                   size="sm"
+                                   className="w-full bg-brand-cool hover:bg-brand-cool/80 text-white"
+                                 >
+                                   <Download className="w-4 h-4 mr-2" />
+                                   Download
+                                 </Button>
+                                 
+                                 <Button
+                                   onClick={() => copyUrl(logo.file_url)}
+                                   size="sm"
+                                   variant="outline"
+                                   className={cn(
+                                     "w-full",
+                                     copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
+                                   )}
+                                 >
+                                   <Copy className="w-4 h-4 mr-2" />
+                                   {copiedStates[logo.file_url] ? 'Copied!' : 'Copy URL'}
+                                 </Button>
+                                 
+                                 {!logo.is_main_logo && (
+                                   <Button
+                                     onClick={() => setMainLogo(logo.id)}
+                                     size="sm"
+                                     variant="outline"
+                                     className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                                     disabled={setMainLogoMutation.isPending}
+                                   >
+                                     <Star className="w-4 h-4 mr-2" />
+                                     {setMainLogoMutation.isPending ? 'Setting...' : 'Set as Main'}
+                                   </Button>
+                                 )}
+
+                                 <Button
+                                   onClick={() => handleDeleteLogo(logo.id, logo.filename)}
+                                   size="sm"
+                                   variant="outline"
+                                   className="w-full border-red-300 text-red-700 hover:bg-red-50"
+                                   disabled={deleteLogoMutation.isPending}
+                                 >
+                                   <Trash2 className="w-4 h-4 mr-2" />
+                                   {deleteLogoMutation.isPending ? 'Deleting...' : 'Delete'}
+                                 </Button>
+                               </div>
                             </CardContent>
                           </Card>
                         </div>
