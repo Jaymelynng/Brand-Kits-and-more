@@ -220,36 +220,6 @@ const GymProfile = () => {
             </Card>
           )}
 
-          {/* Brand Guidelines */}
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>📋 Brand Guidelines</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="prose max-w-none">
-                <h3>Usage Guidelines</h3>
-                <ul>
-                  <li>Use the main logo on light backgrounds for maximum impact</li>
-                  <li>Maintain proper spacing around the logo (minimum clear space equal to the height of the logo)</li>
-                  <li>Do not modify colors, proportions, or add effects to the logo</li>
-                  <li>Use brand colors consistently across all materials</li>
-                  <li>Ensure sufficient contrast when using colors for text</li>
-                </ul>
-                
-                <h3>File Formats</h3>
-                <p>
-                  All logos are provided in high-resolution formats suitable for both digital and print applications.
-                  Download the appropriate format for your specific use case.
-                </p>
-                
-                <h3>Contact Information</h3>
-                <p>
-                  For additional brand assets or questions about usage guidelines,
-                  please contact the brand team.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
