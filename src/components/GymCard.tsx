@@ -220,7 +220,7 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
           </Button>
         </div>
 
-        <Link to={`/gym/${gym.code}`} className="w-full">
+        <Link to={`/gym/${gym.code}`} className="w-full mt-3">
           <Button className="w-full text-sm py-2 bg-brand-soft hover:bg-brand-soft/80 text-white">
             View {gym.code} Profile
           </Button>
