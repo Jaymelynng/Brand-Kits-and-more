@@ -9,6 +9,9 @@ import { useState, useRef, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { GymColorProvider } from "@/components/shared/GymColorProvider";
+import { BrandCard, BrandCardHeader, BrandCardContent, BrandCardTitle } from "@/components/shared/BrandCard";
+import { ColorSwatch } from "@/components/shared/ColorSwatch";
 
 const GymProfile = () => {
   const { gymCode } = useParams<{ gymCode: string }>();
@@ -244,14 +247,8 @@ const GymProfile = () => {
   const secondaryHsl = hexToHsl(secondaryColor);
 
   return (
-    <div 
-      className="min-h-screen"
-      style={{
-        background: `linear-gradient(135deg, ${primaryColor}15 0%, ${secondaryColor}10 50%, ${primaryColor}08 100%)`,
-        '--gym-primary': primaryHsl,
-        '--gym-secondary': secondaryHsl,
-      } as React.CSSProperties}
-    >
+    <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
+      <div className="min-h-screen bg-gradient-primary">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div 
@@ -326,76 +323,58 @@ const GymProfile = () => {
             )}
 
             {/* Right: Brand Colors */}
-            <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl h-fit">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center justify-between text-xl">
+            <BrandCard variant="hero" className="h-fit">
+              <BrandCardHeader className="pb-4">
+                <BrandCardTitle className="flex items-center justify-between text-xl">
                   🎨 Brand Colors
                   <Button
                     onClick={copyAllColors}
                     size="sm"
-                    className="text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                    style={{ backgroundColor: primaryColor }}
+                    className="bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg hover:shadow-xl transition-smooth"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy All
                   </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
+                </BrandCardTitle>
+              </BrandCardHeader>
+              <BrandCardContent className="pt-0">
                 <div className="space-y-3">
                   {gym.colors.map((color, index) => (
-                    <div 
+                    <ColorSwatch
                       key={color.id}
-                      className="group flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-all duration-300 cursor-pointer border border-white/20 hover:border-white/40 hover:shadow-lg"
-                      onClick={() => copyColor(color.color_hex)}
-                    >
-                      <div 
-                        className="w-12 h-12 rounded-lg shadow-lg border-2 border-white/30 flex-shrink-0 group-hover:scale-105 transition-transform duration-300"
-                        style={{ backgroundColor: color.color_hex }}
-                      />
-                      <div className="flex-1">
-                        <div className="font-mono text-base font-bold text-foreground">
-                          {color.color_hex}
-                        </div>
-                        <div className="text-xs text-muted-foreground font-medium">
-                          Primary Color {index + 1}
-                        </div>
-                      </div>
-                    </div>
+                      color={color.color_hex}
+                      label={`Primary Color ${index + 1}`}
+                      size="lg"
+                      className="group p-3 rounded-xl hover:bg-card/60 transition-smooth cursor-pointer border border-border/20 hover:border-border/40 hover:shadow-lg"
+                    />
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </BrandCardContent>
+            </BrandCard>
           </div>
 
           {/* Brand Stats - Compact */}
-          <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl">📊 Brand Assets</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+          <BrandCard variant="hero" className="mb-8">
+            <BrandCardHeader className="pb-4">
+              <BrandCardTitle className="text-xl">📊 Brand Assets</BrandCardTitle>
+            </BrandCardHeader>
+            <BrandCardContent className="pt-0">
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
-                  <div 
-                    className="text-3xl font-bold mb-1"
-                    style={{ color: primaryColor }}
-                  >
+                <div className="text-center p-4 rounded-xl bg-gym-primary/10">
+                  <div className="text-3xl font-bold mb-1 text-gym-primary">
                     {gym.logos.length}
                   </div>
                   <div className="text-sm font-medium text-muted-foreground">Logo Variations</div>
                 </div>
-                <div className="text-center p-4 rounded-xl" style={{ backgroundColor: `${secondaryColor}15` }}>
-                  <div 
-                    className="text-3xl font-bold mb-1"
-                    style={{ color: secondaryColor }}
-                  >
+                <div className="text-center p-4 rounded-xl bg-gym-secondary/10">
+                  <div className="text-3xl font-bold mb-1 text-gym-secondary">
                     {gym.colors.length}
                   </div>
                   <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </BrandCardContent>
+          </BrandCard>
         </div>
       </div>
 
@@ -881,14 +860,14 @@ const GymProfile = () => {
       {showBackToTop && (
         <Button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-2xl text-white hover:shadow-3xl transition-all duration-300 hover:scale-110"
-          style={{ backgroundColor: primaryColor }}
+          className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-2xl bg-gym-primary text-gym-primary-foreground hover:bg-gym-primary/90 hover:shadow-glow transition-smooth hover:scale-110"
           size="icon"
         >
           <ChevronUp className="w-6 h-6" />
         </Button>
       )}
     </div>
+    </GymColorProvider>
   );
 };
 

@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { GymWithColors, useUpdateGymColor, useUploadLogo, useSetMainLogo, useDeleteLogo } from "@/hooks/useGyms";
-import { Upload, Star, X, Copy, Link2, CheckCircle } from "lucide-react";
+import { Upload, Star, X, Copy, Eye, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { GymColorProvider } from "./shared/GymColorProvider";
+import { BrandCard, BrandCardHeader, BrandCardContent, BrandCardTitle } from "./shared/BrandCard";
+import { ColorSwatch } from "./shared/ColorSwatch";
 
 interface GymCardProps {
   gym: GymWithColors;
@@ -191,199 +194,207 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
 
 
   const mainLogo = gym.logos.find(logo => logo.is_main_logo);
+  const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
+  const secondaryColor = gym.colors[1]?.color_hex || '#9CA3AF';
 
   return (
-    <div 
-      className="bg-white rounded-lg shadow-md p-6 max-w-sm mx-auto"
-      id={`gym-${gym.code}`}
-    >
-      <div className="gym-header mb-4 text-center">
-        <h3 className="text-lg font-semibold text-gray-700 mb-1">{gym.name}</h3>
-        <span className="inline-block px-3 py-1 rounded-full bg-brand-warm text-white text-sm font-medium">
-          {gym.code}
-        </span>
-      </div>
-
-      {/* Main Logo Display */}
-      <div className="main-logo-display mb-4">
-        <div 
-          className={cn(
-            "main-logo-frame w-full h-24 border-2 border-dashed flex items-center justify-center cursor-pointer transition-all duration-200",
-            isDragOver 
-              ? "border-brand-warm bg-brand-warm/10" 
-              : "border-gray-300 hover:border-gray-400"
-          )}
-          onClick={triggerFileUpload}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          {mainLogo ? (
-            <img 
-              src={mainLogo.file_url} 
-              alt="Main logo" 
-              className="max-h-20 max-w-full object-contain"
-            />
-          ) : (
-            <div className="text-gray-400 text-center text-sm">
-              {isDragOver ? (
-                <div className="text-brand-warm font-medium">Drop files here</div>
-              ) : (
-                <>Click or drag to add<br />main logo</>
-              )}
-            </div>
-          )}
-        </div>
-        
-        {/* Upload Progress */}
-        {uploadProgress && (
-          <div className="mt-2 text-center">
-            <div className="text-sm text-gray-600 mb-1">
-              Uploading {uploadProgress.completed} of {uploadProgress.total} files...
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-brand-warm h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(uploadProgress.completed / uploadProgress.total) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Color Swatches */}
-      <div className="color-rows space-y-2 mb-4">
-        {gym.colors.map((color) => (
-          <div key={color.id} className="flex items-center justify-center gap-3">
-            <div 
-              className="w-8 h-8 rounded border cursor-pointer transition-transform hover:scale-105"
-              style={{ backgroundColor: color.color_hex }}
-              onClick={() => editColor(color.id, color.color_hex)}
-            />
-            <span className="text-sm font-mono text-gray-600 select-all">
-              {color.color_hex}
+    <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
+      <BrandCard 
+        variant="compact"
+        className="max-w-sm mx-auto transition-smooth hover:shadow-2xl"
+        id={`gym-${gym.code}`}
+      >
+        <BrandCardHeader className="text-center pb-4">
+          <div className="mb-3">
+            <span className="inline-block px-4 py-2 rounded-full bg-gym-primary text-gym-primary-foreground text-sm font-bold tracking-wider">
+              {gym.code}
             </span>
-            <div className="flex gap-1 ml-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyColor(color.color_hex, true)}
-                className="px-2 py-1 h-7 text-xs"
-                title="Copy with #"
-              >
-                #
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyColor(color.color_hex, false)}
-                className="px-2 py-1 h-7 text-xs"
-                title="Copy without #"
-              >
-                HEX
-              </Button>
-            </div>
           </div>
-        ))}
-      </div>
+          <BrandCardTitle className="text-lg text-foreground">
+            {gym.name}
+          </BrandCardTitle>
+        </BrandCardHeader>
 
-      {/* Copy Buttons */}
-      <div className="space-y-3 mb-6">
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            onClick={() => copyGymColors(true)}
-            className="text-sm py-2 bg-brand-warm hover:bg-brand-warm/80 text-white"
-          >
-            Copy All Colors
-          </Button>
-          <Button
-            onClick={() => copyGymColors(false)}
-            className="text-sm py-2 bg-brand-cool hover:bg-brand-cool/80 text-white"
-          >
-            Copy Colors (No #)
-          </Button>
-        </div>
-
-        <Link to={`/gym/${gym.code}`} className="w-full">
-          <Button className="w-full text-sm py-2 bg-brand-soft hover:bg-brand-soft/80 text-white">
-            View {gym.code} Profile
-          </Button>
-        </Link>
-      </div>
-
-      {/* Logo Grid Section */}
-      {showAllLogos && gym.logos.length > 0 && (
-        <div className="space-y-3 mb-4">
-          <h4 className="text-sm font-medium text-gray-700">All Logos</h4>
-          <div className="space-y-3">
-            {gym.logos.map((logo) => (
-              <div key={logo.id} className="bg-gray-50 rounded p-3 space-y-2">
-                <div className="flex items-center gap-3">
+        <BrandCardContent>
+          {/* Main Logo Display */}
+          <div className="mb-6">
+            <div 
+              className={cn(
+                "w-full h-32 border-2 border-dashed rounded-xl flex items-center justify-center cursor-pointer transition-smooth bg-gradient-primary",
+                isDragOver 
+                  ? "border-gym-primary/60 bg-gym-primary/20" 
+                  : "border-gym-primary/30 hover:border-gym-primary/50"
+              )}
+              onClick={triggerFileUpload}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {mainLogo ? (
+                <div className="relative group">
                   <img 
-                    src={logo.file_url} 
-                    alt={logo.filename}
-                    className="w-12 h-12 object-contain cursor-pointer rounded"
-                    onClick={() => setMainLogo(logo.id)}
-                    title="Click to set as main logo"
+                    src={mainLogo.file_url} 
+                    alt="Main logo" 
+                    className="max-h-28 max-w-full object-contain drop-shadow-lg"
                   />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-medium text-gray-700 truncate">
-                      {logo.filename}
-                    </div>
-                    <div className="text-xs text-gray-500 break-all">
-                      {logo.file_url}
-                    </div>
+                  <div className="absolute inset-0 bg-gym-primary/10 opacity-0 group-hover:opacity-100 transition-smooth rounded-lg" />
+                </div>
+              ) : (
+                <div className="text-center">
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-gym-primary" />
+                  <div className="text-gym-primary font-medium text-sm">
+                    {isDragOver ? "Drop files here" : "Click or drag to add logo"}
                   </div>
                 </div>
-                
-                <div className="flex gap-1 justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyLogoUrl(logo.file_url, logo.filename)}
-                    className="px-2 py-1 h-7 text-xs"
-                    title="Copy URL"
-                  >
-                    <Copy className="w-3 h-3 mr-1" />
-                    URL
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setMainLogo(logo.id)}
-                    className={cn(
-                      "px-2 py-1 h-7 text-xs",
-                      logo.is_main_logo && "bg-yellow-100 text-yellow-800"
-                    )}
-                    title="Set as main logo"
-                  >
-                    <Star className="w-3 h-3 mr-1" />
-                    {logo.is_main_logo ? "Main" : "Set"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => deleteLogo(logo.id)}
-                    className="px-2 py-1 h-7 text-xs text-red-500 hover:bg-red-50"
-                    title="Delete logo"
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
+              )}
+            </div>
+            
+            {/* Upload Progress */}
+            {uploadProgress && (
+              <div className="mt-3 text-center">
+                <div className="text-sm text-muted-foreground mb-2">
+                  Uploading {uploadProgress.completed} of {uploadProgress.total} files...
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div 
+                    className="bg-gym-primary h-2 rounded-full transition-smooth"
+                    style={{ width: `${(uploadProgress.completed / uploadProgress.total) * 100}%` }}
+                  />
                 </div>
               </div>
-            ))}
+            )}
           </div>
-        </div>
-      )}
 
-      <Input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        accept="image/*"
-        onChange={handleFileUpload}
-        className="hidden"
-      />
-    </div>
+          {/* Brand Colors */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-semibold text-foreground">🎨 Brand Colors</h4>
+            </div>
+            <div className="space-y-3">
+              {gym.colors.map((color, index) => (
+                <ColorSwatch
+                  key={color.id}
+                  color={color.color_hex}
+                  label={`Primary Color ${index + 1}`}
+                  size="md"
+                  showControls={true}
+                  editMode={editMode}
+                  onEdit={() => editColor(color.id, color.color_hex)}
+                  className="p-3 rounded-xl bg-card/30 border border-border/50 hover:bg-card/50 transition-smooth"
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-3 mb-6">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={() => copyGymColors(true)}
+                variant="outline"
+                size="sm"
+                className="text-xs bg-gym-primary/10 border-gym-primary/30 hover:bg-gym-primary/20 text-gym-primary"
+              >
+                <Copy className="w-3 h-3 mr-1" />
+                Copy All
+              </Button>
+              <Button
+                onClick={() => copyGymColors(false)}
+                variant="outline"
+                size="sm"
+                className="text-xs bg-gym-secondary/10 border-gym-secondary/30 hover:bg-gym-secondary/20 text-gym-secondary"
+              >
+                <Copy className="w-3 h-3 mr-1" />
+                No #
+              </Button>
+            </div>
+
+            <Link to={`/gym/${gym.code}`} className="w-full">
+              <Button className="w-full text-sm py-2 bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg hover:shadow-xl transition-smooth">
+                <Eye className="w-4 h-4 mr-2" />
+                View {gym.code} Profile
+              </Button>
+            </Link>
+          </div>
+
+          {/* Logo Gallery */}
+          {showAllLogos && gym.logos.length > 0 && (
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-foreground flex items-center">
+                🖼️ All Logos
+                <span className="ml-2 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                  {gym.logos.length}
+                </span>
+              </h4>
+              <div className="space-y-3">
+                {gym.logos.map((logo) => (
+                  <div key={logo.id} className="bg-card/30 backdrop-blur-sm rounded-xl p-3 border border-border/50 transition-smooth hover:bg-card/50">
+                    <div className="flex items-center gap-3 mb-2">
+                      <img 
+                        src={logo.file_url} 
+                        alt={logo.filename}
+                        className="w-10 h-10 object-contain cursor-pointer rounded-lg bg-background/50 p-1"
+                        onClick={() => setMainLogo(logo.id)}
+                        title="Click to set as main logo"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-medium text-foreground truncate">
+                          {logo.filename}
+                        </div>
+                        {logo.is_main_logo && (
+                          <span className="text-xs text-gym-primary font-medium">Main Logo</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-1 justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyLogoUrl(logo.file_url, logo.filename)}
+                        className="px-2 py-1 h-7 text-xs"
+                        title="Copy URL"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMainLogo(logo.id)}
+                        className={cn(
+                          "px-2 py-1 h-7 text-xs",
+                          logo.is_main_logo && "bg-gym-primary/20 text-gym-primary border-gym-primary/30"
+                        )}
+                        title="Set as main logo"
+                      >
+                        <Star className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteLogo(logo.id)}
+                        className="px-2 py-1 h-7 text-xs text-destructive hover:bg-destructive/10"
+                        title="Delete logo"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </BrandCardContent>
+      </BrandCard>
+    </GymColorProvider>
   );
 };

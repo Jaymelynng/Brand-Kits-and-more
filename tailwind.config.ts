@@ -46,6 +46,8 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+          bg: "hsl(var(--card-bg))",
+          border: "hsl(var(--card-border))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -63,11 +65,31 @@ export default {
           soft: "hsl(var(--brand-soft))",
           neutral: "hsl(var(--brand-neutral))",
         },
+        // Dynamic gym colors
+        "gym-primary": {
+          DEFAULT: "hsl(var(--gym-primary))",
+          foreground: "hsl(var(--gym-primary-light))",
+          light: "hsl(var(--gym-primary-light))",
+        },
+        "gym-secondary": {
+          DEFAULT: "hsl(var(--gym-secondary))",
+          foreground: "hsl(var(--gym-secondary-light))",
+          light: "hsl(var(--gym-secondary-light))",
+        },
       },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-card": "var(--gradient-card)",
+      },
+      boxShadow: {
+        elegant: "var(--shadow-elegant)",
+        glow: "var(--shadow-glow)",
+      },
+      backdropBlur: {
+        sm: "var(--backdrop-blur)",
+      },
+      transitionTimingFunction: {
+        smooth: "var(--transition-smooth)",
       },
       keyframes: {
         "accordion-down": {
