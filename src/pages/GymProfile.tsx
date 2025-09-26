@@ -1,8 +1,9 @@
 import { useParams, Link } from "react-router-dom";
-import { useGyms } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo } from "@/hooks/useGyms";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Download, Copy } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { ArrowLeft, Download, Copy, Star } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ const GymProfile = () => {
   const { data: gyms = [], isLoading, error } = useGyms();
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  const setMainLogoMutation = useSetMainLogo();
 
   const gym = gyms.find(g => g.code === gymCode);
 
@@ -48,6 +50,31 @@ const GymProfile = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const copyUrl = (url: string) => {
+    navigator.clipboard.writeText(url).then(() => {
+      showCopyFeedback(url, 'URL copied to clipboard!');
+    });
+  };
+
+  const setMainLogo = (logoId: string) => {
+    if (!gym) return;
+    setMainLogoMutation.mutate({ gymId: gym.id, logoId }, {
+      onSuccess: () => {
+        toast({
+          description: 'Main logo updated successfully!',
+          duration: 2000,
+        });
+      },
+      onError: () => {
+        toast({
+          variant: "destructive",
+          description: 'Failed to update main logo',
+          duration: 2000,
+        });
+      }
+    });
   };
 
   if (isLoading) {
@@ -177,45 +204,88 @@ const GymProfile = () => {
             </CardContent>
           </Card>
 
-          {/* Logo Gallery */}
+          {/* Logo Gallery Carousel */}
           {gym.logos.length > 0 && (
             <Card className="lg:col-span-3">
               <CardHeader>
                 <CardTitle>📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {gym.logos.map((logo) => (
-                    <div 
-                      key={logo.id} 
-                      className="relative group bg-muted/20 rounded-lg p-3 border-2 border-border hover:border-brand-cool/50 transition-colors"
-                    >
-                      <div className="aspect-square flex items-center justify-center mb-2">
-                        <img 
-                          src={logo.file_url} 
-                          alt={logo.filename}
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                      <div className="text-xs text-muted-foreground truncate mb-2">
-                        {logo.filename}
-                      </div>
-                      {logo.is_main_logo && (
-                        <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-medium">
-                          Main
+                <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+                  <CarouselContent>
+                    {gym.logos.map((logo) => (
+                      <CarouselItem key={logo.id} className="md:basis-1/2 lg:basis-1/3">
+                        <div className="p-1">
+                          <Card className="relative">
+                            <CardContent className="p-6">
+                              {/* Main Logo Badge */}
+                              {logo.is_main_logo && (
+                                <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1">
+                                  <Star className="w-3 h-3" />
+                                  Main
+                                </div>
+                              )}
+                              
+                              {/* Logo Display */}
+                              <div className="aspect-square flex items-center justify-center mb-4 bg-muted/20 rounded-lg border-2 border-dashed border-border">
+                                <img 
+                                  src={logo.file_url} 
+                                  alt={logo.filename}
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                              </div>
+                              
+                              {/* Logo Info */}
+                              <div className="text-sm font-medium text-foreground truncate mb-4">
+                                {logo.filename}
+                              </div>
+                              
+                              {/* Action Buttons */}
+                              <div className="flex flex-col gap-2">
+                                <Button
+                                  onClick={() => downloadLogo(logo.file_url, logo.filename)}
+                                  size="sm"
+                                  className="w-full bg-brand-cool hover:bg-brand-cool/80 text-white"
+                                >
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Download
+                                </Button>
+                                
+                                <Button
+                                  onClick={() => copyUrl(logo.file_url)}
+                                  size="sm"
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full",
+                                    copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
+                                  )}
+                                >
+                                  <Copy className="w-4 h-4 mr-2" />
+                                  {copiedStates[logo.file_url] ? 'Copied!' : 'Copy URL'}
+                                </Button>
+                                
+                                {!logo.is_main_logo && (
+                                  <Button
+                                    onClick={() => setMainLogo(logo.id)}
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                                    disabled={setMainLogoMutation.isPending}
+                                  >
+                                    <Star className="w-4 h-4 mr-2" />
+                                    {setMainLogoMutation.isPending ? 'Setting...' : 'Set as Main'}
+                                  </Button>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
                         </div>
-                      )}
-                      <Button
-                        onClick={() => downloadLogo(logo.file_url, logo.filename)}
-                        size="sm"
-                        className="w-full opacity-0 group-hover:opacity-100 transition-opacity bg-brand-soft hover:bg-brand-soft/80 text-white"
-                      >
-                        <Download className="w-3 h-3 mr-1" />
-                        Download
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
               </CardContent>
             </Card>
           )}
