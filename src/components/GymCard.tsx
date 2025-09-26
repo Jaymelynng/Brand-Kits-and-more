@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { GymWithColors, useUpdateGymColor, useUploadLogo, useSetMainLogo, useDeleteLogo } from "@/hooks/useGyms";
@@ -131,9 +132,6 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
     deleteLogoMutation.mutate(logoId);
   };
 
-  const viewGymProfile = () => {
-    alert(`Gym Profile for ${gym.code} - This will open a detailed profile with additional gym information, contact details, and brand guidelines.`);
-  };
 
   const mainLogo = gym.logos.find(logo => logo.is_main_logo);
 
@@ -144,10 +142,7 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
     >
       <div className="gym-header mb-4 text-left">
         <h3 className="text-lg font-semibold text-gray-700 mb-1">{gym.name}</h3>
-        <span 
-          className="inline-block px-3 py-1 rounded-full text-white text-sm font-medium"
-          style={{ backgroundColor: '#A4968A' }}
-        >
+        <span className="inline-block px-3 py-1 rounded-full bg-brand-warm text-white text-sm font-medium">
           {gym.code}
         </span>
       </div>
@@ -215,26 +210,22 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
       <div className="space-y-2 mb-4">
         <Button
           onClick={() => copyGymColors(true)}
-          className="w-full text-sm py-2"
-          style={{ backgroundColor: '#A4968A', color: 'white' }}
+          className="w-full text-sm py-2 bg-brand-warm hover:bg-brand-warm/80 text-white"
         >
           Copy All {gym.code} Colors
         </Button>
         <Button
           onClick={() => copyGymColors(false)}
-          className="w-full text-sm py-2"
-          style={{ backgroundColor: '#7A9CB8', color: 'white' }}
+          className="w-full text-sm py-2 bg-brand-cool hover:bg-brand-cool/80 text-white"
         >
           Copy {gym.code} Colors (No #)
         </Button>
 
-        <Button
-          onClick={viewGymProfile}
-          className="w-full text-sm py-2"
-          style={{ backgroundColor: '#B5A7C4', color: 'white' }}
-        >
-          View {gym.code} Profile
-        </Button>
+        <Link to={`/gym/${gym.code}`} className="w-full">
+          <Button className="w-full text-sm py-2 bg-brand-soft hover:bg-brand-soft/80 text-white">
+            View {gym.code} Profile
+          </Button>
+        </Link>
       </div>
 
       {/* Logo Upload Section */}

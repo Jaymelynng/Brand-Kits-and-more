@@ -143,25 +143,22 @@ const Index = () => {
             </p>
 
             {/* Action Buttons */}
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-4">
               <Button
                 onClick={copyAllGyms}
-                className="px-6 py-2"
-                style={{ backgroundColor: '#A4968A', color: 'white' }}
+                className="px-6 py-2 bg-brand-warm hover:bg-brand-warm/80 text-white"
               >
                 Copy All Gym Colors
               </Button>
               <Button
                 onClick={() => setIsAddModalOpen(true)}
-                className="px-6 py-2"
-                style={{ backgroundColor: '#7A9CB8', color: 'white' }}
+                className="px-6 py-2 bg-brand-cool hover:bg-brand-cool/80 text-white"
               >
                 Add New Gym
               </Button>
               <Button
                 onClick={toggleEditMode}
-                className="px-6 py-2"
-                style={{ backgroundColor: '#8BA3C0', color: 'white' }}
+                className="px-6 py-2 bg-brand-soft hover:bg-brand-soft/80 text-white"
               >
                 {editMode ? 'Exit Edit Mode' : 'Edit Mode'}
               </Button>
