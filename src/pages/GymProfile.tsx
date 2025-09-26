@@ -353,29 +353,32 @@ const GymProfile = () => {
             </BrandCard>
           </div>
 
-          {/* Brand Stats - Compact */}
-          <BrandCard variant="hero" className="mb-8">
-            <BrandCardHeader className="pb-4">
-              <BrandCardTitle className="text-xl">📊 Brand Assets</BrandCardTitle>
-            </BrandCardHeader>
-            <BrandCardContent className="pt-0">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 rounded-xl bg-gym-primary/10">
-                  <div className="text-3xl font-bold mb-1 text-gym-primary">
-                    {gym.logos.length}
-                  </div>
-                  <div className="text-sm font-medium text-muted-foreground">Logo Variations</div>
-                </div>
-                <div className="text-center p-4 rounded-xl bg-gym-secondary/10">
-                  <div className="text-3xl font-bold mb-1 text-gym-secondary">
-                    {gym.colors.length}
-                  </div>
-                  <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
-                </div>
-              </div>
-            </BrandCardContent>
-          </BrandCard>
         </div>
+      </div>
+
+      {/* Brand Assets Section */}
+      <div className="container mx-auto px-6 py-8">
+        <BrandCard variant="hero" className="mb-8">
+          <BrandCardHeader className="pb-4">
+            <BrandCardTitle className="text-xl">📊 Brand Assets</BrandCardTitle>
+          </BrandCardHeader>
+          <BrandCardContent className="pt-0">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-4 rounded-xl bg-gym-primary/10">
+                <div className="text-3xl font-bold mb-1 text-gym-primary">
+                  {gym.logos.length}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">Logo Variations</div>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-gym-secondary/10">
+                <div className="text-3xl font-bold mb-1 text-gym-secondary">
+                  {gym.colors.length}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
+              </div>
+            </div>
+          </BrandCardContent>
+        </BrandCard>
       </div>
 
       {/* Content Section */}
