@@ -28,7 +28,8 @@ export const GymNavigation = ({
   const isPerfectState = selectedCount === totalCount;
 
   return (
-    <div className="text-center py-8 bg-background">
+    <div className="text-center py-8" 
+         style={{ background: `linear-gradient(135deg, hsl(var(--brand-light) / 0.8) 0%, hsl(var(--brand-lighter) / 0.9) 100%)` }}>
       {/* Gym Navigation Grid */}
       <div className="max-w-6xl mx-auto mb-8">
         <div className="flex flex-wrap justify-center gap-4">

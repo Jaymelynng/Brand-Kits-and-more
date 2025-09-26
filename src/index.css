@@ -31,10 +31,14 @@ All colors MUST be HSL.
     --radius: 0.5rem;
     
     /* Custom brand colors for the gym dashboard */
-    --brand-warm: 25 15% 64%;
-    --brand-cool: 214 25% 62%;
-    --brand-soft: 260 15% 70%;
-    --brand-neutral: 218 10% 58%;
+    --brand-warm: 0 27% 68%;
+    --brand-cool: 228 21% 73%;
+    --brand-soft: 28 25% 79%;
+    --brand-neutral: 0 0% 45%;
+    --brand-secondary: 0 24% 63%;
+    --brand-light: 220 13% 91%;
+    --brand-lighter: 0 0% 90%;
+    --brand-accent: 0 24% 70%;
     
     /* Dynamic gym colors - will be overridden by JS */
     --gym-primary: 222 47% 11%;
@@ -101,8 +105,8 @@ All colors MUST be HSL.
     margin: 0;
     padding: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: linear-gradient(135deg, hsl(var(--brand-light)) 0%, hsl(var(--brand-lighter)) 100%);
     min-height: 100vh;
-    color: #333;
+    color: hsl(var(--brand-neutral));
   }
 }

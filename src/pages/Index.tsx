@@ -122,22 +122,26 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-gray-600 text-xl">Loading gym data...</div>
+      <div className="min-h-screen flex items-center justify-center" 
+           style={{ background: `linear-gradient(135deg, hsl(var(--brand-light)) 0%, hsl(var(--brand-lighter)) 100%)` }}>
+        <div className="text-xl" style={{ color: `hsl(var(--brand-neutral))` }}>Loading gym data...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center"
+           style={{ background: `linear-gradient(135deg, hsl(var(--brand-light)) 0%, hsl(var(--brand-lighter)) 100%)` }}>
         <div className="text-red-600 text-xl">Error loading gym data</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-brand-light to-brand-lighter"
+      style={{ background: `linear-gradient(135deg, hsl(var(--brand-light)) 0%, hsl(var(--brand-lighter)) 100%)` }}
+    >
       {/* Navigation */}
       <GymNavigation 
         gyms={gyms} 
@@ -154,10 +158,14 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-6">
           {/* Main Header */}
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold text-gray-700 mb-2 flex items-center justify-center gap-2">
+            <h2 className="text-4xl font-bold mb-2 flex items-center justify-center gap-2"
+                style={{ color: `hsl(var(--brand-neutral))` }}
+            >
               🏆 Gym Brand Kit Database
             </h2>
-            <p className="text-gray-500 text-lg mb-6">
+            <p className="text-lg mb-6"
+               style={{ color: `hsl(var(--brand-neutral) / 0.8)` }}
+            >
               All gym brand colors and logos displayed for easy reference and copying
             </p>
 
@@ -198,7 +206,8 @@ const Index = () => {
 
           {/* Footer */}
           <div className="mt-16 text-center">
-            <p className="text-gray-500 text-sm leading-relaxed max-w-4xl mx-auto">
+            <p className="text-sm leading-relaxed max-w-4xl mx-auto"
+               style={{ color: `hsl(var(--brand-neutral) / 0.7)` }}>
               Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
             </p>
           </div>

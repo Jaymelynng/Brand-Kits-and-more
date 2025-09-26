@@ -201,7 +201,16 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <BrandCard 
         variant="compact"
-        className="max-w-sm mx-auto transition-smooth hover:shadow-2xl"
+        className="max-w-sm mx-auto transition-smooth hover:shadow-2xl group"
+        style={{
+          '--hover-shadow': `0 0 30px ${primaryColor}30, 0 0 60px ${primaryColor}15`
+        } as React.CSSProperties}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = `0 0 30px ${primaryColor}30, 0 0 60px ${primaryColor}15`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = '';
+        }}
         id={`gym-${gym.code}`}
       >
         <BrandCardHeader className="text-center pb-4">
