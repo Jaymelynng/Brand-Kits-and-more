@@ -200,29 +200,54 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <BrandCard 
-        variant="compact"
-        className="max-w-sm mx-auto transition-smooth hover:shadow-2xl group"
+        className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group border-2"
         style={{
-          '--hover-shadow': `0 0 30px ${primaryColor}30, 0 0 60px ${primaryColor}15`
-        } as React.CSSProperties}
+          borderColor: editMode 
+            ? 'hsl(var(--brand-rose-gold))' 
+            : 'transparent',
+          boxShadow: '0 8px 25px hsl(var(--brand-rose-gold) / 0.15)',
+        }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = `0 0 30px ${primaryColor}30, 0 0 60px ${primaryColor}15`;
+          e.currentTarget.style.boxShadow = '0 15px 35px hsl(var(--brand-rose-gold) / 0.25)';
+          if (!editMode) {
+            e.currentTarget.style.borderColor = 'hsl(var(--brand-blue-gray))';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = '';
+          e.currentTarget.style.boxShadow = '0 8px 25px hsl(var(--brand-rose-gold) / 0.15)';
+          if (!editMode) {
+            e.currentTarget.style.borderColor = 'transparent';
+          }
         }}
         id={`gym-${gym.code}`}
       >
-        <BrandCardHeader className="text-center pb-4">
+        <div className="text-center pb-4 px-6 border-b"
+             style={{
+               background: `
+                 radial-gradient(1px 1px at 15px 10px, rgba(255,255,255,0.6), transparent),
+                 radial-gradient(1px 1px at 35px 20px, rgba(255,255,255,0.4), transparent),
+                 radial-gradient(1px 1px at 55px 15px, rgba(255,255,255,0.7), transparent),
+                 linear-gradient(135deg, rgba(196, 164, 164, 0.12) 0%, rgba(182, 148, 148, 0.12) 50%, rgba(168, 132, 132, 0.12) 100%)
+               `,
+               borderColor: 'hsl(var(--brand-rose-gold) / 0.2)'
+             }}>
           <div className="mb-3">
-            <span className="inline-block px-4 py-2 rounded-full bg-gym-primary text-gym-primary-foreground text-sm font-bold tracking-wider">
+            <span className="inline-block px-4 py-2 rounded-full text-sm font-bold tracking-wider text-white"
+                  style={{
+                    background: `
+                      radial-gradient(1px 1px at 5px 5px, rgba(255,255,255,0.9), transparent),
+                      radial-gradient(1px 1px at 15px 10px, rgba(255,255,255,0.7), transparent),
+                      radial-gradient(1px 1px at 25px 8px, rgba(255,255,255,0.8), transparent),
+                      linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)
+                    `
+                  }}>
               {gym.code}
             </span>
           </div>
-          <BrandCardTitle className="text-lg text-foreground">
+          <h3 className="text-lg font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
             {gym.name}
-          </BrandCardTitle>
-        </BrandCardHeader>
+          </h3>
+        </div>
 
         <BrandCardContent>
           {/* Main Logo Display */}
@@ -302,7 +327,16 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 onClick={() => copyGymColors(true)}
                 variant="outline"
                 size="sm"
-                className="text-xs bg-gym-primary/10 border-gym-primary/30 hover:bg-gym-primary/20 text-gym-primary"
+                className="text-xs text-white"
+                style={{
+                  background: `
+                    radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.8), transparent),
+                    radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.6), transparent),
+                    radial-gradient(1px 1px at 40px 12px, rgba(255,255,255,0.9), transparent),
+                    linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)
+                  `,
+                  border: 'none'
+                }}
               >
                 <Copy className="w-3 h-3 mr-1" />
                 Copy All
@@ -311,7 +345,15 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 onClick={() => copyGymColors(false)}
                 variant="outline"
                 size="sm"
-                className="text-xs bg-gym-secondary/10 border-gym-secondary/30 hover:bg-gym-secondary/20 text-gym-secondary"
+                className="text-xs text-white"
+                style={{
+                  background: `
+                    radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.8), transparent),
+                    radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.6), transparent),
+                    linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
+                  `,
+                  border: 'none'
+                }}
               >
                 <Copy className="w-3 h-3 mr-1" />
                 No #
@@ -319,7 +361,10 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             </div>
 
             <Link to={`/gym/${gym.code}`} className="w-full">
-              <Button className="w-full text-sm py-2 bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg hover:shadow-xl transition-smooth">
+              <Button className="w-full text-sm py-2 text-white shadow-lg hover:shadow-xl transition-smooth"
+                      style={{
+                        background: `linear-gradient(135deg, hsl(280, 20%, 70%) 0%, hsl(280, 20%, 65%) 50%, hsl(280, 20%, 60%) 100%)`
+                      }}>
                 <Eye className="w-4 h-4 mr-2" />
                 View {gym.code} Profile
               </Button>

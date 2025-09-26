@@ -16,8 +16,8 @@ export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = 
           "relative overflow-hidden",
           "hover:scale-110 hover:-rotate-12",
           "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/40 before:via-transparent before:to-transparent",
-          "after:absolute after:inset-0 after:bg-gradient-to-tl after:from-white/20 after:via-transparent after:to-transparent",
-          isSelected && "animate-pulse shadow-2xl scale-110"
+          "after:absolute after:inset-0 after:bg-gradient-to-tl after:from-white/20 before:via-transparent before:to-transparent",
+          isSelected && "shadow-2xl scale-110"
         )}
         style={{
           backgroundColor: primaryColor,
@@ -29,11 +29,11 @@ export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = 
         data-gym={gymCode}
         title={isSelected ? `Deselect ${gymCode}` : `Select ${gymCode}`}
       >
-        {/* Sparkle animations */}
+        {/* Subtle sparkles on hover only */}
         <div className={cn(
           "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-          "before:absolute before:top-1 before:left-1 before:w-1 before:h-1 before:bg-white before:rounded-full before:animate-pulse",
-          "after:absolute after:bottom-1 after:right-1 after:w-0.5 after:h-0.5 after:bg-white after:rounded-full after:animate-pulse after:animation-delay-150"
+          "before:absolute before:top-1 before:left-1 before:w-1 before:h-1 before:bg-white before:rounded-full",
+          "after:absolute after:bottom-1 after:right-1 after:w-0.5 after:h-0.5 after:bg-white after:rounded-full"
         )} />
         
         {/* Central highlight */}

@@ -28,8 +28,15 @@ export const GymNavigation = ({
   const isPerfectState = selectedCount === totalCount;
 
   return (
-    <div className="text-center py-8" 
-         style={{ background: `linear-gradient(135deg, hsl(var(--brand-light) / 0.8) 0%, hsl(var(--brand-lighter) / 0.9) 100%)` }}>
+    <div className="text-center py-8"
+         style={{ 
+           background: `
+             radial-gradient(1px 1px at 15px 10px, rgba(255,255,255,0.6), transparent),
+             radial-gradient(1px 1px at 35px 20px, rgba(255,255,255,0.4), transparent),
+             radial-gradient(1px 1px at 55px 15px, rgba(255,255,255,0.7), transparent),
+             linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.8) 0%, hsl(var(--brand-rose-gold-mid) / 0.9) 100%)
+           `
+         }}>
       {/* Gym Navigation Grid */}
       <div className="max-w-6xl mx-auto mb-8">
         <div className="flex flex-wrap justify-center gap-4">
@@ -37,7 +44,15 @@ export const GymNavigation = ({
             <div key={gym.code} className="flex flex-col items-center gap-2">
               <Button
                 onClick={() => onScrollToGym(gym.code)}
-                className="px-4 py-2 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-200 bg-brand-warm hover:bg-brand-warm/80 text-white"
+                className="px-4 py-2 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-200 text-white"
+                style={{
+                  background: `
+                    radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.9), transparent),
+                    radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.7), transparent),
+                    linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)
+                  `,
+                  boxShadow: '0 3px 10px hsl(var(--brand-rose-gold) / 0.4)'
+                }}
               >
                 {gym.code}
               </Button>
@@ -56,23 +71,50 @@ export const GymNavigation = ({
       <div className="flex flex-wrap justify-center gap-4 mb-8">
         <Button
           onClick={selectedCount === totalCount ? onDeselectAllGyms : onSelectAllGyms}
-          className="px-6 py-2 bg-brand-neutral hover:bg-brand-neutral/80 text-white rounded-full"
+          className="px-6 py-2 rounded-full text-white"
+          style={{
+            background: `
+              linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
+            `,
+            boxShadow: '0 2px 8px hsl(var(--brand-blue-gray) / 0.3)'
+          }}
         >
           {selectedCount === totalCount ? 'Deselect All' : 'Select All'}
         </Button>
         <Button
           onClick={onCopySelected}
-          className="px-6 py-2 bg-brand-cool hover:bg-brand-cool/80 text-white rounded-full"
           disabled={selectedCount === 0}
+          className="px-6 py-2 rounded-full text-white"
+          style={{
+            background: selectedCount === 0 
+              ? 'hsl(var(--brand-blue-gray) / 0.5)'
+              : `
+                radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.6), transparent),
+                linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
+              `,
+            boxShadow: selectedCount === 0 
+              ? 'none'
+              : '0 2px 8px hsl(var(--brand-blue-gray) / 0.3)'
+          }}
         >
           Copy Selected ({selectedCount})
         </Button>
-        <div className={cn(
-          "px-4 py-2 rounded-full text-sm font-medium border-2",
-          isPerfectState 
-            ? "bg-green-100 text-green-800 border-green-300" 
-            : "bg-muted text-muted-foreground border-border"
-        )}>
+        <div className="px-4 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200"
+             style={{
+               background: isPerfectState 
+                 ? 'rgba(212, 175, 55, 0.15)' 
+                 : 'rgba(255, 255, 255, 0.9)',
+               borderColor: isPerfectState 
+                 ? 'hsl(var(--brand-gold))' 
+                 : 'hsl(var(--brand-rose-gold) / 0.3)',
+               color: isPerfectState 
+                 ? 'hsl(43, 74%, 35%)' 
+                 : 'hsl(var(--brand-text-primary))',
+               boxShadow: isPerfectState 
+                 ? '0 2px 8px hsl(var(--brand-gold) / 0.2)' 
+                 : 'none'
+             }}>
           {selectedCount} of {totalCount} selected
         </div>
       </div>

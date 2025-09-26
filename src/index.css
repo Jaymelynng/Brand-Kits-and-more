@@ -30,15 +30,16 @@ All colors MUST be HSL.
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
     
-    /* Custom brand colors for the gym dashboard */
-    --brand-warm: 0 27% 68%;
-    --brand-cool: 228 21% 73%;
-    --brand-soft: 28 25% 79%;
-    --brand-neutral: 0 0% 45%;
-    --brand-secondary: 0 24% 63%;
-    --brand-light: 220 13% 91%;
-    --brand-lighter: 0 0% 90%;
-    --brand-accent: 0 24% 70%;
+    /* Custom brand colors for the gym dashboard - Rose Gold & Blue Gray Palette */
+    --brand-rose-gold: 0 20% 70%;        /* #C4A4A4 */
+    --brand-rose-gold-mid: 0 20% 65%;    /* #B69494 */
+    --brand-rose-gold-dark: 0 20% 60%;   /* #A88484 */
+    --brand-blue-gray: 220 20% 70%;      /* #A4B4C4 */
+    --brand-blue-gray-mid: 220 20% 65%;  /* #94A4B4 */
+    --brand-blue-gray-dark: 220 20% 60%; /* #8494A4 */
+    --brand-text-primary: 0 0% 42%;      /* #6B6B6B */
+    --brand-white: 0 0% 100%;            /* #FFFFFF */
+    --brand-gold: 43 74% 49%;            /* #D4AF37 for perfect state */
     
     /* Dynamic gym colors - will be overridden by JS */
     --gym-primary: 222 47% 11%;
@@ -105,8 +106,39 @@ All colors MUST be HSL.
     margin: 0;
     padding: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    background: linear-gradient(135deg, hsl(var(--brand-light)) 0%, hsl(var(--brand-lighter)) 100%);
+    background: 
+      radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.9), transparent),
+      radial-gradient(1px 1px at 40px 25px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 60px 10px, rgba(255,255,255,0.8), transparent),
+      linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%);
     min-height: 100vh;
-    color: hsl(var(--brand-neutral));
+    color: hsl(var(--brand-text-primary));
+    animation: sparkle 3s ease-in-out infinite alternate;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(1px 1px at 10px 10px, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 30px 20px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 50px 15px, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 70px 25px, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 90px 8px, rgba(255,255,255,0.9), transparent),
+      radial-gradient(1px 1px at 110px 30px, rgba(255,255,255,0.4), transparent);
+    background-size: 500px 300px;
+    pointer-events: none;
+    z-index: -1;
+    animation: sparkle 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes sparkle {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
   }
 }

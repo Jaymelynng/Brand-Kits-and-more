@@ -170,22 +170,54 @@ const Index = () => {
             </p>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap gap-3">
               <Button
                 onClick={copyAllGyms}
-                className="px-6 py-2 bg-brand-warm hover:bg-brand-warm/80 text-white"
+                className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                style={{
+                  background: `
+                    radial-gradient(1px 1px at 10px 10px, rgba(255,255,255,0.8), transparent),
+                    radial-gradient(1px 1px at 30px 20px, rgba(255,255,255,0.6), transparent),
+                    radial-gradient(1px 1px at 50px 15px, rgba(255,255,255,0.9), transparent),
+                    linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
+                  `,
+                  boxShadow: '0 4px 15px hsl(var(--brand-blue-gray) / 0.4)'
+                }}
               >
                 Copy All Gym Colors
               </Button>
+              
               <Button
                 onClick={() => setIsAddModalOpen(true)}
-                className="px-6 py-2 bg-brand-cool hover:bg-brand-cool/80 text-white"
+                className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                style={{
+                  background: `
+                    radial-gradient(1px 1px at 10px 10px, rgba(255,255,255,0.8), transparent),
+                    radial-gradient(1px 1px at 30px 20px, rgba(255,255,255,0.6), transparent),
+                    radial-gradient(1px 1px at 50px 15px, rgba(255,255,255,0.9), transparent),
+                    linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
+                  `,
+                  boxShadow: '0 4px 15px hsl(var(--brand-blue-gray) / 0.4)'
+                }}
               >
                 Add New Gym
               </Button>
+
               <Button
                 onClick={toggleEditMode}
-                className="px-6 py-2 bg-brand-soft hover:bg-brand-soft/80 text-white"
+                className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                style={{
+                  background: editMode 
+                    ? `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)`
+                    : `
+                      radial-gradient(1px 1px at 10px 10px, rgba(255,255,255,0.8), transparent),
+                      radial-gradient(1px 1px at 30px 20px, rgba(255,255,255,0.6), transparent),
+                      linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
+                    `,
+                  boxShadow: editMode 
+                    ? '0 4px 15px hsl(var(--brand-rose-gold) / 0.4)'
+                    : '0 4px 15px hsl(var(--brand-blue-gray) / 0.4)'
+                }}
               >
                 {editMode ? 'Exit Edit Mode' : 'Edit Mode'}
               </Button>
@@ -221,11 +253,15 @@ const Index = () => {
       />
 
       {/* Back to Top Button */}
-      {showBackToTop && (
+        {showBackToTop && (
         <Button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 rounded-full w-12 h-12 p-0 bg-brand-warm hover:bg-brand-warm/80 text-white shadow-lg transition-all duration-300 hover:scale-110"
+          className="fixed bottom-8 right-8 z-50 rounded-full w-12 h-12 p-0 text-white shadow-lg transition-all duration-300 hover:scale-110"
           title="Back to top"
+          style={{
+            background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)`,
+            boxShadow: '0 4px 15px hsl(var(--brand-rose-gold) / 0.4)'
+          }}
         >
           <ChevronUp className="w-6 h-6" />
         </Button>
