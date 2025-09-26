@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid } from "lucide-react";
-import { useState, useRef } from "react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Maximize } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -15,12 +16,27 @@ const GymProfile = () => {
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
-  const [viewMode, setViewMode] = useState<'carousel' | 'grid'>('carousel');
+  const [viewMode, setViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('carousel');
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const setMainLogoMutation = useSetMainLogo();
   const uploadLogoMutation = useUploadLogo();
   const deleteLogoMutation = useDeleteLogo();
+
+  // Back to top functionality
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const gym = gyms.find(g => g.code === gymCode);
 
@@ -349,24 +365,37 @@ const GymProfile = () => {
                 <div className="flex items-center justify-between">
                   <CardTitle>📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
                   <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => setViewMode('carousel')}
-                      size="sm"
-                      variant={viewMode === 'carousel' ? 'default' : 'outline'}
-                      className="flex items-center gap-2"
-                    >
-                      <LayoutGrid className="w-4 h-4" />
-                      Carousel
-                    </Button>
-                    <Button
-                      onClick={() => setViewMode('grid')}
-                      size="sm"
-                      variant={viewMode === 'grid' ? 'default' : 'outline'}
-                      className="flex items-center gap-2"
-                    >
-                      <Grid3X3 className="w-4 h-4" />
-                      Grid
-                    </Button>
+                    <Select value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="carousel">
+                          <div className="flex items-center gap-2">
+                            <LayoutGrid className="w-4 h-4" />
+                            Carousel
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="grid">
+                          <div className="flex items-center gap-2">
+                            <Grid3X3 className="w-4 h-4" />
+                            Grid
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="list">
+                          <div className="flex items-center gap-2">
+                            <List className="w-4 h-4" />
+                            List
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="masonry">
+                          <div className="flex items-center gap-2">
+                            <Columns className="w-4 h-4" />
+                            Masonry
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardHeader>
@@ -458,7 +487,7 @@ const GymProfile = () => {
                     <CarouselPrevious />
                     <CarouselNext />
                   </Carousel>
-                ) : (
+                ) : viewMode === 'grid' ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {gym.logos.map((logo) => (
                       <Card key={logo.id} className="relative">
@@ -537,12 +566,186 @@ const GymProfile = () => {
                       </Card>
                     ))}
                   </div>
-                )}
+                ) : viewMode === 'list' ? (
+                  <div className="space-y-4">
+                    {gym.logos.map((logo) => (
+                      <Card key={logo.id} className="relative">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            {/* Logo Thumbnail */}
+                            <div className="w-20 h-20 flex items-center justify-center bg-muted/20 rounded-lg border-2 border-dashed border-border flex-shrink-0">
+                              <img 
+                                src={logo.file_url} 
+                                alt={logo.filename}
+                                className="max-w-full max-h-full object-contain"
+                              />
+                            </div>
+                            
+                            {/* Logo Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="text-lg font-medium text-foreground truncate">
+                                  {logo.filename}
+                                </div>
+                                {logo.is_main_logo && (
+                                  <div className="bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1">
+                                    <Star className="w-3 h-3" />
+                                    Main
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                Click to download or manage this logo
+                              </div>
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <Button
+                                onClick={() => downloadLogo(logo.file_url, logo.filename)}
+                                size="sm"
+                                className="bg-brand-cool hover:bg-brand-cool/80 text-white"
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
+                              </Button>
+                              
+                              <Button
+                                onClick={() => copyUrl(logo.file_url)}
+                                size="sm"
+                                variant="outline"
+                                className={cn(
+                                  copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
+                                )}
+                              >
+                                <Copy className="w-4 h-4 mr-2" />
+                                {copiedStates[logo.file_url] ? 'Copied!' : 'Copy URL'}
+                              </Button>
+                              
+                              {!logo.is_main_logo && (
+                                <Button
+                                  onClick={() => setMainLogo(logo.id)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                                  disabled={setMainLogoMutation.isPending}
+                                >
+                                  <Star className="w-4 h-4 mr-2" />
+                                  {setMainLogoMutation.isPending ? 'Setting...' : 'Set as Main'}
+                                </Button>
+                              )}
+
+                              <Button
+                                onClick={() => handleDeleteLogo(logo.id, logo.filename)}
+                                size="sm"
+                                variant="outline"
+                                className="border-red-300 text-red-700 hover:bg-red-50"
+                                disabled={deleteLogoMutation.isPending}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : viewMode === 'masonry' ? (
+                  <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+                    {gym.logos.map((logo) => (
+                      <Card key={logo.id} className="relative break-inside-avoid mb-6">
+                        <CardContent className="p-4">
+                          {/* Main Logo Badge */}
+                          {logo.is_main_logo && (
+                            <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 z-10">
+                              <Star className="w-3 h-3" />
+                              Main
+                            </div>
+                          )}
+                          
+                          {/* Logo Display - Dynamic height for masonry */}
+                          <div className="flex items-center justify-center mb-4 bg-muted/20 rounded-lg border-2 border-dashed border-border p-4">
+                            <img 
+                              src={logo.file_url} 
+                              alt={logo.filename}
+                              className="w-full h-auto object-contain"
+                            />
+                          </div>
+                          
+                          {/* Logo Info */}
+                          <div className="text-sm font-medium text-foreground truncate mb-4">
+                            {logo.filename}
+                          </div>
+                          
+                           {/* Action Buttons */}
+                           <div className="flex flex-col gap-2">
+                             <Button
+                               onClick={() => downloadLogo(logo.file_url, logo.filename)}
+                               size="sm"
+                               className="w-full bg-brand-cool hover:bg-brand-cool/80 text-white"
+                             >
+                               <Download className="w-4 h-4 mr-2" />
+                               Download
+                             </Button>
+                             
+                             <Button
+                               onClick={() => copyUrl(logo.file_url)}
+                               size="sm"
+                               variant="outline"
+                               className={cn(
+                                 "w-full",
+                                 copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
+                               )}
+                             >
+                               <Copy className="w-4 h-4 mr-2" />
+                               {copiedStates[logo.file_url] ? 'Copied!' : 'Copy URL'}
+                             </Button>
+                             
+                             {!logo.is_main_logo && (
+                               <Button
+                                 onClick={() => setMainLogo(logo.id)}
+                                 size="sm"
+                                 variant="outline"
+                                 className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                                 disabled={setMainLogoMutation.isPending}
+                               >
+                                 <Star className="w-4 h-4 mr-2" />
+                                 {setMainLogoMutation.isPending ? 'Setting...' : 'Set as Main'}
+                               </Button>
+                             )}
+
+                             <Button
+                               onClick={() => handleDeleteLogo(logo.id, logo.filename)}
+                               size="sm"
+                               variant="outline"
+                               className="w-full border-red-300 text-red-700 hover:bg-red-50"
+                               disabled={deleteLogoMutation.isPending}
+                             >
+                               <Trash2 className="w-4 h-4 mr-2" />
+                               {deleteLogoMutation.isPending ? 'Deleting...' : 'Delete'}
+                             </Button>
+                           </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           )}
         </div>
       </div>
+
+      {/* Back to Top Button */}
+      {showBackToTop && (
+        <Button
+          onClick={scrollToTop}
+          size="icon"
+          className="fixed bottom-6 right-6 z-50 bg-brand-warm hover:bg-brand-warm/80 text-white shadow-xl transition-all duration-300 animate-fade-in"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </Button>
+      )}
     </div>
   );
 };
