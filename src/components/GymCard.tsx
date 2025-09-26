@@ -204,8 +204,8 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
       </div>
 
       {/* Copy Buttons */}
-      <div className="space-y-12 mb-8">
-        <div className="grid grid-cols-2 gap-8">
+      <div className="space-y-3 mb-6">
+        <div className="grid grid-cols-2 gap-3">
           <Button
             onClick={() => copyGymColors(true)}
             className="text-sm py-2 bg-brand-warm hover:bg-brand-warm/80 text-white"
@@ -220,7 +220,7 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
           </Button>
         </div>
 
-        <Link to={`/gym/${gym.code}`} className="w-full mt-3">
+        <Link to={`/gym/${gym.code}`} className="w-full">
           <Button className="w-full text-sm py-2 bg-brand-soft hover:bg-brand-soft/80 text-white">
             View {gym.code} Profile
           </Button>

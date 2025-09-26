@@ -5,18 +5,30 @@ import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { ChevronUp } from "lucide-react";
 
 const Index = () => {
   const { data: gyms = [], isLoading, error } = useGyms();
   const [editMode, setEditMode] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedGyms, setSelectedGyms] = useState<Set<string>>(new Set());
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     // Initialize with all gyms selected for perfect 10/10 state
     setSelectedGyms(new Set(gyms.map(gym => gym.code)));
   }, [gyms.length]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      setShowBackToTop(scrollTop > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleGymSelection = (gymCode: string) => {
     setSelectedGyms(prev => {
@@ -99,6 +111,13 @@ const Index = () => {
 
   const toggleEditMode = () => {
     setEditMode(!editMode);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   if (isLoading) {
@@ -190,6 +209,17 @@ const Index = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
       />
+
+      {/* Back to Top Button */}
+      {showBackToTop && (
+        <Button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 z-50 rounded-full w-12 h-12 p-0 bg-brand-warm hover:bg-brand-warm/80 text-white shadow-lg transition-all duration-300 hover:scale-110"
+          title="Back to top"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </Button>
+      )}
     </div>
   );
 };
