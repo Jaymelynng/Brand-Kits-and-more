@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Maximize } from "lucide-react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Maximize, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,7 @@ const GymProfile = () => {
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
   const [viewMode, setViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('carousel');
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const setMainLogoMutation = useSetMainLogo();
@@ -399,64 +400,76 @@ const GymProfile = () => {
           </Card>
         </div>
 
-        {/* Upload Interface */}
-        <Card className="lg:col-span-4 bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl">📤 Upload New Logos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div
-              className={cn(
-                "border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer",
-                isDragOver 
-                  ? "border-white/60 shadow-2xl" 
-                  : "border-white/30 hover:border-white/50 hover:shadow-lg"
-              )}
-              style={{
-                backgroundColor: isDragOver ? `${primaryColor}20` : `${primaryColor}10`,
-              }}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload 
-                className="w-16 h-16 mx-auto mb-6" 
-                style={{ color: primaryColor }}
-              />
-              <div className="text-2xl font-bold mb-3 text-foreground">
-                {isDragOver ? "Drop files here" : "Upload Brand Assets"}
+        {/* Upload Interface - Conditional */}
+        {showUpload && (
+          <Card className="lg:col-span-4 bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8 animate-fade-in">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl">📤 Upload New Logos</CardTitle>
+                <Button
+                  onClick={() => setShowUpload(false)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
-              <div className="text-lg text-muted-foreground mb-6">
-                Drag and drop or click to upload PNG, JPG, SVG files
+            </CardHeader>
+            <CardContent>
+              <div
+                className={cn(
+                  "border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer",
+                  isDragOver 
+                    ? "border-white/60 shadow-2xl" 
+                    : "border-white/30 hover:border-white/50 hover:shadow-lg"
+                )}
+                style={{
+                  backgroundColor: isDragOver ? `${primaryColor}20` : `${primaryColor}10`,
+                }}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload 
+                  className="w-16 h-16 mx-auto mb-6" 
+                  style={{ color: primaryColor }}
+                />
+                <div className="text-2xl font-bold mb-3 text-foreground">
+                  {isDragOver ? "Drop files here" : "Upload Brand Assets"}
+                </div>
+                <div className="text-lg text-muted-foreground mb-6">
+                  Drag and drop or click to upload PNG, JPG, SVG files
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </div>
 
-            {/* Upload Progress */}
-            {Object.keys(uploadingFiles).length > 0 && (
-              <div className="mt-6 space-y-3">
-                <div className="text-sm font-medium">Uploading files...</div>
-                {Object.entries(uploadingFiles).map(([fileKey, progress]) => (
-                  <div key={fileKey} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="truncate">{fileKey.split('-')[0]}</span>
-                      <span>{Math.round(progress)}%</span>
+              {/* Upload Progress */}
+              {Object.keys(uploadingFiles).length > 0 && (
+                <div className="mt-6 space-y-3">
+                  <div className="text-sm font-medium">Uploading files...</div>
+                  {Object.entries(uploadingFiles).map(([fileKey, progress]) => (
+                    <div key={fileKey} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="truncate">{fileKey.split('-')[0]}</span>
+                        <span>{Math.round(progress)}%</span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
                     </div>
-                    <Progress value={progress} className="h-2" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Logo Gallery */}
         {gym.logos.length > 0 && (
@@ -465,6 +478,28 @@ const GymProfile = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
                 <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setShowUpload(!showUpload)}
+                    variant="outline"
+                    size="sm"
+                    className="text-white border-white/30 hover:bg-white/20 font-semibold shadow-lg"
+                    style={{ 
+                      backgroundColor: showUpload ? `${primaryColor}40` : `${primaryColor}20`,
+                      borderColor: `${primaryColor}40`
+                    }}
+                  >
+                    {showUpload ? (
+                      <>
+                        <X className="w-4 h-4 mr-2" />
+                        Hide Upload
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Logos
+                      </>
+                    )}
+                  </Button>
                   <Select value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
                     <SelectTrigger className="w-48 bg-white/80 border-white/30">
                       <SelectValue />
