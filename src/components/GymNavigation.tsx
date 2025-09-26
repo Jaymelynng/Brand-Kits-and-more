@@ -8,119 +8,113 @@ interface GymNavigationProps {
   gyms: GymWithColors[];
   onScrollToGym: (gymCode: string) => void;
   onCopySelected: () => void;
+  selectedGyms: Set<string>;
+  onToggleGymSelection: (gymCode: string) => void;
+  onSelectAllGyms: () => void;
+  onDeselectAllGyms: () => void;
 }
 
-export const GymNavigation = ({ gyms, onScrollToGym, onCopySelected }: GymNavigationProps) => {
-  const [selectedGyms, setSelectedGyms] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    // Initialize with all gyms selected for perfect 10/10 state
-    setSelectedGyms(new Set(gyms.map(gym => gym.code)));
-  }, [gyms]);
-
-  const toggleGymSelection = (gymCode: string) => {
-    setSelectedGyms(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(gymCode)) {
-        newSet.delete(gymCode);
-      } else {
-        newSet.add(gymCode);
-      }
-      return newSet;
-    });
-  };
-
-  const selectAllGyms = () => {
-    setSelectedGyms(new Set(gyms.map(gym => gym.code)));
-  };
-
-  const deselectAllGyms = () => {
-    setSelectedGyms(new Set());
-  };
-
-  const handleCopySelected = () => {
-    const selectedGymsList = gyms.filter(gym => selectedGyms.has(gym.code));
-    if (selectedGymsList.length === 0) {
-      alert('No gyms selected!');
-      return;
-    }
-
-    let selectedText = 'SELECTED GYM BRAND COLORS\n\n';
-    selectedGymsList.forEach(gym => {
-      selectedText += `${gym.name} (${gym.code}):\n`;
-      selectedText += gym.colors.map(color => color.color_hex).join('\n') + '\n\n';
-    });
-
-    navigator.clipboard.writeText(selectedText).then(() => {
-      const count = selectedGymsList.length;
-      const message = count === 1 ? '1 Gym Copied!' : `${count} Gyms Copied!`;
-      // Show temporary feedback - could be enhanced with a toast
-      console.log(message);
-    });
-  };
-
+export const GymNavigation = ({ 
+  gyms, 
+  onScrollToGym, 
+  onCopySelected,
+  selectedGyms,
+  onToggleGymSelection,
+  onSelectAllGyms,
+  onDeselectAllGyms
+}: GymNavigationProps) => {
   const selectedCount = selectedGyms.size;
   const totalCount = gyms.length;
   const isPerfectState = selectedCount === totalCount;
 
   return (
-    <div className="gym-dashboard-nav fixed top-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-md border-b border-white/20">
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-white">
-              Gym Brand Kit Dashboard
-            </h1>
-            <div className={cn(
-              "selection-count text-sm font-medium px-3 py-1 rounded-full transition-all duration-300",
-              isPerfectState 
-                ? "bg-green-500/20 text-green-100 shadow-lg animate-pulse" 
-                : "bg-white/20 text-white/80"
-            )}>
-              {selectedCount} of {totalCount} gyms selected
-            </div>
-          </div>
+    <div className="text-center py-8 bg-white">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-gray-700 mb-2 flex items-center justify-center gap-2">
+          🏆 Gym Brand Kit Dashboard
+        </h1>
+      </div>
 
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={selectedCount === totalCount ? deselectAllGyms : selectAllGyms}
-              className="control-btn bg-white/10 border-white/30 text-white hover:bg-white/20"
-            >
-              {selectedCount === totalCount ? 'Deselect All' : 'Select All'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopySelected}
-              className="control-btn bg-white/10 border-white/30 text-white hover:bg-white/20"
-              disabled={selectedCount === 0}
-            >
-              Copy Selected
-            </Button>
-          </div>
-        </div>
-
-        <div className="gym-nav flex items-center gap-4 overflow-x-auto pb-2">
-          {gyms.map((gym) => (
-            <div key={gym.code} className="gym-nav-item flex items-center gap-2 flex-shrink-0">
-              <DiamondSelector
-                gymCode={gym.code}
-                isSelected={selectedGyms.has(gym.code)}
-                onToggle={() => toggleGymSelection(gym.code)}
-                primaryColor={gym.colors[0]?.color_hex || '#667eea'}
-              />
+      {/* Gym Navigation Grid */}
+      <div className="max-w-4xl mx-auto mb-8">
+        {/* First Row */}
+        <div className="flex justify-center gap-6 mb-6">
+          {gyms.slice(0, 5).map((gym) => (
+            <div key={gym.code} className="flex flex-col items-center gap-2">
               <Button
-                variant="ghost" 
-                size="sm"
                 onClick={() => onScrollToGym(gym.code)}
-                className="nav-btn text-white hover:bg-white/20 font-medium px-3 py-1 rounded-full transition-all duration-200"
+                className="px-4 py-2 rounded-full text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                style={{ 
+                  backgroundColor: '#A4968A',
+                  color: 'white'
+                }}
               >
                 {gym.code}
               </Button>
+              <DiamondSelector
+                gymCode={gym.code}
+                isSelected={selectedGyms.has(gym.code)}
+                onToggle={() => onToggleGymSelection(gym.code)}
+                primaryColor={gym.colors[0]?.color_hex || '#667eea'}
+              />
             </div>
           ))}
+        </div>
+
+        {/* Second Row */}
+        <div className="flex justify-center gap-6">
+          {gyms.slice(5, 10).map((gym) => (
+            <div key={gym.code} className="flex flex-col items-center gap-2">
+              <Button
+                onClick={() => onScrollToGym(gym.code)}
+                className="px-4 py-2 rounded-full text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                style={{ 
+                  backgroundColor: '#A4968A',
+                  color: 'white'
+                }}
+              >
+                {gym.code}
+              </Button>
+              <DiamondSelector
+                gymCode={gym.code}
+                isSelected={selectedGyms.has(gym.code)}
+                onToggle={() => onToggleGymSelection(gym.code)}
+                primaryColor={gym.colors[0]?.color_hex || '#667eea'}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Control Buttons */}
+      <div className="flex justify-center gap-4 mb-8">
+        <Button
+          onClick={selectedCount === totalCount ? onDeselectAllGyms : onSelectAllGyms}
+          className="px-6 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-full"
+        >
+          {selectedCount === totalCount ? 'All Selected' : 'All Selected'}
+        </Button>
+        <Button
+          onClick={onDeselectAllGyms}
+          className="px-6 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-full"
+        >
+          Deselect All
+        </Button>
+        <Button
+          onClick={onCopySelected}
+          className="px-6 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-full"
+          disabled={selectedCount === 0}
+        >
+          Copy Selected
+        </Button>
+        <div className={cn(
+          "px-4 py-2 rounded-full text-sm font-medium border-2",
+          isPerfectState 
+            ? "bg-green-100 text-green-800 border-green-300" 
+            : "bg-gray-100 text-gray-700 border-gray-300"
+        )}>
+          {selectedCount} of {totalCount} gyms selected
         </div>
       </div>
     </div>

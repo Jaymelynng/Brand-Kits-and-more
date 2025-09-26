@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { GymWithColors, useUpdateGymColor, useUploadLogo, useSetMainLogo, useDeleteLogo } from "@/hooks/useGyms";
-import { Upload, Star, X, Copy, Hash } from "lucide-react";
+import { Upload, Star, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -85,7 +85,7 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
         uploadLogoMutation.mutate({
           gymId: gym.id,
           file,
-          isMain: !mainLogo && index === 0, // Set first uploaded logo as main if no main logo exists
+          isMain: !mainLogo && index === 0,
         });
       }
     });
@@ -107,200 +107,152 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
 
   return (
     <div 
-      className={cn(
-        "gym-card bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-xl transition-all duration-300",
-        "hover:shadow-2xl hover:bg-white/95",
-        editMode && "ring-2 ring-blue-400/50"
-      )}
+      className="bg-white rounded-lg shadow-md p-6 max-w-sm mx-auto"
       id={`gym-${gym.code}`}
-      style={{
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-      }}
     >
-      {editMode && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="edit-btn absolute top-4 right-4 bg-blue-500/20 border-blue-300 text-blue-700 hover:bg-blue-500/30"
+      <div className="gym-header mb-4 text-left">
+        <h3 className="text-lg font-semibold text-gray-700 mb-1">{gym.name}</h3>
+        <span 
+          className="inline-block px-3 py-1 rounded-full text-white text-sm font-medium"
+          style={{ backgroundColor: '#A4968A' }}
         >
-          Edit
-        </Button>
-      )}
-
-      <div className="gym-header mb-6">
-        <h2 className="gym-name text-2xl font-bold text-gray-800 mb-1">{gym.name}</h2>
-        <span className="gym-code text-lg font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
           {gym.code}
         </span>
       </div>
 
-      <div className="colors-panel space-y-6">
-        {/* Main Logo Display */}
-        <div className="main-logo-display">
-          <div 
-            className={cn(
-              "main-logo-frame w-full h-24 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer transition-all duration-200",
-              !mainLogo && "hover:border-gray-400 hover:bg-gray-50",
-              mainLogo && "border-solid border-gray-200 bg-gray-50"
-            )}
-            onClick={triggerFileUpload}
-          >
-            {mainLogo ? (
-              <img 
-                src={mainLogo.file_url} 
-                alt="Main logo" 
-                className="max-h-20 max-w-full object-contain"
-              />
-            ) : (
-              <div className="text-gray-500 text-center">
-                <Upload className="w-6 h-6 mx-auto mb-1" />
-                <span className="text-sm">Click to add main logo</span>
-              </div>
-            )}
-          </div>
+      {/* Main Logo Display */}
+      <div className="main-logo-display mb-4">
+        <div 
+          className="main-logo-frame w-full h-24 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer transition-all duration-200 hover:border-gray-400"
+          onClick={triggerFileUpload}
+        >
+          {mainLogo ? (
+            <img 
+              src={mainLogo.file_url} 
+              alt="Main logo" 
+              className="max-h-20 max-w-full object-contain"
+            />
+          ) : (
+            <div className="text-gray-400 text-center text-sm">
+              Click to add main<br />logo
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Color Swatches */}
-        <div className="color-rows space-y-3">
-          {gym.colors.map((color) => (
-            <div key={color.id} className="color-row flex items-center justify-between bg-white/50 rounded-xl p-3">
-              <div className="flex items-center gap-3">
-                <div 
-                  className="color-swatch w-8 h-8 rounded-lg border-2 border-white shadow-sm cursor-pointer transition-transform hover:scale-110"
-                  style={{ backgroundColor: color.color_hex }}
-                  onClick={() => editColor(color.id, color.color_hex)}
-                />
-                <span className="color-code font-mono text-gray-700 select-all cursor-pointer hover:bg-gray-100 px-2 py-1 rounded">
-                  {color.color_hex}
-                </span>
-              </div>
-              
-              <div className="flex gap-2">
+      {/* Color Swatches */}
+      <div className="color-rows space-y-2 mb-4">
+        {gym.colors.map((color) => (
+          <div key={color.id} className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-8 h-8 rounded border cursor-pointer transition-transform hover:scale-105"
+                style={{ backgroundColor: color.color_hex }}
+                onClick={() => editColor(color.id, color.color_hex)}
+              />
+              <span className="text-sm font-mono text-gray-600 select-all">
+                {color.color_hex}
+              </span>
+            </div>
+            
+            <div className="flex gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyColor(color.color_hex, true)}
+                className="px-2 py-1 h-7 text-xs"
+                title="Copy with #"
+              >
+                #
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyColor(color.color_hex, false)}
+                className="px-2 py-1 h-7 text-xs"
+                title="Copy without #"
+              >
+                HEX
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Copy Buttons */}
+      <div className="space-y-2 mb-4">
+        <Button
+          onClick={() => copyGymColors(true)}
+          className="w-full text-sm py-2"
+          style={{ backgroundColor: '#A4968A', color: 'white' }}
+        >
+          Copy All {gym.code} Colors
+        </Button>
+        <Button
+          onClick={() => copyGymColors(false)}
+          className="w-full text-sm py-2"
+          style={{ backgroundColor: '#7A9CB8', color: 'white' }}
+        >
+          Copy {gym.code} Colors (No #)
+        </Button>
+
+        <Button
+          onClick={viewGymProfile}
+          className="w-full text-sm py-2"
+          style={{ backgroundColor: '#B5A7C4', color: 'white' }}
+        >
+          View {gym.code} Profile
+        </Button>
+      </div>
+
+      {/* Logo Upload Section */}
+      {gym.logos.length > 0 && (
+        <div className="logo-grid grid grid-cols-3 gap-2 mb-4">
+          {gym.logos.map((logo) => (
+            <div key={logo.id} className="relative group bg-gray-50 rounded p-1">
+              <img 
+                src={logo.file_url} 
+                alt={logo.filename}
+                className="w-full h-12 object-contain cursor-pointer"
+                onClick={() => setMainLogo(logo.id)}
+                title="Click to set as main logo"
+              />
+              <div className="absolute top-0 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => copyColor(color.color_hex, true)}
+                  onClick={() => setMainLogo(logo.id)}
                   className={cn(
-                    "copy-btn with-hash px-2 py-1 h-8 transition-all duration-200",
-                    copiedStates[`${color.color_hex}-true`] && "bg-green-100 text-green-700"
+                    "p-1 h-5 w-5 text-xs",
+                    logo.is_main_logo && "bg-yellow-100"
                   )}
-                  title="Copy with #"
+                  title="Set as main logo"
                 >
-                  <Hash className="w-3 h-3" />
+                  <Star className="w-2 h-2" />
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => copyColor(color.color_hex, false)}
-                  className={cn(
-                    "copy-btn px-2 py-1 h-8 transition-all duration-200",
-                    copiedStates[`${color.color_hex}-false`] && "bg-green-100 text-green-700"
-                  )}
-                  title="Copy without #"
+                  onClick={() => deleteLogo(logo.id)}
+                  className="p-1 h-5 w-5 text-xs text-red-500"
+                  title="Delete logo"
                 >
-                  <Copy className="w-3 h-3" />
+                  <X className="w-2 h-2" />
                 </Button>
               </div>
             </div>
           ))}
         </div>
+      )}
 
-        {/* Copy Buttons Row */}
-        <div className="copy-buttons-row flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => copyGymColors(true)}
-            className={cn(
-              "gym-copy-btn flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200",
-              copiedStates[`gym-${gym.code}-true`] && "bg-green-100 text-green-700"
-            )}
-          >
-            Copy All {gym.code} Colors
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => copyGymColors(false)}
-            className={cn(
-              "gym-copy-btn-no-hash flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200",
-              copiedStates[`gym-${gym.code}-false`] && "bg-green-100 text-green-700"
-            )}
-          >
-            Copy {gym.code} Colors (No #)
-          </Button>
-        </div>
-
-        {/* Gym Profile Button */}
-        <Button
-          variant="default"
-          onClick={viewGymProfile}
-          className="gym-profile-btn w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
-        >
-          View {gym.code} Profile
-        </Button>
-
-        {/* Logo Upload Section */}
-        <div className="logo-upload-section space-y-4">
-          <div 
-            className="logo-upload-area border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
-            onClick={triggerFileUpload}
-          >
-            <div className="flex flex-col items-center gap-2">
-              <Upload className="w-8 h-8 text-gray-400" />
-              <div className="text-gray-600">Upload additional logos or click to browse</div>
-              <small className="text-gray-500">Supports JPG, PNG, SVG files</small>
-            </div>
-          </div>
-
-          {/* Logo Grid */}
-          {gym.logos.length > 0 && (
-            <div className="logo-grid grid grid-cols-3 gap-3">
-              {gym.logos.map((logo) => (
-                <div key={logo.id} className="logo-item relative group bg-white rounded-lg p-2 shadow-sm hover:shadow-md transition-all duration-200">
-                  <img 
-                    src={logo.file_url} 
-                    alt={logo.filename}
-                    className="w-full h-16 object-contain cursor-pointer"
-                    onClick={() => setMainLogo(logo.id)}
-                    title="Click to set as main logo"
-                  />
-                  <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setMainLogo(logo.id)}
-                      className={cn(
-                        "set-main-logo p-1 h-6 w-6",
-                        logo.is_main_logo && "bg-yellow-100 text-yellow-700"
-                      )}
-                      title="Set as main logo"
-                    >
-                      <Star className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteLogo(logo.id)}
-                      className="delete-logo p-1 h-6 w-6 text-red-500 hover:bg-red-50"
-                      title="Delete logo"
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <Input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleFileUpload}
-            className="file-input hidden"
-          />
-        </div>
-      </div>
+      <Input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
     </div>
   );
 };
