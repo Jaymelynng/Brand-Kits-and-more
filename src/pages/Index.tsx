@@ -16,7 +16,7 @@ const Index = () => {
   useEffect(() => {
     // Initialize with all gyms selected for perfect 10/10 state
     setSelectedGyms(new Set(gyms.map(gym => gym.code)));
-  }, [gyms]);
+  }, [gyms.length]);
 
   const toggleGymSelection = (gymCode: string) => {
     setSelectedGyms(prev => {
