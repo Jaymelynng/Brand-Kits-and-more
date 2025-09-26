@@ -123,8 +123,8 @@ const Index = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" 
-           style={{ background: `linear-gradient(135deg, hsl(var(--brand-light)) 0%, hsl(var(--brand-lighter)) 100%)` }}>
-        <div className="text-xl" style={{ color: `hsl(var(--brand-neutral))` }}>Loading gym data...</div>
+           style={{ background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 100%)` }}>
+        <div className="text-xl" style={{ color: `hsl(var(--brand-text-primary))` }}>Loading gym data...</div>
       </div>
     );
   }
@@ -132,15 +132,15 @@ const Index = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center"
-           style={{ background: `linear-gradient(135deg, hsl(var(--brand-light)) 0%, hsl(var(--brand-lighter)) 100%)` }}>
+           style={{ background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 100%)` }}>
         <div className="text-red-600 text-xl">Error loading gym data</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-light to-brand-lighter"
-      style={{ background: `linear-gradient(135deg, hsl(var(--brand-light)) 0%, hsl(var(--brand-lighter)) 100%)` }}
+    <div className="min-h-screen"
+      style={{ background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 100%)` }}
     >
       {/* Navigation */}
       <GymNavigation 
@@ -159,18 +159,18 @@ const Index = () => {
           {/* Main Header */}
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold mb-2 flex items-center justify-center gap-2"
-                style={{ color: `hsl(var(--brand-neutral))` }}
+                style={{ color: `hsl(var(--brand-text-primary))` }}
             >
               🏆 Gym Brand Kit Database
             </h2>
             <p className="text-lg mb-6"
-               style={{ color: `hsl(var(--brand-neutral) / 0.8)` }}
+               style={{ color: `hsl(var(--brand-text-primary) / 0.8)` }}
             >
               All gym brand colors and logos displayed for easy reference and copying
             </p>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 justify-center">
               <Button
                 onClick={copyAllGyms}
                 className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
@@ -239,7 +239,7 @@ const Index = () => {
           {/* Footer */}
           <div className="mt-16 text-center">
             <p className="text-sm leading-relaxed max-w-4xl mx-auto"
-               style={{ color: `hsl(var(--brand-neutral) / 0.7)` }}>
+               style={{ color: `hsl(var(--brand-text-primary) / 0.7)` }}>
               Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
             </p>
           </div>
