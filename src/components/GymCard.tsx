@@ -78,17 +78,49 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
+    console.log('Files selected:', files.length, 'for gym:', gym.name);
+    
+    if (files.length === 0) return;
+    
     const mainLogo = gym.logos.find(logo => logo.is_main_logo);
     
     files.forEach((file, index) => {
       if (file.type.startsWith('image/')) {
-        uploadLogoMutation.mutate({
-          gymId: gym.id,
-          file,
-          isMain: !mainLogo && index === 0,
+        console.log('Uploading file:', file.name, 'for gym:', gym.id);
+        uploadLogoMutation.mutate(
+          {
+            gymId: gym.id,
+            file,
+            isMain: !mainLogo && index === 0,
+          },
+          {
+            onSuccess: () => {
+              toast({
+                title: "Success",
+                description: `Logo "${file.name}" uploaded successfully!`,
+              });
+            },
+            onError: (error: any) => {
+              console.error('Upload error in component:', error);
+              toast({
+                title: "Upload Failed",
+                description: error?.message || `Failed to upload "${file.name}". Please try again.`,
+                variant: "destructive",
+              });
+            },
+          }
+        );
+      } else {
+        toast({
+          title: "Invalid File",
+          description: `"${file.name}" is not a valid image file.`,
+          variant: "destructive",
         });
       }
     });
+    
+    // Clear the input so the same file can be selected again if needed
+    event.target.value = '';
   };
 
   const setMainLogo = (logoId: string) => {

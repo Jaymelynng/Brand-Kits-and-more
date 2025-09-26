@@ -123,44 +123,73 @@ export const useUploadLogo = () => {
 
   return useMutation({
     mutationFn: async ({ gymId, file, isMain = false }: { gymId: string; file: File; isMain?: boolean }) => {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${gymId}-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      console.log('Starting logo upload for gym:', gymId, 'file:', file.name);
+      
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${gymId}-${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('gym-logos')
-        .upload(filePath, file);
+        console.log('Uploading to storage with path:', filePath);
+        const { error: uploadError } = await supabase.storage
+          .from('gym-logos')
+          .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw uploadError;
+        }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('gym-logos')
-        .getPublicUrl(filePath);
+        console.log('File uploaded successfully, getting public URL');
+        const { data: { publicUrl } } = supabase.storage
+          .from('gym-logos')
+          .getPublicUrl(filePath);
 
-      if (isMain) {
-        await supabase
+        console.log('Public URL:', publicUrl);
+
+        if (isMain) {
+          console.log('Setting other logos as non-main');
+          const { error: updateError } = await supabase
+            .from('gym_logos')
+            .update({ is_main_logo: false })
+            .eq('gym_id', gymId);
+          
+          if (updateError) {
+            console.error('Error updating main logo flags:', updateError);
+            throw updateError;
+          }
+        }
+
+        console.log('Inserting logo record into database');
+        const { data: logo, error: logoError } = await supabase
           .from('gym_logos')
-          .update({ is_main_logo: false })
-          .eq('gym_id', gymId);
+          .insert({
+            gym_id: gymId,
+            filename: file.name,
+            file_url: publicUrl,
+            is_main_logo: isMain,
+          })
+          .select()
+          .single();
+
+        if (logoError) {
+          console.error('Database insert error:', logoError);
+          throw logoError;
+        }
+
+        console.log('Logo upload completed successfully:', logo);
+        return logo;
+      } catch (error) {
+        console.error('Logo upload failed:', error);
+        throw error;
       }
-
-      const { data: logo, error: logoError } = await supabase
-        .from('gym_logos')
-        .insert({
-          gym_id: gymId,
-          filename: file.name,
-          file_url: publicUrl,
-          is_main_logo: isMain,
-        })
-        .select()
-        .single();
-
-      if (logoError) throw logoError;
-
-      return logo;
     },
     onSuccess: () => {
+      console.log('Upload successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+    onError: (error) => {
+      console.error('Upload mutation error:', error);
     },
   });
 };
