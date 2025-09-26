@@ -204,7 +204,7 @@ export const GymCard = ({ gym, editMode }: GymCardProps) => {
       </div>
 
       {/* Copy Buttons */}
-      <div className="space-y-8 mb-8">
+      <div className="space-y-12 mb-8">
         <div className="grid grid-cols-2 gap-8">
           <Button
             onClick={() => copyGymColors(true)}
