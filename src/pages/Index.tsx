@@ -123,7 +123,7 @@ const Index = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-xl" style={{ color: `hsl(var(--brand-text-primary))` }}>Loading gym data...</div>
+        <div className="text-xl text-gray-900">Loading gym data...</div>
       </div>
     );
   }
@@ -153,14 +153,10 @@ const Index = () => {
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="text-center">
-            <h2 className="text-4xl font-bold mb-2 flex items-center justify-center gap-2"
-                style={{ color: `hsl(var(--brand-text-primary))` }}
-            >
+            <h2 className="text-4xl font-bold mb-2 flex items-center justify-center gap-2 text-gray-900">
               🏆 Gym Brand Kit Database
             </h2>
-            <p className="text-lg mb-6"
-               style={{ color: `hsl(var(--brand-text-primary) / 0.8)` }}
-            >
+            <p className="text-lg mb-6 text-gray-700">
               All gym brand colors and logos displayed for easy reference and copying
             </p>
 
@@ -239,8 +235,7 @@ const Index = () => {
 
           {/* Footer */}
           <div className="mt-16 text-center">
-            <p className="text-sm leading-relaxed max-w-4xl mx-auto"
-               style={{ color: `hsl(var(--brand-text-primary) / 0.7)` }}>
+            <p className="text-sm leading-relaxed max-w-4xl mx-auto text-gray-600">
               Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
             </p>
           </div>
