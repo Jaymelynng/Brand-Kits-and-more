@@ -100,7 +100,7 @@ export const GymNavigation = ({
         >
           Copy Selected ({selectedCount})
         </Button>
-        <div className="px-4 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200"
+        <div className="px-4 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200 text-gray-900"
              style={{
                background: isPerfectState 
                  ? 'rgba(212, 175, 55, 0.15)' 
@@ -108,9 +108,6 @@ export const GymNavigation = ({
                borderColor: isPerfectState 
                  ? 'hsl(var(--brand-gold))' 
                  : 'hsl(var(--brand-rose-gold) / 0.3)',
-               color: isPerfectState 
-                 ? 'hsl(43, 74%, 35%)' 
-                 : 'hsl(var(--brand-text-primary))',
                boxShadow: isPerfectState 
                  ? '0 2px 8px hsl(var(--brand-gold) / 0.2)' 
                  : 'none'
