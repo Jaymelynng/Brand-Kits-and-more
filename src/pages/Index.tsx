@@ -138,17 +138,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <GymNavigation 
-        gyms={gyms} 
-        onScrollToGym={scrollToGym}
-        onCopySelected={handleCopySelected}
-        selectedGyms={selectedGyms}
-        onToggleGymSelection={toggleGymSelection}
-        onSelectAllGyms={selectAllGyms}
-        onDeselectAllGyms={deselectAllGyms}
-      />
-
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-6">
@@ -216,6 +205,17 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Navigation */}
+      <GymNavigation 
+        gyms={gyms} 
+        onScrollToGym={scrollToGym}
+        onCopySelected={handleCopySelected}
+        selectedGyms={selectedGyms}
+        onToggleGymSelection={toggleGymSelection}
+        onSelectAllGyms={selectAllGyms}
+        onDeselectAllGyms={deselectAllGyms}
+      />
 
       {/* Main Content */}
       <div className="pt-8 pb-16">
