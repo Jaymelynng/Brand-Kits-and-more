@@ -122,8 +122,7 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" 
-           style={{ background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 100%)` }}>
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-xl" style={{ color: `hsl(var(--brand-text-primary))` }}>Loading gym data...</div>
       </div>
     );
@@ -131,17 +130,14 @@ const Index = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center"
-           style={{ background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 100%)` }}>
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-red-600 text-xl">Error loading gym data</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen"
-      style={{ background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 100%)` }}
-    >
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
       <GymNavigation 
         gyms={gyms} 
@@ -153,11 +149,10 @@ const Index = () => {
         onDeselectAllGyms={deselectAllGyms}
       />
 
-      {/* Main Content */}
-      <div className="pt-8 pb-16">
-        <div className="max-w-7xl mx-auto px-6">
-          {/* Main Header */}
-          <div className="text-center mb-8">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="text-center">
             <h2 className="text-4xl font-bold mb-2 flex items-center justify-center gap-2"
                 style={{ color: `hsl(var(--brand-text-primary))` }}
             >
@@ -223,6 +218,12 @@ const Index = () => {
               </Button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="pt-8 pb-16">
+        <div className="max-w-7xl mx-auto px-6">
 
           {/* Gym Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -259,8 +260,8 @@ const Index = () => {
           className="fixed bottom-8 right-8 z-50 rounded-full w-12 h-12 p-0 text-white shadow-lg transition-all duration-300 hover:scale-110"
           title="Back to top"
           style={{
-            background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)`,
-            boxShadow: '0 4px 15px hsl(var(--brand-rose-gold) / 0.4)'
+            background: `linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)`,
+            boxShadow: '0 4px 15px hsl(var(--brand-blue-gray) / 0.4)'
           }}
         >
           <ChevronUp className="w-6 h-6" />
