@@ -141,60 +141,60 @@ const Index = () => {
       {/* Sticky Header with dark rose background */}
       <div className="sticky top-0 z-40 border-b border-gray-200 shadow-sm" style={{ background: 'hsl(var(--brand-rose-gold) / 0.08)' }}>
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">🏆 Gym Brand Kit Database</h1>
-              <p className="text-sm text-gray-600 mt-1">All gym brand colors and logos displayed for easy reference and copying</p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              {selectedGyms.size > 0 && (
-                <Button
-                  onClick={handleCopySelected}
-                  className="rounded-xl px-4 py-2 text-white shadow-md hover:shadow-lg transition-all"
-                  style={{
-                    background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)`,
-                  }}
-                >
-                  <Edit3 className="w-4 h-4 mr-2" />
-                  Copy Selected ({selectedGyms.size})
-                </Button>
-              )}
-              
+          {/* Centered Title */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">🏆 Gym Brand Kit Database</h1>
+            <p className="text-sm text-gray-600 mt-1">All gym brand colors and logos displayed for easy reference and copying</p>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            {selectedGyms.size > 0 && (
               <Button
-                onClick={copyAllGyms}
-                variant="outline"
-                className="rounded-xl px-4 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm hover:shadow-md transition-all"
-              >
-                Copy All
-              </Button>
-              
-              <Button 
-                onClick={() => setIsAddModalOpen(true)}
+                onClick={handleCopySelected}
                 className="rounded-xl px-4 py-2 text-white shadow-md hover:shadow-lg transition-all"
                 style={{
-                  background: `linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)`,
+                  background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)`,
                 }}
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Add New Gym
-              </Button>
-              
-              <Button
-                onClick={toggleEditMode}
-                variant={editMode ? "default" : "outline"}
-                className={`rounded-xl px-4 py-2 shadow-sm hover:shadow-md transition-all ${editMode 
-                  ? "text-white" 
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-                style={editMode ? {
-                  background: `linear-gradient(135deg, hsl(var(--brand-gold)) 0%, hsl(var(--brand-gold)) 100%)`,
-                } : {}}
-              >
                 <Edit3 className="w-4 h-4 mr-2" />
-                {editMode ? 'Exit Edit' : 'Edit Mode'}
+                Copy Selected ({selectedGyms.size})
               </Button>
-            </div>
+            )}
+            
+            <Button
+              onClick={copyAllGyms}
+              variant="outline"
+              className="rounded-xl px-4 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm hover:shadow-md transition-all"
+            >
+              Copy All
+            </Button>
+            
+            <Button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="rounded-xl px-4 py-2 text-white shadow-md hover:shadow-lg transition-all"
+              style={{
+                background: `linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)`,
+              }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add New Gym
+            </Button>
+            
+            <Button
+              onClick={toggleEditMode}
+              variant={editMode ? "default" : "outline"}
+              className={`rounded-xl px-4 py-2 shadow-sm hover:shadow-md transition-all ${editMode 
+                ? "text-white" 
+                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
+              style={editMode ? {
+                background: `linear-gradient(135deg, hsl(var(--brand-gold)) 0%, hsl(var(--brand-gold)) 100%)`,
+              } : {}}
+            >
+              <Edit3 className="w-4 h-4 mr-2" />
+              {editMode ? 'Exit Edit' : 'Edit Mode'}
+            </Button>
           </div>
         </div>
       </div>
