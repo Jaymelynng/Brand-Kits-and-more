@@ -248,15 +248,50 @@ const GymProfile = () => {
 
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
-      <div className="min-h-screen bg-gradient-primary">
+      <div 
+        className="min-h-screen"
+        style={{
+          background: `
+            radial-gradient(1px 1px at 20px 30px, ${primaryColor}80, transparent),
+            radial-gradient(1px 1px at 40px 70px, ${secondaryColor}60, transparent),
+            radial-gradient(1px 1px at 90px 40px, ${primaryColor}70, transparent),
+            radial-gradient(1px 1px at 130px 80px, ${secondaryColor}50, transparent),
+            radial-gradient(1px 1px at 160px 30px, ${primaryColor}60, transparent),
+            radial-gradient(1px 1px at 200px 60px, ${secondaryColor}70, transparent),
+            radial-gradient(1px 1px at 240px 20px, ${primaryColor}50, transparent),
+            radial-gradient(1px 1px at 280px 90px, ${secondaryColor}80, transparent),
+            radial-gradient(1px 1px at 320px 50px, ${primaryColor}40, transparent),
+            radial-gradient(1px 1px at 360px 10px, ${secondaryColor}60, transparent),
+            linear-gradient(135deg, ${primaryColor}15 0%, ${secondaryColor}10 50%, transparent 100%)
+          `,
+          animation: 'sparkle 4s ease-in-out infinite'
+        }}
+      >
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            background: `linear-gradient(45deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
-          }}
-        />
+        {/* Interactive Sparkles */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 2}s`
+              }}
+            >
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{
+                  background: `radial-gradient(circle, ${i % 2 === 0 ? primaryColor : secondaryColor}80, transparent)`,
+                  boxShadow: `0 0 6px ${i % 2 === 0 ? primaryColor : secondaryColor}60`
+                }}
+              />
+            </div>
+          ))}
+        </div>
         <div className="relative container mx-auto px-6 py-8">
           {/* Navigation */}
           <div className="flex items-center gap-4 mb-8">
