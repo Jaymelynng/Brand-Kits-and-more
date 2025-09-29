@@ -3,14 +3,17 @@ import { useGyms } from "@/hooks/useGyms";
 import { GymNavigation } from "@/components/GymNavigation";
 import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
+import { AdminToolkit } from "@/components/AdminToolkit";
+import { SecretAdminButton } from "@/components/SecretAdminButton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronUp, Edit3, Plus } from "lucide-react";
+import { ChevronUp, Edit3 } from "lucide-react";
 
 const Index = () => {
   const { data: gyms = [], isLoading, error } = useGyms();
   const [editMode, setEditMode] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAdminToolkitOpen, setIsAdminToolkitOpen] = useState(false);
   const [selectedGyms, setSelectedGyms] = useState<Set<string>>(new Set());
   const [showBackToTop, setShowBackToTop] = useState(false);
   const { toast } = useToast();
@@ -145,6 +148,7 @@ const Index = () => {
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">🏆 Gym Brand Kit Database</h1>
             <p className="text-sm text-gray-600 mt-1">All gym brand colors and logos displayed for easy reference and copying</p>
+            <SecretAdminButton onClick={() => setIsAdminToolkitOpen(true)} />
           </div>
           
           {/* Action Buttons */}
@@ -168,32 +172,6 @@ const Index = () => {
               className="rounded-xl px-4 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm hover:shadow-md transition-all"
             >
               Copy All
-            </Button>
-            
-            <Button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="rounded-xl px-4 py-2 text-white shadow-md hover:shadow-lg transition-all"
-              style={{
-                background: `linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)`,
-              }}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Gym
-            </Button>
-            
-            <Button
-              onClick={toggleEditMode}
-              variant={editMode ? "default" : "outline"}
-              className={`rounded-xl px-4 py-2 shadow-sm hover:shadow-md transition-all ${editMode 
-                ? "text-white" 
-                : "border-gray-300 text-gray-700 hover:bg-gray-50"
-              }`}
-              style={editMode ? {
-                background: `linear-gradient(135deg, hsl(var(--brand-gold)) 0%, hsl(var(--brand-gold)) 100%)`,
-              } : {}}
-            >
-              <Edit3 className="w-4 h-4 mr-2" />
-              {editMode ? 'Exit Edit' : 'Edit Mode'}
             </Button>
           </div>
         </div>
@@ -244,6 +222,15 @@ const Index = () => {
       <AddGymModal 
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+      />
+
+      {/* Admin Toolkit */}
+      <AdminToolkit
+        isOpen={isAdminToolkitOpen}
+        onClose={() => setIsAdminToolkitOpen(false)}
+        editMode={editMode}
+        onToggleEditMode={toggleEditMode}
+        onAddNewGym={() => setIsAddModalOpen(true)}
       />
 
       {/* Back to Top Button */}
