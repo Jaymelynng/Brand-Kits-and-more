@@ -191,7 +191,12 @@ const Index = () => {
       </div>
 
       {/* Main content area with rose tint background */}
-      <div className="bg-gradient-to-br from-rose-gold/20 via-rose-gold/10 to-transparent min-h-screen">
+      <div 
+        className="min-h-screen"
+        style={{
+          background: `linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.2) 0%, hsl(var(--brand-rose-gold-mid) / 0.1) 50%, transparent 100%)`
+        }}
+      >
         {/* Navigation */}
         <GymNavigation 
           gyms={gyms} 
