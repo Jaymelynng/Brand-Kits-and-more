@@ -151,7 +151,10 @@ const Index = () => {
               {selectedGyms.size > 0 && (
                 <Button
                   onClick={handleCopySelected}
-                  className="rounded-xl px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all"
+                  className="rounded-xl px-4 py-2 text-white shadow-md hover:shadow-lg transition-all"
+                  style={{
+                    background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)`,
+                  }}
                 >
                   <Edit3 className="w-4 h-4 mr-2" />
                   Copy Selected ({selectedGyms.size})
@@ -168,7 +171,10 @@ const Index = () => {
               
               <Button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="rounded-xl px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-md hover:shadow-lg transition-all"
+                className="rounded-xl px-4 py-2 text-white shadow-md hover:shadow-lg transition-all"
+                style={{
+                  background: `linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)`,
+                }}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add New Gym
@@ -178,9 +184,12 @@ const Index = () => {
                 onClick={toggleEditMode}
                 variant={editMode ? "default" : "outline"}
                 className={`rounded-xl px-4 py-2 shadow-sm hover:shadow-md transition-all ${editMode 
-                  ? "bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white" 
+                  ? "text-white" 
                   : "border-gray-300 text-gray-700 hover:bg-gray-50"
                 }`}
+                style={editMode ? {
+                  background: `linear-gradient(135deg, hsl(var(--brand-gold)) 0%, hsl(var(--brand-gold)) 100%)`,
+                } : {}}
               >
                 <Edit3 className="w-4 h-4 mr-2" />
                 {editMode ? 'Exit Edit' : 'Edit Mode'}
