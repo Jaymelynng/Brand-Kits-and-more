@@ -142,14 +142,18 @@ const Index = () => {
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">🏆 Gym Brand Kit Database</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">🏆 Gym Brand Kit Database</h1>
+              <p className="text-sm text-gray-600 mt-1">All gym brand colors and logos displayed for easy reference and copying</p>
+            </div>
             
             <div className="flex items-center gap-3">
               {selectedGyms.size > 0 && (
                 <Button
                   onClick={handleCopySelected}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                  className="rounded-xl px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all"
                 >
+                  <Edit3 className="w-4 h-4 mr-2" />
                   Copy Selected ({selectedGyms.size})
                 </Button>
               )}
@@ -157,26 +161,28 @@ const Index = () => {
               <Button
                 onClick={copyAllGyms}
                 variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="rounded-xl px-4 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm hover:shadow-md transition-all"
               >
                 Copy All
               </Button>
               
               <Button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white"
+                className="rounded-xl px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-md hover:shadow-lg transition-all"
               >
+                <Plus className="w-4 h-4 mr-2" />
                 Add New Gym
               </Button>
               
               <Button
                 onClick={toggleEditMode}
                 variant={editMode ? "default" : "outline"}
-                className={editMode 
+                className={`rounded-xl px-4 py-2 shadow-sm hover:shadow-md transition-all ${editMode 
                   ? "bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white" 
                   : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }
+                }`}
               >
+                <Edit3 className="w-4 h-4 mr-2" />
                 {editMode ? 'Exit Edit' : 'Edit Mode'}
               </Button>
             </div>
