@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronUp, Edit3, Plus } from "lucide-react";
 
 const Index = () => {
+  // 🔴 BUILD DEBUG: Last updated September 29, 2025 - 8:45 PM
+  console.log('🏆 INDEX COMPONENT LOADED:', new Date().toISOString());
   const { data: gyms = [], isLoading, error } = useGyms();
   const [editMode, setEditMode] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -137,6 +139,11 @@ const Index = () => {
   }
 
   return (
+    <>
+      {/* 🔴 BUILD TIMESTAMP DEBUG */}
+      <div className="fixed top-0 left-0 w-full bg-red-600 text-white text-center py-2 z-[9999] font-mono">
+        🔴 BUILD TIMESTAMP: {Date.now()}
+      </div>
     <div className="min-h-screen">
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
@@ -190,8 +197,14 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Main content area - let body background show through */}
-      <div className="min-h-screen">
+      {/* Main content area - INLINE BACKGROUND DEBUG */}
+      <div 
+        className="min-h-screen"
+        style={{
+          background: '#FFF0F0',  // Light pink - you WILL see this if code is loading
+          minHeight: '100vh'
+        }}
+      >
         {/* Navigation */}
         <GymNavigation 
           gyms={gyms} 
@@ -249,6 +262,7 @@ const Index = () => {
         </Button>
       )}
     </div>
+    </>
   );
 };
 
