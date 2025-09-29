@@ -5,7 +5,7 @@ import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, Edit3, Plus } from "lucide-react";
 
 const Index = () => {
   const { data: gyms = [], isLoading, error } = useGyms();
@@ -137,107 +137,87 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold mb-2 flex items-center justify-center gap-2 text-gray-900">
-              🏆 Gym Brand Kit Database
-            </h2>
-            <p className="text-lg mb-6 text-gray-700">
-              All gym brand colors and logos displayed for easy reference and copying
-            </p>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3 justify-center">
-              <Button
-                onClick={copyAllGyms}
-                className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                style={{
-                  background: `
-                    radial-gradient(1px 1px at 10px 10px, rgba(255,255,255,0.8), transparent),
-                    radial-gradient(1px 1px at 30px 20px, rgba(255,255,255,0.6), transparent),
-                    radial-gradient(1px 1px at 50px 15px, rgba(255,255,255,0.9), transparent),
-                    linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
-                  `,
-                  boxShadow: '0 4px 15px hsl(var(--brand-blue-gray) / 0.4)'
-                }}
-              >
-                Copy All Gym Colors
-              </Button>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">🏆 Gym Brand Kit Database</h1>
+            
+            <div className="flex items-center gap-3">
+              {selectedGyms.size > 0 && (
+                <Button
+                  onClick={handleCopySelected}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                >
+                  Copy Selected ({selectedGyms.size})
+                </Button>
+              )}
               
               <Button
+                onClick={copyAllGyms}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Copy All
+              </Button>
+              
+              <Button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                style={{
-                  background: `
-                    radial-gradient(1px 1px at 10px 10px, rgba(255,255,255,0.8), transparent),
-                    radial-gradient(1px 1px at 30px 20px, rgba(255,255,255,0.6), transparent),
-                    radial-gradient(1px 1px at 50px 15px, rgba(255,255,255,0.9), transparent),
-                    linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
-                  `,
-                  boxShadow: '0 4px 15px hsl(var(--brand-blue-gray) / 0.4)'
-                }}
+                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white"
               >
                 Add New Gym
               </Button>
-
+              
               <Button
                 onClick={toggleEditMode}
-                className="text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                style={{
-                  background: editMode 
-                    ? `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)`
-                    : `
-                      radial-gradient(1px 1px at 10px 10px, rgba(255,255,255,0.8), transparent),
-                      radial-gradient(1px 1px at 30px 20px, rgba(255,255,255,0.6), transparent),
-                      linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
-                    `,
-                  boxShadow: editMode 
-                    ? '0 4px 15px hsl(var(--brand-rose-gold) / 0.4)'
-                    : '0 4px 15px hsl(var(--brand-blue-gray) / 0.4)'
-                }}
+                variant={editMode ? "default" : "outline"}
+                className={editMode 
+                  ? "bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white" 
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                }
               >
-                {editMode ? 'Exit Edit Mode' : 'Edit Mode'}
+                {editMode ? 'Exit Edit' : 'Edit Mode'}
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <GymNavigation 
-        gyms={gyms} 
-        onScrollToGym={scrollToGym}
-        onCopySelected={handleCopySelected}
-        selectedGyms={selectedGyms}
-        onToggleGymSelection={toggleGymSelection}
-        onSelectAllGyms={selectAllGyms}
-        onDeselectAllGyms={deselectAllGyms}
-      />
+      {/* Main content area with rose tint background */}
+      <div className="bg-gradient-to-br from-rose-gold/20 via-rose-gold/10 to-transparent min-h-screen">
+        {/* Navigation */}
+        <GymNavigation 
+          gyms={gyms} 
+          onScrollToGym={scrollToGym}
+          onCopySelected={handleCopySelected}
+          selectedGyms={selectedGyms}
+          onToggleGymSelection={toggleGymSelection}
+          onSelectAllGyms={selectAllGyms}
+          onDeselectAllGyms={deselectAllGyms}
+        />
 
-      {/* Main Content */}
-      <div className="pt-8 pb-16">
-        <div className="max-w-7xl mx-auto px-6">
+        {/* Main Content */}
+        <div className="pt-8 pb-16">
+          <div className="max-w-7xl mx-auto px-6">
+            {/* Gym Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {gyms.map((gym) => (
+                <GymCard 
+                  key={gym.id} 
+                  gym={gym} 
+                  editMode={editMode}
+                  showAllLogos={false}
+                />
+              ))}
+            </div>
 
-          {/* Gym Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {gyms.map((gym) => (
-              <GymCard 
-                key={gym.id} 
-                gym={gym} 
-                editMode={editMode}
-                showAllLogos={false}
-              />
-            ))}
-          </div>
-
-          {/* Footer */}
-          <div className="mt-16 text-center">
-            <p className="text-sm leading-relaxed max-w-4xl mx-auto text-gray-600">
-              Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
-            </p>
+            {/* Footer */}
+            <div className="mt-16 text-center">
+              <p className="text-sm leading-relaxed max-w-4xl mx-auto text-gray-600">
+                Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -249,7 +229,7 @@ const Index = () => {
       />
 
       {/* Back to Top Button */}
-        {showBackToTop && (
+      {showBackToTop && (
         <Button
           onClick={scrollToTop}
           className="fixed bottom-8 right-8 z-50 rounded-full w-12 h-12 p-0 text-white shadow-lg transition-all duration-300 hover:scale-110"
