@@ -8,8 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ChevronUp, Edit3, Plus } from "lucide-react";
 
 const Index = () => {
-  // 🔴 BUILD DEBUG: Last updated September 29, 2025 - 8:45 PM
-  console.log('🏆 INDEX COMPONENT LOADED:', new Date().toISOString());
   const { data: gyms = [], isLoading, error } = useGyms();
   const [editMode, setEditMode] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -139,12 +137,7 @@ const Index = () => {
   }
 
   return (
-    <>
-      {/* 🔴 BUILD TIMESTAMP DEBUG */}
-      <div className="fixed top-0 left-0 w-full bg-red-600 text-white text-center py-2 z-[9999] font-mono">
-        🔴 BUILD TIMESTAMP: {Date.now()}
-      </div>
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-6">
@@ -197,15 +190,8 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Main content area - INLINE BACKGROUND DEBUG */}
-      <div 
-        className="min-h-screen"
-        style={{
-          background: '#FFF0F0',  // Light pink - you WILL see this if code is loading
-          minHeight: '100vh'
-        }}
-      >
-        {/* Navigation */}
+      {/* Navigation section - White background */}
+      <div className="bg-white">
         <GymNavigation 
           gyms={gyms} 
           onScrollToGym={scrollToGym}
@@ -215,6 +201,10 @@ const Index = () => {
           onSelectAllGyms={selectAllGyms}
           onDeselectAllGyms={deselectAllGyms}
         />
+      </div>
+
+      {/* Main content area - Dark rose background */}
+      <div className="min-h-screen" style={{ background: 'hsl(var(--brand-rose-gold) / 0.08)' }}>
 
         {/* Main Content */}
         <div className="pt-8 pb-16">
@@ -262,7 +252,6 @@ const Index = () => {
         </Button>
       )}
     </div>
-    </>
   );
 };
 
