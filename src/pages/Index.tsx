@@ -138,8 +138,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+      {/* Sticky Header with dark rose background */}
+      <div className="sticky top-0 z-40 border-b border-gray-200 shadow-sm" style={{ background: 'hsl(var(--brand-rose-gold) / 0.08)' }}>
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -190,8 +190,8 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Navigation section - White background */}
-      <div className="bg-white">
+      {/* Navigation section - Same dark rose background */}
+      <div style={{ background: 'hsl(var(--brand-rose-gold) / 0.08)' }}>
         <GymNavigation 
           gyms={gyms} 
           onScrollToGym={scrollToGym}
@@ -203,8 +203,8 @@ const Index = () => {
         />
       </div>
 
-      {/* Main content area - Dark rose background */}
-      <div className="min-h-screen" style={{ background: 'hsl(var(--brand-rose-gold) / 0.08)' }}>
+      {/* Main content area - White background */}
+      <div className="min-h-screen bg-white">
 
         {/* Main Content */}
         <div className="pt-8 pb-16">
