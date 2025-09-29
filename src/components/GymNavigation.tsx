@@ -28,7 +28,7 @@ export const GymNavigation = ({
   const isPerfectState = selectedCount === totalCount;
 
   return (
-    <div className="text-center py-8 bg-white/20 backdrop-blur-sm border-b border-white/30">
+    <div className="text-center py-8 bg-white border-b border-gray-200">
       {/* Gym Navigation Grid */}
       <div className="max-w-6xl mx-auto mb-8">
         <div className="flex flex-wrap justify-center gap-4">
@@ -38,11 +38,7 @@ export const GymNavigation = ({
                 onClick={() => onScrollToGym(gym.code)}
                 className="px-4 py-2 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-200 text-white"
                 style={{
-                  background: `
-                    radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.9), transparent),
-                    radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.7), transparent),
-                    linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)
-                  `,
+                  background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`,
                   boxShadow: '0 3px 10px hsl(var(--brand-rose-gold) / 0.4)'
                 }}
               >
@@ -80,11 +76,7 @@ export const GymNavigation = ({
           style={{
             background: selectedCount === 0 
               ? 'hsl(var(--brand-blue-gray) / 0.5)'
-              : `
-                radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.8), transparent),
-                radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.6), transparent),
-                linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
-              `,
+              : `linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-dark)) 100%)`,
             boxShadow: selectedCount === 0 
               ? 'none'
               : '0 2px 8px hsl(var(--brand-blue-gray) / 0.3)'

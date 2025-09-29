@@ -107,38 +107,10 @@ All colors MUST be HSL.
     padding: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     background: 
-      radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.6), transparent),
-      radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.9), transparent),
-      radial-gradient(1px 1px at 40px 25px, rgba(255,255,255,0.7), transparent),
-      radial-gradient(1px 1px at 60px 10px, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 80px 60px, rgba(255,255,255,0.2), transparent),
       hsl(var(--brand-white));
     min-height: 100vh;
     color: hsl(var(--brand-text-primary));
-    animation: sparkle 3s ease-in-out infinite alternate;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background:
-      radial-gradient(1px 1px at 10px 10px, rgba(255,255,255,0.5), transparent),
-      radial-gradient(1px 1px at 30px 20px, rgba(255,255,255,0.8), transparent),
-      radial-gradient(1px 1px at 50px 15px, rgba(255,255,255,0.6), transparent),
-      radial-gradient(1px 1px at 70px 25px, rgba(255,255,255,0.7), transparent),
-      radial-gradient(1px 1px at 90px 8px, rgba(255,255,255,0.9), transparent),
-      radial-gradient(1px 1px at 110px 30px, rgba(255,255,255,0.4), transparent);
-    background-size: 500px 300px;
-    pointer-events: none;
-    z-index: -1;
-    animation: sparkle 3s ease-in-out infinite alternate;
-  }
-
-  @keyframes sparkle {
-    0% { opacity: 0.7; }
-    100% { opacity: 1; }
   }
 }

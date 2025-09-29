@@ -15,8 +15,7 @@ export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = 
           "w-8 h-8 transform rotate-45 cursor-pointer transition-all duration-300",
           "relative overflow-hidden",
           "hover:scale-110 hover:-rotate-12",
-          "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/40 before:via-transparent before:to-transparent",
-          "after:absolute after:inset-0 after:bg-gradient-to-tl after:from-white/20 before:via-transparent before:to-transparent",
+          "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/15 before:via-transparent before:to-transparent",
           isSelected && "shadow-2xl scale-110"
         )}
         style={{
@@ -37,7 +36,7 @@ export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = 
         )} />
         
         {/* Central highlight */}
-        <div className="absolute inset-1 bg-gradient-to-br from-white/30 to-transparent rounded-sm" />
+        <div className="absolute inset-1 bg-gradient-to-br from-white/10 to-transparent rounded-sm" />
       </div>
     </div>
   );
