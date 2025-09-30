@@ -31,48 +31,27 @@ export const GymNavigation = ({
 
   return (
     <div className="text-center py-8 bg-white border-b border-gray-200">
-      {/* Gym Navigation Grid */}
-      <div className="max-w-6xl mx-auto mb-8">
-        <div className="flex flex-wrap justify-center gap-4">
-          {gyms.map((gym) => {
-            const isSelected = selectedGyms.has(gym.code);
-            const primaryColor = gym.colors[0]?.color_hex || '#667eea';
-            
-            return (
-              <div key={gym.code} className="flex flex-col items-center gap-2">
-                <Button
-                  onClick={() => onScrollToGym(gym.code)}
-                  className={cn(
-                    "px-4 py-2 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-200 text-white relative",
-                    isSelected && "ring-2 ring-offset-2"
-                  )}
-                  style={{
-                    background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`,
-                    boxShadow: isSelected 
-                      ? `0 3px 10px hsl(var(--brand-rose-gold) / 0.4), 0 0 0 3px ${primaryColor}40`
-                      : '0 3px 10px hsl(var(--brand-rose-gold) / 0.4)'
-                  }}
-                >
-                  {gym.code}
-                  {isSelected && (
-                    <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-pulse"
-                          style={{ backgroundColor: primaryColor }} />
-                  )}
-                </Button>
-                <DiamondSelector
-                  gymCode={gym.code}
-                  isSelected={isSelected}
-                  onToggle={() => onToggleGymSelection(gym.code)}
-                  primaryColor={primaryColor}
-                />
-              </div>
-            );
-          })}
+      {/* Selection Counter - Prominent at top */}
+      <div className="mb-6">
+        <div className="inline-block px-8 py-3 rounded-full text-lg font-bold border-[3px] transition-all duration-200"
+             style={{
+               background: isPerfectState 
+                 ? 'hsl(var(--brand-gold) / 0.15)' 
+                 : 'rgba(255, 255, 255, 0.9)',
+               borderColor: isPerfectState 
+                 ? 'hsl(var(--brand-gold))' 
+                 : 'hsl(var(--brand-rose-gold) / 0.4)',
+               color: isPerfectState ? 'hsl(var(--brand-gold-dark))' : 'hsl(var(--brand-blue-gray-dark))',
+               boxShadow: isPerfectState 
+                 ? '0 4px 12px hsl(var(--brand-gold) / 0.3)' 
+                 : '0 2px 8px rgba(0, 0, 0, 0.05)'
+             }}>
+          {isPerfectState ? '✨ ' : ''}{selectedCount} of {totalCount} selected
         </div>
       </div>
 
-      {/* Control Buttons - All in one place */}
-      <div className="flex flex-wrap justify-center gap-3 items-center">
+      {/* Action Buttons - Single row */}
+      <div className="flex flex-wrap justify-center gap-3 items-center mb-8">
         <Button
           onClick={selectedCount === totalCount ? onDeselectAllGyms : onSelectAllGyms}
           className="px-5 py-2 rounded-full text-white font-medium"
@@ -111,21 +90,45 @@ export const GymNavigation = ({
         >
           Copy All
         </Button>
-        
-        <div className="px-5 py-2 rounded-full text-sm font-semibold border-2 transition-all duration-200"
-             style={{
-               background: isPerfectState 
-                 ? 'hsl(var(--brand-gold) / 0.15)' 
-                 : 'rgba(255, 255, 255, 0.9)',
-               borderColor: isPerfectState 
-                 ? 'hsl(var(--brand-gold))' 
-                 : 'hsl(var(--brand-rose-gold) / 0.3)',
-               color: isPerfectState ? 'hsl(var(--brand-gold-dark))' : 'hsl(var(--brand-blue-gray-dark))',
-               boxShadow: isPerfectState 
-                 ? '0 2px 8px hsl(var(--brand-gold) / 0.3)' 
-                 : 'none'
-             }}>
-          {isPerfectState ? '✨ ' : ''}{selectedCount} of {totalCount} selected
+      </div>
+
+      {/* Gym Navigation Grid */}
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-4">
+          {gyms.map((gym) => {
+            const isSelected = selectedGyms.has(gym.code);
+            const primaryColor = gym.colors[0]?.color_hex || '#667eea';
+            
+            return (
+              <div key={gym.code} className="flex flex-col items-center gap-2">
+                <Button
+                  onClick={() => onScrollToGym(gym.code)}
+                  className={cn(
+                    "px-4 py-2 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-200 text-white relative",
+                    isSelected && "ring-2 ring-offset-2"
+                  )}
+                  style={{
+                    background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`,
+                    boxShadow: isSelected 
+                      ? `0 3px 10px hsl(var(--brand-rose-gold) / 0.4), 0 0 0 3px ${primaryColor}40`
+                      : '0 3px 10px hsl(var(--brand-rose-gold) / 0.4)'
+                  }}
+                >
+                  {gym.code}
+                  {isSelected && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-pulse"
+                          style={{ backgroundColor: primaryColor }} />
+                  )}
+                </Button>
+                <DiamondSelector
+                  gymCode={gym.code}
+                  isSelected={isSelected}
+                  onToggle={() => onToggleGymSelection(gym.code)}
+                  primaryColor={primaryColor}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
