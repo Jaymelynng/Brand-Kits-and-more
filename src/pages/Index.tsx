@@ -151,29 +151,6 @@ const Index = () => {
             <SecretAdminButton onClick={() => setIsAdminToolkitOpen(true)} />
           </div>
           
-          {/* Action Buttons */}
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            {selectedGyms.size > 0 && (
-              <Button
-                onClick={handleCopySelected}
-                className="rounded-xl px-4 py-2 text-white shadow-md hover:shadow-lg transition-all"
-                style={{
-                  background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)`,
-                }}
-              >
-                <Edit3 className="w-4 h-4 mr-2" />
-                Copy Selected ({selectedGyms.size})
-              </Button>
-            )}
-            
-            <Button
-              onClick={copyAllGyms}
-              variant="outline"
-              className="rounded-xl px-4 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm hover:shadow-md transition-all"
-            >
-              Copy All
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -183,6 +160,7 @@ const Index = () => {
           gyms={gyms} 
           onScrollToGym={scrollToGym}
           onCopySelected={handleCopySelected}
+          onCopyAll={copyAllGyms}
           selectedGyms={selectedGyms}
           onToggleGymSelection={toggleGymSelection}
           onSelectAllGyms={selectAllGyms}
