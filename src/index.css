@@ -30,15 +30,15 @@ All colors MUST be HSL.
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
     
-    /* Custom brand colors for the gym dashboard - Rose Gold & Blue Gray Palette */
-    --brand-rose-gold: 0 20% 70%;        /* #C4A4A4 */
-    --brand-rose-gold-mid: 0 20% 65%;    /* #B69494 */
-    --brand-rose-gold-dark: 0 20% 60%;   /* #A88484 */
-    --brand-blue-gray: 220 20% 70%;      /* #A4B4C4 */
-    --brand-blue-gray-mid: 220 20% 65%;  /* #94A4B4 */
-    --brand-blue-gray-dark: 220 20% 60%; /* #8494A4 */
-    --brand-text-primary: 0 0% 42%;      /* #6B6B6B */
-    --brand-white: 0 0% 100%;            /* #FFFFFF */
+    /* Custom brand colors for the gym dashboard - Your Custom Palette */
+    --brand-rose-gold: 0 21% 63%;        /* #b48f8f - Main dusty rose */
+    --brand-rose-gold-mid: 0 21% 63%;    /* #b38d8d - Medium rose */
+    --brand-rose-gold-dark: 0 23% 71%;   /* #c3a5a5 - Light rose for subtle elements */
+    --brand-blue-gray: 228 18% 73%;      /* #adb2c6 - Periwinkle blue accent */
+    --brand-blue-gray-mid: 228 16% 69%;  /* Calculated mid-tone */
+    --brand-blue-gray-dark: 228 14% 65%; /* Calculated darker tone */
+    --brand-text-primary: 0 0% 45%;      /* #737373 - Medium gray text */
+    --brand-white: 0 0% 100%;            /* #ffffff */
     --brand-gold: 43 74% 49%;            /* #D4AF37 for perfect state */
     
     /* Dynamic gym colors - will be overridden by JS */
@@ -107,9 +107,11 @@ All colors MUST be HSL.
     padding: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     background: 
-      radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,0.3), transparent),
-      radial-gradient(1px 1px at 80px 60px, rgba(255,255,255,0.2), transparent),
-      hsl(var(--brand-white));
+      radial-gradient(circle at 20% 30%, hsl(var(--brand-rose-gold) / 0.08), transparent 40%),
+      radial-gradient(circle at 80% 60%, hsl(var(--brand-blue-gray) / 0.06), transparent 40%),
+      radial-gradient(1px 1px at 25px 35px, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 85px 65px, rgba(255,255,255,0.3), transparent),
+      linear-gradient(180deg, #e5e7eb 0%, #e6e6e6 50%, #d6c5bf 100%);
     min-height: 100vh;
     color: hsl(var(--brand-text-primary));
   }
