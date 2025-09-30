@@ -125,37 +125,40 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-xl text-gray-900">Loading gym data...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--brand-white))' }}>
+        <div className="text-xl" style={{ color: 'hsl(var(--brand-text-primary))' }}>Loading gym data...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--brand-white))' }}>
         <div className="text-red-600 text-xl">Error loading gym data</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Sticky Header with white background */}
-      <div className="sticky top-0 z-40 border-b border-gray-200 shadow-sm bg-white">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #e5e7eb 0%, #e6e6e6 50%, #d6c5bf 100%)' }}>
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-40 shadow-sm" style={{ 
+        background: 'hsl(var(--brand-white))',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
         <div className="max-w-7xl mx-auto px-6 py-6">
           {/* Centered Title */}
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">🏆 Gym Brand Kit Database</h1>
-            <p className="text-sm text-gray-600 mt-1">All gym brand colors and logos displayed for easy reference and copying</p>
+            <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>🏆 Gym Brand Kit Database</h1>
+            <p className="text-sm mt-1" style={{ color: 'hsl(var(--brand-text-primary) / 0.7)' }}>All gym brand colors and logos displayed for easy reference and copying</p>
             <SecretAdminButton onClick={() => setIsAdminToolkitOpen(true)} />
           </div>
           
         </div>
       </div>
 
-      {/* Navigation section - White background */}
-      <div className="bg-white">
+      {/* Navigation section */}
+      <div style={{ background: 'hsl(var(--brand-white))' }}>
         <GymNavigation 
           gyms={gyms} 
           onScrollToGym={scrollToGym}
@@ -168,8 +171,8 @@ const Index = () => {
         />
       </div>
 
-      {/* Main content area - Dark blush background */}
-      <div className="min-h-screen" style={{ background: 'hsl(var(--brand-rose-gold) / 0.15)' }}>
+      {/* Main content area - Soft background with your colors */}
+      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d6c5bf 100%)' }}>
 
         {/* Main Content */}
         <div className="pt-8 pb-16">
@@ -188,7 +191,7 @@ const Index = () => {
 
             {/* Footer */}
             <div className="mt-16 text-center">
-              <p className="text-sm leading-relaxed max-w-4xl mx-auto text-gray-600">
+              <p className="text-sm leading-relaxed max-w-4xl mx-auto" style={{ color: 'hsl(var(--brand-text-primary) / 0.8)' }}>
                 Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
               </p>
             </div>

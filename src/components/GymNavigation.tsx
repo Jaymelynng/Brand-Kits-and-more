@@ -30,7 +30,10 @@ export const GymNavigation = ({
   const isPerfectState = selectedCount === totalCount;
 
   return (
-    <div className="text-center py-8 bg-white border-b border-gray-200">
+    <div className="text-center py-8" style={{ 
+      background: 'hsl(var(--brand-white))',
+      borderBottom: '1px solid #e5e7eb'
+    }}>
       {/* Selection Counter - Prominent at top */}
       <div className="mb-6">
         <div className="inline-block px-8 py-3 rounded-full text-lg font-bold border-[3px] transition-all duration-200"
