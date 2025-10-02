@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGyms } from "@/hooks/useGyms";
+import { useAuth } from "@/hooks/useAuth";
 import { GymNavigation } from "@/components/GymNavigation";
 import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
@@ -7,16 +9,45 @@ import { AdminToolkit } from "@/components/AdminToolkit";
 import { SecretAdminButton } from "@/components/SecretAdminButton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronUp, Edit3 } from "lucide-react";
+import { ChevronUp, LogOut } from "lucide-react";
 
 const Index = () => {
   const { data: gyms = [], isLoading, error } = useGyms();
+  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAdminToolkitOpen, setIsAdminToolkitOpen] = useState(false);
   const [selectedGyms, setSelectedGyms] = useState<Set<string>>(new Set());
   const [showBackToTop, setShowBackToTop] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleAdminClick = () => {
+    if (!user) {
+      toast({
+        title: "Admin Login Required",
+        description: "Please sign in to access admin features",
+      });
+      navigate("/auth");
+    } else if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "You need admin privileges to access this feature",
+        variant: "destructive",
+      });
+    } else {
+      setIsAdminToolkitOpen(true);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({
+      title: "Signed Out",
+      description: "You've been successfully signed out",
+    });
+    setEditMode(false);
+  };
 
   useEffect(() => {
     // Initialize with all gyms selected for perfect 10/10 state
@@ -151,7 +182,20 @@ const Index = () => {
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>🏆 Gym Brand Kit Database</h1>
             <p className="text-sm mt-1" style={{ color: 'hsl(var(--brand-text-primary) / 0.7)' }}>All gym brand colors and logos displayed for easy reference and copying</p>
-            <SecretAdminButton onClick={() => setIsAdminToolkitOpen(true)} />
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <SecretAdminButton onClick={handleAdminClick} />
+              {user && (
+                <Button
+                  onClick={handleSignOut}
+                  size="sm"
+                  variant="outline"
+                  className="ml-2"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              )}
+            </div>
           </div>
           
         </div>
@@ -205,14 +249,16 @@ const Index = () => {
         onClose={() => setIsAddModalOpen(false)}
       />
 
-      {/* Admin Toolkit */}
-      <AdminToolkit
-        isOpen={isAdminToolkitOpen}
-        onClose={() => setIsAdminToolkitOpen(false)}
-        editMode={editMode}
-        onToggleEditMode={toggleEditMode}
-        onAddNewGym={() => setIsAddModalOpen(true)}
-      />
+      {/* Admin Toolkit - Only show if admin */}
+      {isAdmin && (
+        <AdminToolkit
+          isOpen={isAdminToolkitOpen}
+          onClose={() => setIsAdminToolkitOpen(false)}
+          editMode={editMode}
+          onToggleEditMode={toggleEditMode}
+          onAddNewGym={() => setIsAddModalOpen(true)}
+        />
+      )}
 
       {/* Back to Top Button */}
       {showBackToTop && (
