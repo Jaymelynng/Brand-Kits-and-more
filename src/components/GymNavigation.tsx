@@ -56,14 +56,35 @@ export const GymNavigation = ({
       {/* Action Buttons - Single row */}
       <div className="flex flex-wrap justify-center gap-3 items-center mb-8">
         <Button
-          onClick={selectedCount === totalCount ? onDeselectAllGyms : onSelectAllGyms}
-          className="px-5 py-2 rounded-full text-white font-medium"
+          onClick={onSelectAllGyms}
+          disabled={selectedCount === totalCount}
+          className="px-5 py-2 rounded-full text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
-            background: `linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)`,
-            boxShadow: '0 2px 8px hsl(var(--brand-blue-gray) / 0.3)'
+            background: selectedCount === totalCount
+              ? 'hsl(var(--brand-blue-gray) / 0.5)'
+              : `linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)`,
+            boxShadow: selectedCount === totalCount
+              ? 'none'
+              : '0 2px 8px hsl(var(--brand-blue-gray) / 0.3)'
           }}
         >
-          {selectedCount === totalCount ? 'Deselect All' : 'Select All'}
+          Select All
+        </Button>
+
+        <Button
+          onClick={onDeselectAllGyms}
+          disabled={selectedCount === 0}
+          className="px-5 py-2 rounded-full text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            background: selectedCount === 0 
+              ? 'hsl(var(--brand-blue-gray) / 0.5)'
+              : `linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.7) 0%, hsl(var(--brand-rose-gold-mid) / 0.8) 50%, hsl(var(--brand-rose-gold-dark) / 0.8) 100%)`,
+            boxShadow: selectedCount === 0 
+              ? 'none'
+              : '0 2px 8px hsl(var(--brand-rose-gold) / 0.25)'
+          }}
+        >
+          Clear All
         </Button>
         
         <Button
