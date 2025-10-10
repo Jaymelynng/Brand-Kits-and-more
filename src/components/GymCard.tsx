@@ -200,7 +200,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <BrandCard 
-        className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group border-2"
+        className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group border-2 flex flex-col h-full"
         style={{
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
@@ -300,7 +300,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="mb-6">
+          <div className="mb-6 min-h-[280px]">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-foreground">🎨 Brand Colors</h4>
             </div>
@@ -321,7 +321,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-3 mb-6">
+          <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => copyGymColors(true)}
@@ -360,7 +360,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
               </Button>
             </div>
 
-            <Link to={`/gym/${gym.code}`} className="w-full">
+            <Link to={`/gym/${gym.code}`} className="w-full mt-4">
               <Button className="w-full text-sm py-2 text-white shadow-lg hover:shadow-xl transition-smooth"
                       style={{
                         background: `linear-gradient(135deg, hsl(280, 20%, 70%) 0%, hsl(280, 20%, 65%) 50%, hsl(280, 20%, 60%) 100%)`
