@@ -1,5 +1,6 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo } from "@/hooks/useGyms";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -16,6 +17,8 @@ import { ColorSwatch } from "@/components/shared/ColorSwatch";
 const GymProfile = () => {
   const { gymCode } = useParams<{ gymCode: string }>();
   const { data: gyms = [], isLoading, error } = useGyms();
+  const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
@@ -91,6 +94,16 @@ const GymProfile = () => {
 
   const setMainLogo = (logoId: string) => {
     if (!gym) return;
+    
+    if (!user || !isAdmin) {
+      toast({
+        title: "Admin Access Required",
+        description: "You need admin privileges to set main logo",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setMainLogoMutation.mutate({ gymId: gym.id, logoId }, {
       onSuccess: () => {
         toast({
@@ -133,6 +146,36 @@ const GymProfile = () => {
   const handleFileUpload = (files: File[]) => {
     if (!gym) return;
     
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to upload logos",
+        variant: "destructive",
+        action: (
+          <Button 
+            size="sm" 
+            onClick={() => navigate('/auth')}
+            style={{ 
+              background: 'hsl(var(--brand-rose-gold))',
+              color: 'white'
+            }}
+          >
+            Sign In
+          </Button>
+        ),
+      });
+      return;
+    }
+
+    if (!isAdmin) {
+      toast({
+        title: "Admin Access Required",
+        description: "You need admin privileges to upload logos. Click the diamond button and grant yourself admin access.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     files.forEach((file) => {
       if (!file.type.startsWith('image/')) {
         toast({
@@ -173,6 +216,15 @@ const GymProfile = () => {
   };
 
   const handleDeleteLogo = (logoId: string, filename: string) => {
+    if (!user || !isAdmin) {
+      toast({
+        title: "Admin Access Required",
+        description: "You need admin privileges to delete logos",
+        variant: "destructive",
+      });
+      return;
+    }
+
     deleteLogoMutation.mutate(logoId, {
       onSuccess: () => {
         toast({

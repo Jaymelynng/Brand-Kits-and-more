@@ -6,8 +6,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { PlusCircle, Edit3 } from "lucide-react";
+import { PlusCircle, Edit3, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface AdminToolkitProps {
   isOpen: boolean;
@@ -24,6 +27,35 @@ export const AdminToolkit = ({
   onToggleEditMode,
   onAddNewGym 
 }: AdminToolkitProps) => {
+  const { toast } = useToast();
+  const [grantingAdmin, setGrantingAdmin] = useState(false);
+
+  const handleGrantAdmin = async () => {
+    setGrantingAdmin(true);
+    try {
+      const { error } = await supabase.rpc('make_me_admin');
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Admin Access Granted!",
+        description: "Please refresh the page to apply changes.",
+      });
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error: any) {
+      toast({
+        title: "Failed to Grant Admin",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setGrantingAdmin(false);
+    }
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-[400px] sm:w-[540px]">
@@ -40,6 +72,27 @@ export const AdminToolkit = ({
         </SheetHeader>
 
         <div className="mt-8 space-y-6">
+          {/* Grant Admin Access Section */}
+          <div className="p-4 border rounded-lg" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.3)' }}>
+            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <Shield className="w-5 h-5" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
+              Grant Admin Access
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Grant yourself admin privileges to upload logos and manage gyms
+            </p>
+            <Button 
+              onClick={handleGrantAdmin}
+              disabled={grantingAdmin}
+              className="w-full"
+              style={{ 
+                background: 'hsl(var(--brand-rose-gold))',
+                color: 'white'
+              }}
+            >
+              {grantingAdmin ? "Granting..." : "Grant Admin Access"}
+            </Button>
+          </div>
           {/* Add New Gym Section */}
           <div className="p-4 border rounded-lg" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.3)' }}>
             <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
