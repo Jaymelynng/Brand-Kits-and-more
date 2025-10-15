@@ -26,9 +26,20 @@ export interface GymLogo {
   created_at?: string;
 }
 
+export interface GymElement {
+  id: string;
+  gym_id: string;
+  element_type: string;
+  svg_data: string;
+  element_color: string;
+  element_variant?: number;
+  created_at?: string;
+}
+
 export interface GymWithColors extends Gym {
   colors: GymColor[];
   logos: GymLogo[];
+  elements: GymElement[];
 }
 
 export const useGyms = () => {
@@ -56,10 +67,18 @@ export const useGyms = () => {
 
       if (logosError) throw logosError;
 
+      const { data: elements, error: elementsError } = await supabase
+        .from('gym_elements')
+        .select('*')
+        .order('created_at');
+
+      if (elementsError) throw elementsError;
+
       return gyms.map(gym => ({
         ...gym,
         colors: colors.filter(color => color.gym_id === gym.id),
         logos: logos.filter(logo => logo.gym_id === gym.id),
+        elements: elements?.filter(element => element.gym_id === gym.id) || [],
       }));
     },
   });
@@ -241,6 +260,120 @@ export const useDeleteLogo = () => {
         .from('gym_logos')
         .delete()
         .eq('id', logoId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
+export const useUploadElement = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      gymId, 
+      file, 
+      elementType 
+    }: { 
+      gymId: string; 
+      file: File; 
+      elementType: string;
+    }) => {
+      console.log('Starting element upload for gym:', gymId, 'file:', file.name, 'type:', elementType);
+      
+      try {
+        // Read file content as text if it's SVG
+        let svgData = '';
+        if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+          svgData = await file.text();
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${gymId}-${elementType}-${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        console.log('Uploading to storage with path:', filePath);
+        const { error: uploadError } = await supabase.storage
+          .from('gym-logos')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw uploadError;
+        }
+
+        console.log('File uploaded successfully, getting public URL');
+        const { data: { publicUrl } } = supabase.storage
+          .from('gym-logos')
+          .getPublicUrl(filePath);
+
+        console.log('Public URL:', publicUrl);
+        console.log('Inserting element record into database');
+        
+        const { data: element, error: elementError } = await supabase
+          .from('gym_elements')
+          .insert({
+            gym_id: gymId,
+            element_type: elementType,
+            svg_data: svgData || publicUrl,
+            element_color: '#000000',
+            element_variant: 1,
+          })
+          .select()
+          .single();
+
+        if (elementError) {
+          console.error('Database insert error:', elementError);
+          throw elementError;
+        }
+
+        console.log('Element upload completed successfully:', element);
+        return element;
+      } catch (error) {
+        console.error('Element upload failed:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      console.log('Upload successful, invalidating queries');
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+    onError: (error) => {
+      console.error('Upload mutation error:', error);
+    },
+  });
+};
+
+export const useDeleteElement = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (elementId: string) => {
+      const { error } = await supabase
+        .from('gym_elements')
+        .delete()
+        .eq('id', elementId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
+export const useUpdateElementType = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ elementId, elementType }: { elementId: string; elementType: string }) => {
+      const { error } = await supabase
+        .from('gym_elements')
+        .update({ element_type: elementType })
+        .eq('id', elementId);
 
       if (error) throw error;
     },

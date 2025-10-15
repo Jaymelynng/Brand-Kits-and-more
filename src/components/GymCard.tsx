@@ -300,7 +300,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="mb-6 min-h-[280px]">
+          <div className="flex-1 flex flex-col mb-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-foreground">🎨 Brand Colors</h4>
             </div>
@@ -360,7 +360,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
               </Button>
             </div>
 
-            <Link to={`/gym/${gym.code}`} className="w-full mt-4">
+            <Link to={`/gym/${gym.code}`} className="block w-full">
               <Button className="w-full text-sm py-2 text-white shadow-lg hover:shadow-xl transition-smooth"
                       style={{
                         background: `linear-gradient(135deg, hsl(280, 20%, 70%) 0%, hsl(280, 20%, 65%) 50%, hsl(280, 20%, 60%) 100%)`

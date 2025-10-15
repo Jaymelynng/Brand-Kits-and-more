@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType } from "@/hooks/useGyms";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,13 +23,22 @@ const GymProfile = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
   const [viewMode, setViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('carousel');
+  const [elementViewMode, setElementViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('grid');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [showElementUpload, setShowElementUpload] = useState(false);
+  const [elementType, setElementType] = useState<string>('banner');
+  const [isDragOverElement, setIsDragOverElement] = useState(false);
+  const [uploadingElements, setUploadingElements] = useState<Record<string, number>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const elementFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const setMainLogoMutation = useSetMainLogo();
   const uploadLogoMutation = useUploadLogo();
   const deleteLogoMutation = useDeleteLogo();
+  const uploadElementMutation = useUploadElement();
+  const deleteElementMutation = useDeleteElement();
+  const updateElementTypeMutation = useUpdateElementType();
 
   // Scroll to top on page load and back to top functionality
   useEffect(() => {
@@ -237,6 +246,139 @@ const GymProfile = () => {
           description: `Failed to delete ${filename}`,
         });
       }
+    });
+  };
+
+  // Element upload handlers
+  const handleElementDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverElement(true);
+  };
+
+  const handleElementDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverElement(false);
+  };
+
+  const handleElementDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverElement(false);
+    const files = Array.from(e.dataTransfer.files);
+    handleElementUpload(files);
+  };
+
+  const handleElementFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    handleElementUpload(files);
+  };
+
+  const handleElementUpload = (files: File[]) => {
+    if (!gym) return;
+    
+    if (!user || !isAdmin) {
+      toast({
+        title: "Admin Access Required",
+        description: "You need admin privileges to upload elements",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    files.forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: "destructive",
+          description: `${file.name} is not an image file`,
+        });
+        return;
+      }
+
+      const fileKey = `${file.name}-${Date.now()}`;
+      setUploadingElements(prev => ({ ...prev, [fileKey]: 0 }));
+
+      uploadElementMutation.mutate(
+        { gymId: gym.id, file, elementType },
+        {
+          onSuccess: () => {
+            setUploadingElements(prev => {
+              const { [fileKey]: _, ...rest } = prev;
+              return rest;
+            });
+            toast({
+              description: `${file.name} uploaded successfully as ${elementType}!`,
+            });
+          },
+          onError: () => {
+            setUploadingElements(prev => {
+              const { [fileKey]: _, ...rest } = prev;
+              return rest;
+            });
+            toast({
+              variant: "destructive",
+              description: `Failed to upload ${file.name}`,
+            });
+          }
+        }
+      );
+    });
+  };
+
+  const handleDeleteElement = (elementId: string, elementType: string) => {
+    if (!user || !isAdmin) {
+      toast({
+        title: "Admin Access Required",
+        description: "You need admin privileges to delete elements",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    deleteElementMutation.mutate(elementId, {
+      onSuccess: () => {
+        toast({
+          description: `Element deleted successfully!`,
+        });
+      },
+      onError: () => {
+        toast({
+          variant: "destructive",
+          description: `Failed to delete element`,
+        });
+      }
+    });
+  };
+
+  const handleUpdateElementType = (elementId: string, newType: string) => {
+    if (!user || !isAdmin) {
+      toast({
+        title: "Admin Access Required",
+        description: "You need admin privileges to update elements",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateElementTypeMutation.mutate(
+      { elementId, elementType: newType },
+      {
+        onSuccess: () => {
+          toast({
+            description: `Element type updated to ${newType}!`,
+          });
+        },
+        onError: () => {
+          toast({
+            variant: "destructive",
+            description: `Failed to update element type`,
+          });
+        }
+      }
+    );
+  };
+
+  const copyElementData = (data: string) => {
+    navigator.clipboard.writeText(data).then(() => {
+      showCopyFeedback('element-data', 'Element data copied!');
     });
   };
 
@@ -462,6 +604,12 @@ const GymProfile = () => {
                   {gym.colors.length}
                 </div>
                 <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-accent/10">
+                <div className="text-3xl font-bold mb-1 text-accent">
+                  {gym.elements?.length || 0}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">Brand Elements</div>
               </div>
             </div>
           </BrandCardContent>
@@ -938,6 +1086,245 @@ const GymProfile = () => {
                         </div>
                       </CardContent>
                     </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Brand Elements Section */}
+        {gym.elements && gym.elements.length > 0 ? (
+          <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl">📦 Brand Elements ({gym.elements.length} files)</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setShowElementUpload(!showElementUpload)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/80 border-white/40 hover:bg-white/90"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {showElementUpload ? "Hide Upload" : "Add Elements"}
+                  </Button>
+                  <Select value={elementViewMode} onValueChange={(value: any) => setElementViewMode(value)}>
+                    <SelectTrigger className="w-[140px] bg-white/80 border-white/40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="carousel">
+                        <div className="flex items-center gap-2">
+                          <Carousel className="w-4 h-4" />
+                          Carousel
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="grid">
+                        <div className="flex items-center gap-2">
+                          <Grid3X3 className="w-4 h-4" />
+                          Grid
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="list">
+                        <div className="flex items-center gap-2">
+                          <List className="w-4 h-4" />
+                          List
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="masonry">
+                        <div className="flex items-center gap-2">
+                          <LayoutGrid className="w-4 h-4" />
+                          Masonry
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {elementViewMode === 'grid' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {gym.elements.map((element) => (
+                    <Card key={element.id} className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300">
+                      <CardContent className="p-6">
+                        <div 
+                          className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold capitalize"
+                          style={{ backgroundColor: primaryColor }}
+                        >
+                          {element.element_type}
+                        </div>
+                        
+                        <div 
+                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner bg-white/50"
+                        >
+                          {element.svg_data.startsWith('http') ? (
+                            <img 
+                              src={element.svg_data} 
+                              alt={element.element_type}
+                              className="max-w-full max-h-full object-contain p-4"
+                            />
+                          ) : (
+                            <div 
+                              className="w-full h-full p-4"
+                              dangerouslySetInnerHTML={{ __html: element.svg_data }}
+                            />
+                          )}
+                        </div>
+                        
+                        <div className="text-sm font-bold text-foreground truncate mb-4">
+                          {element.element_type}
+                        </div>
+                        
+                        <div className="flex flex-col gap-2">
+                          <Select 
+                            value={element.element_type} 
+                            onValueChange={(value) => handleUpdateElementType(element.id, value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="banner">Banner</SelectItem>
+                              <SelectItem value="shape">Shape</SelectItem>
+                              <SelectItem value="background">Background</SelectItem>
+                              <SelectItem value="icon">Icon</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          <Button
+                            onClick={() => copyElementData(element.svg_data)}
+                            size="sm"
+                            variant="outline"
+                            className="w-full bg-white/80 border-white/40 hover:bg-white/90"
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy Data
+                          </Button>
+                          
+                          <Button
+                            onClick={() => handleDeleteElement(element.id, element.element_type)}
+                            size="sm"
+                            variant="outline"
+                            className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8">
+            <CardHeader>
+              <CardTitle className="text-2xl">📦 Brand Elements</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <div className="text-muted-foreground mb-4">
+                  No brand elements uploaded yet
+                </div>
+                <Button
+                  onClick={() => setShowElementUpload(true)}
+                  className="text-white font-semibold shadow-lg hover:shadow-xl"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Upload First Element
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Element Upload Interface */}
+        {showElementUpload && (
+          <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8 animate-fade-in">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl">📤 Upload Brand Elements</CardTitle>
+                <Button
+                  onClick={() => setShowElementUpload(false)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Element Category</label>
+                <Select value={elementType} onValueChange={setElementType}>
+                  <SelectTrigger className="w-full bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="banner">Banner</SelectItem>
+                    <SelectItem value="shape">Shape</SelectItem>
+                    <SelectItem value="background">Background</SelectItem>
+                    <SelectItem value="icon">Icon</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div
+                className={cn(
+                  "border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer",
+                  isDragOverElement 
+                    ? "border-white/60 shadow-2xl" 
+                    : "border-white/30 hover:border-white/50 hover:shadow-lg"
+                )}
+                style={{
+                  backgroundColor: isDragOverElement ? `${primaryColor}20` : `${primaryColor}10`,
+                }}
+                onDragOver={handleElementDragOver}
+                onDragLeave={handleElementDragLeave}
+                onDrop={handleElementDrop}
+                onClick={() => elementFileInputRef.current?.click()}
+              >
+                <Upload 
+                  className="w-16 h-16 mx-auto mb-4 transition-transform duration-300"
+                  style={{ 
+                    color: primaryColor,
+                    transform: isDragOverElement ? 'scale(1.1)' : 'scale(1)'
+                  }}
+                />
+                <p className="text-lg font-semibold mb-2" style={{ color: primaryColor }}>
+                  Drop element files here or click to browse
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  SVG, PNG, JPG files supported
+                </p>
+                <input
+                  ref={elementFileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleElementFileSelect}
+                  className="hidden"
+                />
+              </div>
+
+              {Object.keys(uploadingElements).length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {Object.entries(uploadingElements).map(([key, progress]) => (
+                    <div key={key} className="bg-white/60 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium truncate">{key.split('-')[0]}</span>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
                   ))}
                 </div>
               )}
