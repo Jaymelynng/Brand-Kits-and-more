@@ -838,20 +838,31 @@ const GymProfile = () => {
 
       {/* Content Section */}
       <div className="container mx-auto px-6 pb-12">
-        {/* Upload Interface - Conditional */}
-        {showUpload && (
+        {/* Upload Interface - Always visible for admins when no logos exist */}
+        {(gym.logos.length === 0 || showUpload) && isAdmin && (
           <Card className="lg:col-span-4 bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8 animate-fade-in">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl">📤 Upload New Logos</CardTitle>
-                <Button
-                  onClick={() => setShowUpload(false)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                <div>
+                  <CardTitle className="text-2xl">
+                    {gym.logos.length === 0 ? '📤 Upload Your First Logo' : '📤 Upload New Logos'}
+                  </CardTitle>
+                  {gym.logos.length === 0 && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Start building your brand asset library
+                    </p>
+                  )}
+                </div>
+                {gym.logos.length > 0 && (
+                  <Button
+                    onClick={() => setShowUpload(false)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
