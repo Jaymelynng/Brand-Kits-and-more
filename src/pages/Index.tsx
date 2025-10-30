@@ -6,10 +6,9 @@ import { GymNavigation } from "@/components/GymNavigation";
 import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
 import { AdminToolkit } from "@/components/AdminToolkit";
-import { SecretAdminButton } from "@/components/SecretAdminButton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronUp, LogOut } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 
 const Index = () => {
   const { data: gyms = [], isLoading, error } = useGyms();
@@ -172,37 +171,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #e5e7eb 0%, #e6e6e6 50%, #d6c5bf 100%)' }}>
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-40 shadow-sm" style={{ 
-        background: 'hsl(var(--brand-white))',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          {/* Centered Title */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>🏆 Gym Brand Kit Database</h1>
-            <p className="text-sm mt-1" style={{ color: 'hsl(var(--brand-text-primary) / 0.7)' }}>All gym brand colors and logos displayed for easy reference and copying</p>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <SecretAdminButton onClick={handleAdminClick} />
-              {user && (
-                <Button
-                  onClick={handleSignOut}
-                  size="sm"
-                  variant="outline"
-                  className="ml-2"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
-              )}
-            </div>
-          </div>
-          
-        </div>
-      </div>
-
-      {/* Navigation section */}
-      <div style={{ background: 'hsl(var(--brand-white))' }}>
+      {/* Navigation section - Now includes title */}
+      <div className="sticky top-0 z-40 shadow-sm" style={{ background: 'hsl(var(--brand-white))' }}>
         <GymNavigation 
           gyms={gyms} 
           onScrollToGym={scrollToGym}
@@ -212,6 +182,10 @@ const Index = () => {
           onToggleGymSelection={toggleGymSelection}
           onSelectAllGyms={selectAllGyms}
           onDeselectAllGyms={deselectAllGyms}
+          user={user}
+          isAdmin={isAdmin}
+          onAdminClick={handleAdminClick}
+          onSignOut={handleSignOut}
         />
       </div>
 
