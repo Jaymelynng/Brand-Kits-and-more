@@ -849,33 +849,38 @@ const GymProfile = () => {
                             let rotateY = 0;
                             let scale = 1;
                             let opacity = 1;
-                            let translateZ = 0;
                             
                             if (distance === 0) {
                               // Center slide
                               rotateY = 0;
                               scale = 1;
                               opacity = 1;
-                              translateZ = 0;
                             } else if (distance < 0) {
                               // Left slides
                               rotateY = Math.max(-55, distance * 45);
                               scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
                               opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
-                              translateZ = distance * 50;
                             } else {
                               // Right slides
                               rotateY = Math.min(55, distance * 45);
                               scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
                               opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
-                              translateZ = -distance * 50;
                             }
                             
-                            (card as HTMLElement).style.transform = `rotateY(${rotateY}deg) scale(${scale}) translateZ(${translateZ}px)`;
+                            (card as HTMLElement).style.transform = `rotateY(${rotateY}deg) scale(${scale})`;
                             (card as HTMLElement).style.opacity = opacity.toString();
                           }
                         });
                       };
+                      
+                      // Make cards clickable to navigate
+                      const slides = api.slideNodes();
+                      slides.forEach((slide, index) => {
+                        slide.style.cursor = 'pointer';
+                        slide.addEventListener('click', () => {
+                          api.scrollTo(index);
+                        });
+                      });
                       
                       api.on('select', updateSlides);
                       api.on('reInit', updateSlides);
@@ -927,13 +932,12 @@ const GymProfile = () => {
                                   className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
                                   style={{ 
                                     backgroundColor: `${primaryColor}08`,
-                                    transform: "translateZ(20px)",
                                   }}
                                 >
                                   <img 
                                     src={logo.file_url} 
                                     alt={logo.filename}
-                                    className="max-w-full max-h-full object-contain p-4 transition-transform duration-500 hover:scale-110"
+                                    className="max-w-full max-h-full object-contain p-4"
                                   />
                                 </div>
                                 
@@ -995,8 +999,6 @@ const GymProfile = () => {
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <CarouselPrevious className="shadow-2xl hover:scale-110 transition-transform" />
-                    <CarouselNext className="shadow-2xl hover:scale-110 transition-transform" />
                   </Carousel>
                 </div>
               ) : viewMode === 'grid' ? (
