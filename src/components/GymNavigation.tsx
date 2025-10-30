@@ -30,45 +30,65 @@ export const GymNavigation = ({
   const isPerfectState = selectedCount === totalCount;
 
   return (
-    <div className="text-center py-8" style={{ 
-      background: 'hsl(var(--brand-white))',
-      borderBottom: '1px solid #e5e7eb'
+    <div className="text-center py-8 relative overflow-hidden" style={{ 
+      background: `
+        radial-gradient(circle at 20% 30%, hsl(var(--brand-gold) / 0.15), transparent 40%),
+        radial-gradient(circle at 80% 70%, hsl(var(--brand-rose-gold) / 0.1), transparent 40%),
+        linear-gradient(135deg, hsl(var(--brand-cream)) 0%, hsl(var(--brand-white)) 50%, hsl(var(--brand-gold) / 0.05) 100%)
+      `,
+      borderBottom: '2px solid',
+      borderImage: 'linear-gradient(90deg, transparent, hsl(var(--brand-gold)), transparent) 1'
     }}>
+      {/* Decorative floating elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-4 left-[10%] text-2xl opacity-30 animate-pulse">⭐</div>
+        <div className="absolute top-6 right-[15%] text-xl opacity-20 animate-bounce" style={{ animationDelay: '0.5s' }}>💪</div>
+        <div className="absolute bottom-4 left-[20%] text-lg opacity-25 animate-pulse" style={{ animationDelay: '1s' }}>✨</div>
+        <div className="absolute bottom-6 right-[25%] text-2xl opacity-20 animate-pulse" style={{ animationDelay: '1.5s' }}>🏋️</div>
+      </div>
       {/* Selection Counter - Prominent at top */}
-      <div className="mb-6">
-        <div className="inline-block px-8 py-3 rounded-full text-lg font-bold border-[3px] transition-all duration-200"
+      <div className="mb-6 relative z-10">
+        <div className="inline-block px-8 py-3 rounded-full text-lg font-bold border-[3px] transition-all duration-200 shadow-xl"
              style={{
                background: isPerfectState 
-                 ? 'hsl(var(--brand-gold) / 0.15)' 
-                 : 'rgba(255, 255, 255, 0.9)',
+                 ? `
+                   radial-gradient(1.5px 1.5px at 15px 8px, rgba(255,255,255,1), transparent),
+                   radial-gradient(1px 1px at 35px 12px, rgba(255,255,255,0.9), transparent),
+                   radial-gradient(1.5px 1.5px at 55px 6px, rgba(255,255,255,0.95), transparent),
+                   radial-gradient(1px 1px at 75px 14px, rgba(255,255,255,0.85), transparent),
+                   radial-gradient(1.5px 1.5px at 25px 16px, rgba(255,255,255,0.8), transparent),
+                   linear-gradient(135deg, hsl(var(--brand-gold)) 0%, hsl(var(--brand-gold-dark)) 100%)
+                 `
+                 : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(250, 250, 250, 0.9))',
                borderColor: isPerfectState 
                  ? 'hsl(var(--brand-gold))' 
                  : 'hsl(var(--brand-rose-gold) / 0.4)',
-               color: isPerfectState ? 'hsl(var(--brand-gold-dark))' : 'hsl(var(--brand-blue-gray-dark))',
+               color: isPerfectState ? 'white' : 'hsl(var(--brand-blue-gray-dark))',
                boxShadow: isPerfectState 
-                 ? '0 4px 12px hsl(var(--brand-gold) / 0.3)' 
-                 : '0 2px 8px rgba(0, 0, 0, 0.05)'
+                 ? '0 4px 20px hsl(var(--brand-gold) / 0.5), 0 0 40px hsl(var(--brand-gold) / 0.3)' 
+                 : '0 2px 8px rgba(0, 0, 0, 0.08)',
+               animation: isPerfectState ? 'pulse 2s ease-in-out infinite' : 'none'
              }}>
-          {isPerfectState ? '✨ ' : ''}{selectedCount} of {totalCount} selected
+          {isPerfectState ? '✨ ' : '⭐ '}{selectedCount} of {totalCount} selected
         </div>
       </div>
 
       {/* Action Buttons - Single row */}
       <div className="flex flex-wrap justify-center gap-3 items-center mb-8">
         <Button
-          onClick={onSelectAllGyms}
-          disabled={selectedCount === totalCount}
-          className="px-5 py-2 rounded-full text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={selectedCount === totalCount ? () => {} : onSelectAllGyms}
+          className="px-5 py-2 rounded-full text-white font-medium transition-all"
           style={{
             background: selectedCount === totalCount
-              ? 'hsl(var(--brand-blue-gray) / 0.5)'
+              ? `linear-gradient(135deg, hsl(var(--brand-gold)) 0%, hsl(var(--brand-gold-dark)) 100%)`
               : `linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)`,
             boxShadow: selectedCount === totalCount
-              ? 'none'
-              : '0 2px 8px hsl(var(--brand-blue-gray) / 0.3)'
+              ? '0 3px 12px hsl(var(--brand-gold) / 0.4)'
+              : '0 2px 8px hsl(var(--brand-blue-gray) / 0.3)',
+            cursor: selectedCount === totalCount ? 'default' : 'pointer'
           }}
         >
-          Select All
+          {selectedCount === totalCount ? '✓ All Selected' : 'Select All'}
         </Button>
 
         <Button

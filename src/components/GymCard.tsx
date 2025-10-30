@@ -200,7 +200,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <BrandCard 
-        className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group border-2 flex flex-col h-full"
+        className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group border-2 flex flex-col h-full min-h-[600px]"
         style={{
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
@@ -303,7 +303,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="flex-1 flex flex-col mb-4">
+          <div className="flex-1 flex flex-col mb-4 min-h-[280px]">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-foreground">🎨 Brand Colors</h4>
             </div>
