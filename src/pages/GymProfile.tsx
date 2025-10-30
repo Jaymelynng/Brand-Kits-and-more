@@ -570,112 +570,116 @@ const GymProfile = () => {
             </p>
           </div>
 
-          {/* Main Logo Showcase - Centered */}
-          {mainLogo && (
-            <div className="flex flex-col items-center mb-8">
-              <div 
-                className="flex items-center justify-center w-full max-w-md h-48 rounded-2xl shadow-2xl border-4 border-white/20 backdrop-blur-sm mb-6"
-                style={{ 
-                  background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` 
-                }}
-              >
-                <img 
-                  src={mainLogo.file_url} 
-                  alt={`${gym.name} main logo`}
-                  className="max-h-40 max-w-72 object-contain drop-shadow-lg"
-                />
-              </div>
-              <Button
-                onClick={() => downloadLogo(mainLogo.file_url, mainLogo.filename)}
-                className="text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                style={{ 
-                  backgroundColor: primaryColor,
-                }}
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Download Main Logo
-              </Button>
-            </div>
-          )}
-
-          {/* Brand Assets Stats */}
-          <div className="max-w-2xl mx-auto mt-8">
-            <BrandCard variant="hero">
-              <BrandCardHeader className="pb-4">
-                <BrandCardTitle className="text-xl">📊 Brand Assets</BrandCardTitle>
-              </BrandCardHeader>
-              <BrandCardContent className="pt-0">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 rounded-xl bg-gym-primary/10">
-                    <div className="text-3xl font-bold mb-1 text-gym-primary">
-                      {gym.logos.length}
-                    </div>
-                    <div className="text-sm font-medium text-muted-foreground">Logo Variations</div>
-                  </div>
-                  <div className="text-center p-4 rounded-xl bg-gym-secondary/10">
-                    <div className="text-3xl font-bold mb-1 text-gym-secondary">
-                      {gym.colors.length}
-                    </div>
-                    <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
-                  </div>
-                  <div className="text-center p-4 rounded-xl bg-accent/10">
-                    <div className="text-3xl font-bold mb-1 text-accent">
-                      {gym.elements?.length || 0}
-                    </div>
-                    <div className="text-sm font-medium text-muted-foreground">Brand Elements</div>
-                  </div>
-                </div>
-              </BrandCardContent>
-            </BrandCard>
-          </div>
-
-          {/* Brand Colors - Full Width Below Logo */}
-          <div className="max-w-2xl mx-auto">
-            <BrandCard variant="hero">
-              <BrandCardHeader className="pb-4">
-                <BrandCardTitle className="flex items-center justify-between text-xl">
-                  🎨 Brand Colors
-                  <div className="flex gap-2">
-                    {isAdmin && (
-                      <Button
-                        onClick={() => setIsEditingColors(!isEditingColors)}
-                        size="sm"
-                        variant={isEditingColors ? "default" : "outline"}
-                        className={isEditingColors 
-                          ? "bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg"
-                          : ""}
-                      >
-                        {isEditingColors ? '✓ Done Editing' : '✏️ Edit Colors'}
-                      </Button>
-                    )}
-                    <Button
-                      onClick={copyAllColors}
-                      size="sm"
-                      className="bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg hover:shadow-xl transition-smooth"
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy All
-                    </Button>
-                  </div>
-                </BrandCardTitle>
-              </BrandCardHeader>
-              <BrandCardContent className="pt-0">
-                <div className="space-y-3">
-                  {gym.colors.map((color, index) => (
-                    <ColorSwatch
-                      key={color.id}
-                      color={color.color_hex}
-                      label={`Primary Color ${index + 1}`}
-                      size="lg"
-                      showControls={true}
-                      editMode={isEditingColors}
-                      onEdit={() => handleEditColor(color.id, color.color_hex)}
-                      className="group p-3 rounded-xl hover:bg-card/60 transition-smooth cursor-pointer border border-border/20 hover:border-border/40 hover:shadow-lg"
+          {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* Left Column: Logo + Brand Assets Stats */}
+            <div className="flex flex-col gap-6">
+              {/* Main Logo Showcase */}
+              {mainLogo && (
+                <div className="flex flex-col items-center">
+                  <div 
+                    className="flex items-center justify-center w-full h-48 rounded-2xl shadow-2xl border-4 border-white/20 backdrop-blur-sm mb-6"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` 
+                    }}
+                  >
+                    <img 
+                      src={mainLogo.file_url} 
+                      alt={`${gym.name} main logo`}
+                      className="max-h-40 max-w-72 object-contain drop-shadow-lg"
                     />
-                  ))}
+                  </div>
+                  <Button
+                    onClick={() => downloadLogo(mainLogo.file_url, mainLogo.filename)}
+                    className="text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                    style={{ 
+                      backgroundColor: primaryColor,
+                    }}
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    Download Main Logo
+                  </Button>
                 </div>
-              </BrandCardContent>
-            </BrandCard>
+              )}
+
+              {/* Brand Assets Stats */}
+              <BrandCard variant="hero">
+                <BrandCardHeader className="pb-4">
+                  <BrandCardTitle className="text-xl">📊 Brand Assets</BrandCardTitle>
+                </BrandCardHeader>
+                <BrandCardContent className="pt-0">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center p-4 rounded-xl bg-gym-primary/10">
+                      <div className="text-3xl font-bold mb-1 text-gym-primary">
+                        {gym.logos.length}
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">Logo Variations</div>
+                    </div>
+                    <div className="text-center p-4 rounded-xl bg-gym-secondary/10">
+                      <div className="text-3xl font-bold mb-1 text-gym-secondary">
+                        {gym.colors.length}
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
+                    </div>
+                    <div className="text-center p-4 rounded-xl bg-accent/10">
+                      <div className="text-3xl font-bold mb-1 text-accent">
+                        {gym.elements?.length || 0}
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">Brand Elements</div>
+                    </div>
+                  </div>
+                </BrandCardContent>
+              </BrandCard>
+            </div>
+
+            {/* Right Column: Brand Colors */}
+            <div>
+              <BrandCard variant="hero" className="h-full">
+                <BrandCardHeader className="pb-4">
+                  <BrandCardTitle className="flex items-center justify-between text-xl">
+                    🎨 Brand Colors
+                    <div className="flex gap-2">
+                      {isAdmin && (
+                        <Button
+                          onClick={() => setIsEditingColors(!isEditingColors)}
+                          size="sm"
+                          variant={isEditingColors ? "default" : "outline"}
+                          className={isEditingColors 
+                            ? "bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg"
+                            : ""}
+                        >
+                          {isEditingColors ? '✓ Done Editing' : '✏️ Edit Colors'}
+                        </Button>
+                      )}
+                      <Button
+                        onClick={copyAllColors}
+                        size="sm"
+                        className="bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg hover:shadow-xl transition-smooth"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy All
+                      </Button>
+                    </div>
+                  </BrandCardTitle>
+                </BrandCardHeader>
+                <BrandCardContent className="pt-0">
+                  <div className="space-y-3">
+                    {gym.colors.map((color, index) => (
+                      <ColorSwatch
+                        key={color.id}
+                        color={color.color_hex}
+                        label={`Primary Color ${index + 1}`}
+                        size="lg"
+                        showControls={true}
+                        editMode={isEditingColors}
+                        onEdit={() => handleEditColor(color.id, color.color_hex)}
+                        className="group p-3 rounded-xl hover:bg-card/60 transition-smooth cursor-pointer border border-border/20 hover:border-border/40 hover:shadow-lg"
+                      />
+                    ))}
+                  </div>
+                </BrandCardContent>
+              </BrandCard>
+            </div>
           </div>
 
         </div>
