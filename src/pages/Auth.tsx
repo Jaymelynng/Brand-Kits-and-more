@@ -37,8 +37,8 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Convert PIN to backend credentials
-      const adminEmail = "admin@gym.internal";
+      // Use the admin email with PIN as password
+      const adminEmail = "jaymelynng@gmail.com";
       const adminPassword = pin;
 
       const { error } = await supabase.auth.signInWithPassword({
@@ -49,7 +49,7 @@ const Auth = () => {
       if (error) {
         toast({
           title: "Access Denied",
-          description: "Invalid PIN code.",
+          description: "Invalid PIN. Make sure your Supabase password is set to your 4-digit PIN.",
           variant: "destructive",
         });
         setPin("");

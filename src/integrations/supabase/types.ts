@@ -41,6 +41,13 @@ export type Database = {
             foreignKeyName: "gym_colors_gym_id_fkey"
             columns: ["gym_id"]
             isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_colors_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
@@ -79,6 +86,13 @@ export type Database = {
             foreignKeyName: "gym_elements_gym_id_fkey"
             columns: ["gym_id"]
             isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_elements_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
@@ -110,6 +124,13 @@ export type Database = {
           is_main_logo?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "gym_logos_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
           {
             foreignKeyName: "gym_logos_gym_id_fkey"
             columns: ["gym_id"]
@@ -184,7 +205,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      gym_icon_urls: {
+        Row: {
+          calendar_url: string | null
+          chat_url: string | null
+          gym_code: string | null
+          gym_id: string | null
+          star_url: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -194,10 +224,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      make_me_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      make_me_admin: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
