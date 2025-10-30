@@ -137,6 +137,39 @@ export const useUpdateGymColor = () => {
   });
 };
 
+export const useAddGymColor = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ gymId, colorHex }: { gymId: string; colorHex: string }) => {
+      // Get the max order_index for this gym
+      const { data: existingColors } = await supabase
+        .from('gym_colors')
+        .select('order_index')
+        .eq('gym_id', gymId)
+        .order('order_index', { ascending: false })
+        .limit(1);
+
+      const nextOrderIndex = existingColors && existingColors.length > 0 
+        ? existingColors[0].order_index + 1 
+        : 0;
+
+      const { error } = await supabase
+        .from('gym_colors')
+        .insert({
+          gym_id: gymId,
+          color_hex: colorHex,
+          order_index: nextOrderIndex,
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
 export const useUploadLogo = () => {
   const queryClient = useQueryClient();
 

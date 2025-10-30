@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor } from "@/hooks/useGyms";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +32,8 @@ const GymProfile = () => {
   const [isDragOverElement, setIsDragOverElement] = useState(false);
   const [uploadingElements, setUploadingElements] = useState<Record<string, number>>({});
   const [isEditingColors, setIsEditingColors] = useState(false);
+  const [showAddColor, setShowAddColor] = useState(false);
+  const [newColorValue, setNewColorValue] = useState('#000000');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -42,6 +44,7 @@ const GymProfile = () => {
   const deleteElementMutation = useDeleteElement();
   const updateElementTypeMutation = useUpdateElementType();
   const updateColorMutation = useUpdateGymColor();
+  const addColorMutation = useAddGymColor();
 
   // Scroll to top on page load and back to top functionality
   useEffect(() => {
@@ -133,6 +136,39 @@ const GymProfile = () => {
     
     // Trigger the color picker
     input.click();
+  };
+
+  const handleAddColor = () => {
+    if (!gym || !user || !isAdmin) {
+      toast({
+        title: "Admin Access Required",
+        description: "You need admin privileges to add colors",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    addColorMutation.mutate(
+      { gymId: gym.id, colorHex: newColorValue },
+      {
+        onSuccess: () => {
+          toast({
+            description: `Color ${newColorValue} added successfully!`,
+            duration: 2000,
+          });
+          setShowAddColor(false);
+          setNewColorValue('#000000');
+        },
+        onError: (error) => {
+          console.error('Failed to add color:', error);
+          toast({
+            variant: "destructive",
+            description: 'Failed to add color. Please try again.',
+            duration: 3000,
+          });
+        }
+      }
+    );
   };
 
   const downloadLogo = (logoUrl: string, filename: string) => {
@@ -677,6 +713,64 @@ const GymProfile = () => {
                         className="group p-3 rounded-xl hover:bg-card/60 transition-smooth cursor-pointer border border-border/20 hover:border-border/40 hover:shadow-lg"
                       />
                     ))}
+                    
+                    {/* Add Color Section */}
+                    {isEditingColors && isAdmin && (
+                      <div className="pt-2">
+                        {!showAddColor ? (
+                          <Button
+                            onClick={() => setShowAddColor(true)}
+                            variant="outline"
+                            className="w-full border-dashed border-2 hover:bg-gym-primary/10 hover:border-gym-primary transition-smooth"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add New Color
+                          </Button>
+                        ) : (
+                          <div className="p-4 rounded-xl border-2 border-dashed border-gym-primary/50 bg-gym-primary/5 space-y-3">
+                            <div className="flex gap-3 items-center">
+                              <input
+                                type="color"
+                                value={newColorValue}
+                                onChange={(e) => setNewColorValue(e.target.value)}
+                                className="w-16 h-16 rounded-lg cursor-pointer border-2 border-border"
+                              />
+                              <input
+                                type="text"
+                                value={newColorValue}
+                                onChange={(e) => setNewColorValue(e.target.value)}
+                                placeholder="#000000"
+                                className="flex-1 px-4 py-2 rounded-lg border-2 border-border bg-background font-mono text-sm"
+                                maxLength={7}
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={handleAddColor}
+                                className="flex-1 bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground"
+                                disabled={addColorMutation.isPending}
+                              >
+                                {addColorMutation.isPending ? (
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                  <Plus className="w-4 h-4 mr-2" />
+                                )}
+                                Add Color
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  setShowAddColor(false);
+                                  setNewColorValue('#000000');
+                                }}
+                                variant="outline"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </BrandCardContent>
               </BrandCard>
