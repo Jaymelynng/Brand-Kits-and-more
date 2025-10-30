@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Maximize, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -824,97 +825,133 @@ const GymProfile = () => {
             </CardHeader>
             <CardContent>
               {viewMode === 'carousel' ? (
-                <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-                  <CarouselContent>
-                    {gym.logos.map((logo) => (
-                      <CarouselItem key={logo.id} className="md:basis-1/2 lg:basis-1/3">
-                        <div className="p-1">
-                          <Card className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300">
-                            <CardContent className="p-6">
-                              {/* Main Logo Badge */}
-                              {logo.is_main_logo && (
-                                <div 
-                                  className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1 shadow-lg"
-                                  style={{ backgroundColor: primaryColor }}
-                                >
-                                  <Star className="w-3 h-3" />
-                                  Main Logo
-                                </div>
-                              )}
-                              
-                              {/* Logo Display */}
-                              <div 
-                                className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
-                                style={{ backgroundColor: `${primaryColor}08` }}
-                              >
-                                <img 
-                                  src={logo.file_url} 
-                                  alt={logo.filename}
-                                  className="max-w-full max-h-full object-contain p-4"
-                                />
-                              </div>
-                              
-                              {/* Logo Info */}
-                              <div className="text-sm font-bold text-foreground truncate mb-4">
-                                {logo.filename}
-                              </div>
-                              
-                              {/* Action Buttons */}
-                              <div className="flex flex-col gap-2">
-                                <Button
-                                  onClick={() => downloadLogo(logo.file_url, logo.filename)}
-                                  size="sm"
-                                  className="w-full text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                                  style={{ backgroundColor: primaryColor }}
-                                >
-                                  <Download className="w-4 h-4 mr-2" />
-                                  Download
-                                </Button>
-                                
-                                <Button
-                                  onClick={() => copyUrl(logo.file_url)}
-                                  size="sm"
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full bg-white/80 border-white/40 hover:bg-white/90",
-                                    copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
-                                  )}
-                                >
-                                  <Copy className="w-4 h-4 mr-2" />
-                                  {copiedStates[logo.file_url] ? "Copied!" : "Copy URL"}
-                                </Button>
-                                
-                                {!logo.is_main_logo && (
-                                  <Button
-                                    onClick={() => setMainLogo(logo.id)}
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-yellow-700 hover:text-yellow-800"
+                <div style={{ perspective: "2000px" }} className="w-full overflow-hidden px-12 py-8">
+                  <Carousel 
+                    className="w-full" 
+                    opts={{ align: "center", loop: true }}
+                    plugins={[
+                      Autoplay({
+                        delay: 4000,
+                      }),
+                    ]}
+                  >
+                    <CarouselContent className="-ml-4">
+                      {gym.logos.map((logo, index) => (
+                        <CarouselItem 
+                          key={logo.id} 
+                          className="pl-4 md:basis-1/2 lg:basis-1/3"
+                          style={{
+                            transformStyle: "preserve-3d",
+                            transition: "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                          }}
+                        >
+                          <div 
+                            className="p-1 transform hover:scale-105 transition-all duration-500"
+                            style={{
+                              transformStyle: "preserve-3d",
+                            }}
+                          >
+                            <Card 
+                              className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-500"
+                              style={{
+                                transformStyle: "preserve-3d",
+                                transform: "rotateY(0deg)",
+                                boxShadow: `
+                                  0 20px 60px -10px rgba(0,0,0,0.3),
+                                  0 10px 30px -5px ${primaryColor}40,
+                                  inset 0 1px 0 rgba(255,255,255,0.6)
+                                `,
+                              }}
+                            >
+                              <CardContent className="p-6">
+                                {/* Main Logo Badge */}
+                                {logo.is_main_logo && (
+                                  <div 
+                                    className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1 shadow-lg z-10"
+                                    style={{ backgroundColor: primaryColor }}
                                   >
-                                    <Star className="w-4 h-4 mr-2" />
-                                    Set as Main
-                                  </Button>
+                                    <Star className="w-3 h-3" />
+                                    Main Logo
+                                  </div>
                                 )}
                                 
-                                <Button
-                                  onClick={() => handleDeleteLogo(logo.id, logo.filename)}
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-red-600 hover:text-red-700"
+                                {/* Logo Display with 3D effect */}
+                                <div 
+                                  className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
+                                  style={{ 
+                                    backgroundColor: `${primaryColor}08`,
+                                    transform: "translateZ(20px)",
+                                  }}
                                 >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Delete
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious />
-                  <CarouselNext />
-                </Carousel>
+                                  <img 
+                                    src={logo.file_url} 
+                                    alt={logo.filename}
+                                    className="max-w-full max-h-full object-contain p-4 transition-transform duration-500 hover:scale-110"
+                                  />
+                                </div>
+                                
+                                {/* Logo Info */}
+                                <div className="text-sm font-bold text-foreground truncate mb-4">
+                                  {logo.filename}
+                                </div>
+                                
+                                {/* Action Buttons */}
+                                <div className="flex flex-col gap-2">
+                                  <Button
+                                    onClick={() => downloadLogo(logo.file_url, logo.filename)}
+                                    size="sm"
+                                    className="w-full text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                    style={{ backgroundColor: primaryColor }}
+                                  >
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Download
+                                  </Button>
+                                  
+                                  <Button
+                                    onClick={() => copyUrl(logo.file_url)}
+                                    size="sm"
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full bg-white/80 border-white/40 hover:bg-white/90 hover:scale-105 transition-all",
+                                      copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
+                                    )}
+                                  >
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    {copiedStates[logo.file_url] ? "Copied!" : "Copy URL"}
+                                  </Button>
+                                  
+                                  {!logo.is_main_logo && (
+                                    <Button
+                                      onClick={() => setMainLogo(logo.id)}
+                                      size="sm"
+                                      variant="outline"
+                                      className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-yellow-700 hover:text-yellow-800 hover:scale-105 transition-all"
+                                    >
+                                      <Star className="w-4 h-4 mr-2" />
+                                      Set as Main
+                                    </Button>
+                                  )}
+                                  
+                                  <Button
+                                    onClick={() => handleDeleteLogo(logo.id, logo.filename)}
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-red-600 hover:text-red-700 hover:scale-105 transition-all"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="shadow-2xl hover:scale-110 transition-transform" />
+                    <CarouselNext className="shadow-2xl hover:scale-110 transition-transform" />
+                  </Carousel>
+                </div>
               ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {gym.logos.map((logo) => (
