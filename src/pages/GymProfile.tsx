@@ -825,7 +825,7 @@ const GymProfile = () => {
             </CardHeader>
             <CardContent>
               {viewMode === 'carousel' ? (
-                <div style={{ perspective: "2000px" }} className="w-full overflow-hidden px-12 py-8">
+                <div style={{ perspective: "3000px" }} className="w-full overflow-hidden px-12 py-8">
                   <Carousel 
                     className="w-full" 
                     opts={{ align: "center", loop: true }}
@@ -834,6 +834,53 @@ const GymProfile = () => {
                         delay: 4000,
                       }),
                     ]}
+                    setApi={(api) => {
+                      if (!api) return;
+                      
+                      const updateSlides = () => {
+                        const selectedIndex = api.selectedScrollSnap();
+                        const slides = api.slideNodes();
+                        
+                        slides.forEach((slide, index) => {
+                          const distance = index - selectedIndex;
+                          const card = slide.querySelector('[data-card]');
+                          
+                          if (card) {
+                            let rotateY = 0;
+                            let scale = 1;
+                            let opacity = 1;
+                            let translateZ = 0;
+                            
+                            if (distance === 0) {
+                              // Center slide
+                              rotateY = 0;
+                              scale = 1;
+                              opacity = 1;
+                              translateZ = 0;
+                            } else if (distance < 0) {
+                              // Left slides
+                              rotateY = Math.max(-55, distance * 45);
+                              scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
+                              opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
+                              translateZ = distance * 50;
+                            } else {
+                              // Right slides
+                              rotateY = Math.min(55, distance * 45);
+                              scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
+                              opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
+                              translateZ = -distance * 50;
+                            }
+                            
+                            (card as HTMLElement).style.transform = `rotateY(${rotateY}deg) scale(${scale}) translateZ(${translateZ}px)`;
+                            (card as HTMLElement).style.opacity = opacity.toString();
+                          }
+                        });
+                      };
+                      
+                      api.on('select', updateSlides);
+                      api.on('reInit', updateSlides);
+                      updateSlides();
+                    }}
                   >
                     <CarouselContent className="-ml-4">
                       {gym.logos.map((logo, index) => (
@@ -842,17 +889,17 @@ const GymProfile = () => {
                           className="pl-4 md:basis-1/2 lg:basis-1/3"
                           style={{
                             transformStyle: "preserve-3d",
-                            transition: "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
                           }}
                         >
                           <div 
-                            className="p-1 transform hover:scale-105 transition-all duration-500"
+                            className="p-1"
                             style={{
                               transformStyle: "preserve-3d",
                             }}
                           >
                             <Card 
-                              className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-500"
+                              data-card
+                              className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-2xl transition-all duration-700"
                               style={{
                                 transformStyle: "preserve-3d",
                                 transform: "rotateY(0deg)",
