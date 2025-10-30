@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Maximize, Plus } from "lucide-react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Maximize, Plus, Sparkles, CheckSquare, Square } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import { GymColorProvider } from "@/components/shared/GymColorProvider";
 import { BrandCard, BrandCardHeader, BrandCardContent, BrandCardTitle } from "@/components/shared/BrandCard";
 import { ColorSwatch } from "@/components/shared/ColorSwatch";
+import { AssetRenamer } from "@/components/AssetRenamer";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const GymProfile = () => {
   const { gymCode } = useParams<{ gymCode: string }>();
@@ -34,6 +36,9 @@ const GymProfile = () => {
   const [isEditingColors, setIsEditingColors] = useState(false);
   const [showAddColor, setShowAddColor] = useState(false);
   const [newColorValue, setNewColorValue] = useState('#000000');
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedLogos, setSelectedLogos] = useState<Set<string>>(new Set());
+  const [showRenamer, setShowRenamer] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -62,6 +67,40 @@ const GymProfile = () => {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleLogoSelection = (logoId: string) => {
+    setSelectedLogos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(logoId)) {
+        newSet.delete(logoId);
+      } else {
+        newSet.add(logoId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllLogos = () => {
+    if (!gym) return;
+    setSelectedLogos(new Set(gym.logos.map(logo => logo.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedLogos(new Set());
+    setSelectionMode(false);
+  };
+
+  const handleOpenRenamer = () => {
+    if (selectedLogos.size === 0) {
+      toast({
+        title: "No assets selected",
+        description: "Please select at least one asset to rename",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowRenamer(true);
   };
 
   const gym = gyms.find(g => g.code === gymCode);
@@ -996,9 +1035,12 @@ const GymProfile = () => {
                               transformStyle: "preserve-3d",
                             }}
                           >
-                            <Card 
+                             <Card 
                               data-card
-                              className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-2xl transition-all duration-700"
+                              className={cn(
+                                "relative bg-white/70 backdrop-blur-sm border-white/30 shadow-2xl transition-all duration-700",
+                                selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
+                              )}
                               style={{
                                 transformStyle: "preserve-3d",
                                 transform: "rotateY(0deg)",
@@ -1010,6 +1052,17 @@ const GymProfile = () => {
                               }}
                             >
                               <CardContent className="p-6">
+                                {/* Selection Checkbox */}
+                                {selectionMode && (
+                                  <div className="absolute top-3 left-3 z-10">
+                                    <Checkbox
+                                      checked={selectedLogos.has(logo.id)}
+                                      onCheckedChange={() => toggleLogoSelection(logo.id)}
+                                      className="h-5 w-5 border-2"
+                                    />
+                                  </div>
+                                )}
+                                
                                 {/* Main Logo Badge */}
                                 {logo.is_main_logo && (
                                   <div 
@@ -1098,8 +1151,25 @@ const GymProfile = () => {
               ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {gym.logos.map((logo) => (
-                    <Card key={logo.id} className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Card 
+                      key={logo.id} 
+                      className={cn(
+                        "relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300",
+                        selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
+                      )}
+                    >
                       <CardContent className="p-6">
+                        {/* Selection Checkbox */}
+                        {selectionMode && (
+                          <div className="absolute top-3 left-3 z-10">
+                            <Checkbox
+                              checked={selectedLogos.has(logo.id)}
+                              onCheckedChange={() => toggleLogoSelection(logo.id)}
+                              className="h-5 w-5 border-2"
+                            />
+                          </div>
+                        )}
+                        
                         {/* Main Logo Badge */}
                         {logo.is_main_logo && (
                           <div 
@@ -1182,9 +1252,24 @@ const GymProfile = () => {
               ) : viewMode === 'list' ? (
                 <div className="space-y-4">
                   {gym.logos.map((logo) => (
-                    <Card key={logo.id} className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Card 
+                      key={logo.id} 
+                      className={cn(
+                        "relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300",
+                        selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
+                      )}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
+                          {/* Selection Checkbox */}
+                          {selectionMode && (
+                            <Checkbox
+                              checked={selectedLogos.has(logo.id)}
+                              onCheckedChange={() => toggleLogoSelection(logo.id)}
+                              className="h-5 w-5 border-2"
+                            />
+                          )}
+                          
                           {/* Logo Thumbnail */}
                           <div 
                             className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-white/40 flex-shrink-0"
@@ -1264,8 +1349,25 @@ const GymProfile = () => {
               ) : (
                 <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
                   {gym.logos.map((logo) => (
-                    <Card key={logo.id} className="relative break-inside-avoid bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Card 
+                      key={logo.id} 
+                      className={cn(
+                        "relative break-inside-avoid bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300",
+                        selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
+                      )}
+                    >
                       <CardContent className="p-4">
+                        {/* Selection Checkbox */}
+                        {selectionMode && (
+                          <div className="absolute top-3 left-3 z-10">
+                            <Checkbox
+                              checked={selectedLogos.has(logo.id)}
+                              onCheckedChange={() => toggleLogoSelection(logo.id)}
+                              className="h-5 w-5 border-2"
+                            />
+                          </div>
+                        )}
+                        
                         {/* Main Logo Badge */}
                         {logo.is_main_logo && (
                           <div 
@@ -1582,6 +1684,76 @@ const GymProfile = () => {
           </Card>
         )}
       </div>
+
+      {/* Batch Actions Bar */}
+      {selectionMode && selectedLogos.size > 0 && gym && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 animate-slide-up">
+          <Card className="bg-white shadow-2xl border-2 border-gym-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-10 w-10 rounded-full bg-gym-primary/10 flex items-center justify-center">
+                    <span className="text-lg font-bold text-gym-primary">{selectedLogos.size}</span>
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {selectedLogos.size} selected
+                  </span>
+                </div>
+                
+                <div className="h-8 w-px bg-border" />
+                
+                <Button
+                  onClick={selectAllLogos}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <CheckSquare className="w-4 h-4" />
+                  Select All
+                </Button>
+                
+                <Button
+                  onClick={handleOpenRenamer}
+                  size="sm"
+                  className="gap-2 bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Smart Rename
+                </Button>
+                
+                <Button
+                  onClick={clearSelection}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Clear
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Asset Renamer Modal */}
+      {gym && (
+        <AssetRenamer
+          open={showRenamer}
+          onClose={() => setShowRenamer(false)}
+          assets={gym.logos.filter(logo => selectedLogos.has(logo.id))}
+          gymCode={gym.code}
+          gymName={gym.name}
+          onRenameComplete={() => {
+            setShowRenamer(false);
+            clearSelection();
+            toast({
+              title: "Assets renamed",
+              description: "Your assets have been successfully renamed",
+            });
+          }}
+        />
+      )}
 
       {/* Back to Top Button */}
       {showBackToTop && (
