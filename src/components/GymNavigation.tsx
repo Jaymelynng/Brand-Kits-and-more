@@ -30,15 +30,15 @@ export const GymNavigation = ({
   const isPerfectState = selectedCount === totalCount;
 
   return (
-    <div className="text-center py-8 relative overflow-hidden" style={{ 
-      background: `
-        radial-gradient(circle at 20% 30%, hsl(var(--brand-gold) / 0.15), transparent 40%),
-        radial-gradient(circle at 80% 70%, hsl(var(--brand-rose-gold) / 0.1), transparent 40%),
-        linear-gradient(135deg, hsl(var(--brand-cream)) 0%, hsl(var(--brand-white)) 50%, hsl(var(--brand-gold) / 0.05) 100%)
-      `,
-      borderBottom: '2px solid',
-      borderImage: 'linear-gradient(90deg, transparent, hsl(var(--brand-gold)), transparent) 1'
-    }}>
+      <div className="text-center py-8 relative overflow-hidden" style={{ 
+        background: `
+          radial-gradient(circle at 20% 30%, hsl(var(--brand-rose-gold) / 0.12), transparent 45%),
+          radial-gradient(circle at 80% 70%, hsl(var(--brand-blue-gray) / 0.15), transparent 45%),
+          linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(0 0% 100%) 40%, hsl(var(--brand-rose-gold) / 0.08) 100%)
+        `,
+        borderBottom: '2px solid',
+        borderImage: 'linear-gradient(90deg, transparent, hsl(var(--brand-rose-gold) / 0.6), hsl(var(--brand-blue-gray) / 0.6), transparent) 1'
+      }}>
       {/* Decorative floating elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-4 left-[10%] text-2xl opacity-30 animate-pulse">⭐</div>
@@ -60,10 +60,10 @@ export const GymNavigation = ({
                    linear-gradient(135deg, hsl(var(--brand-gold)) 0%, hsl(var(--brand-gold-dark)) 100%)
                  `
                  : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(250, 250, 250, 0.9))',
-               borderColor: isPerfectState 
-                 ? 'hsl(var(--brand-gold))' 
-                 : 'hsl(var(--brand-rose-gold) / 0.4)',
-               color: isPerfectState ? 'white' : 'hsl(var(--brand-blue-gray-dark))',
+             borderColor: isPerfectState 
+               ? 'hsl(var(--brand-gold))' 
+               : 'hsl(var(--brand-rose-gold) / 0.4)',
+             color: isPerfectState ? 'white' : 'hsl(var(--brand-text-primary))',
                boxShadow: isPerfectState 
                  ? '0 4px 20px hsl(var(--brand-gold) / 0.5), 0 0 40px hsl(var(--brand-gold) / 0.3)' 
                  : '0 2px 8px rgba(0, 0, 0, 0.08)',
@@ -128,8 +128,9 @@ export const GymNavigation = ({
           variant="outline"
           className="px-5 py-2 rounded-full border-2 font-medium"
           style={{
-            borderColor: 'hsl(var(--brand-blue-gray) / 0.4)',
-            color: 'hsl(var(--brand-blue-gray-dark))'
+            borderColor: 'hsl(var(--brand-rose-gold) / 0.6)',
+            color: 'hsl(var(--brand-text-primary))',
+            backgroundColor: 'white'
           }}
         >
           Copy All
