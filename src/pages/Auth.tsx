@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const Auth = () => {
-  const [pin, setPin] = useState("");
+  const [email, setEmail] = useState("jaymelynng@gmail.com");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -25,10 +27,10 @@ const Auth = () => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (pin.length !== 4) {
+    if (!email || !password) {
       toast({
-        title: "Invalid PIN",
-        description: "Please enter a 4-digit PIN.",
+        title: "Missing credentials",
+        description: "Please enter both email and password.",
         variant: "destructive",
       });
       return;
@@ -37,22 +39,17 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Use the admin email with PIN as password
-      const adminEmail = "jaymelynng@gmail.com";
-      const adminPassword = pin;
-
       const { error } = await supabase.auth.signInWithPassword({
-        email: adminEmail,
-        password: adminPassword,
+        email,
+        password,
       });
 
       if (error) {
         toast({
           title: "Access Denied",
-          description: "Invalid PIN. Make sure your Supabase password is set to your 4-digit PIN.",
+          description: error.message,
           variant: "destructive",
         });
-        setPin("");
         return;
       }
 
@@ -67,7 +64,6 @@ const Auth = () => {
         description: error.message,
         variant: "destructive",
       });
-      setPin("");
     } finally {
       setLoading(false);
     }
@@ -83,42 +79,49 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center" style={{ color: 'hsl(var(--brand-rose-gold))' }}>
-            Admin PIN
+            Admin Login
           </CardTitle>
           <CardDescription className="text-center">
-            Enter your 4-digit PIN to access admin tools
+            Sign in with your admin credentials
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAuth} className="space-y-6">
-            <div className="flex flex-col items-center space-y-4">
-              <InputOTP
-                maxLength={4}
-                value={pin}
-                onChange={(value) => setPin(value)}
-                pattern="[0-9]*"
-                inputMode="numeric"
-              >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                </InputOTPGroup>
-              </InputOTP>
+          <form onSubmit={handleAuth} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                disabled={loading}
+              />
             </div>
             
             <Button 
               type="submit" 
               className="w-full"
-              disabled={loading || pin.length !== 4}
+              disabled={loading || !email || !password}
               style={{
                 background: 'hsl(var(--brand-rose-gold))',
                 color: 'white'
               }}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Enter
+              Sign In
             </Button>
           </form>
         </CardContent>
