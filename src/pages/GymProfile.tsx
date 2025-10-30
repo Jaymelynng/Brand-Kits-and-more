@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor } from "@/hooks/useGyms";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +30,7 @@ const GymProfile = () => {
   const [elementType, setElementType] = useState<string>('banner');
   const [isDragOverElement, setIsDragOverElement] = useState(false);
   const [uploadingElements, setUploadingElements] = useState<Record<string, number>>({});
+  const [isEditingColors, setIsEditingColors] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -39,6 +40,7 @@ const GymProfile = () => {
   const uploadElementMutation = useUploadElement();
   const deleteElementMutation = useDeleteElement();
   const updateElementTypeMutation = useUpdateElementType();
+  const updateColorMutation = useUpdateGymColor();
 
   // Scroll to top on page load and back to top functionality
   useEffect(() => {
@@ -83,6 +85,53 @@ const GymProfile = () => {
     navigator.clipboard.writeText(colorText).then(() => {
       showCopyFeedback('all-colors', 'All colors copied!');
     });
+  };
+
+  const handleEditColor = (colorId: string, currentColor: string) => {
+    if (!user || !isAdmin) {
+      toast({
+        title: "Admin Access Required",
+        description: "You need admin privileges to edit colors",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create native color picker input
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = currentColor;
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    
+    input.onchange = function() {
+      const newColor = input.value;
+      
+      updateColorMutation.mutate(
+        { colorId, newColor },
+        {
+          onSuccess: () => {
+            toast({
+              description: `Color updated to ${newColor}!`,
+              duration: 2000,
+            });
+          },
+          onError: (error) => {
+            console.error('Failed to update color:', error);
+            toast({
+              variant: "destructive",
+              description: 'Failed to update color. Please try again.',
+              duration: 3000,
+            });
+          }
+        }
+      );
+      
+      document.body.removeChild(input);
+    };
+    
+    // Trigger the color picker
+    input.click();
   };
 
   const downloadLogo = (logoUrl: string, filename: string) => {
@@ -521,49 +570,62 @@ const GymProfile = () => {
             </p>
           </div>
 
-          {/* Two-Column Hero Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Left: Main Logo Showcase */}
-            {mainLogo && (
-              <div className="flex flex-col items-center">
-                <div 
-                  className="flex items-center justify-center w-full max-w-md h-48 rounded-2xl shadow-2xl border-4 border-white/20 backdrop-blur-sm mb-6"
-                  style={{ 
-                    background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` 
-                  }}
-                >
-                  <img 
-                    src={mainLogo.file_url} 
-                    alt={`${gym.name} main logo`}
-                    className="max-h-40 max-w-72 object-contain drop-shadow-lg"
-                  />
-                </div>
-                <Button
-                  onClick={() => downloadLogo(mainLogo.file_url, mainLogo.filename)}
-                  className="text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                  style={{ 
-                    backgroundColor: primaryColor,
-                  }}
-                >
-                  <Download className="w-5 h-5 mr-2" />
-                  Download Main Logo
-                </Button>
+          {/* Main Logo Showcase - Centered */}
+          {mainLogo && (
+            <div className="flex flex-col items-center mb-8">
+              <div 
+                className="flex items-center justify-center w-full max-w-md h-48 rounded-2xl shadow-2xl border-4 border-white/20 backdrop-blur-sm mb-6"
+                style={{ 
+                  background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` 
+                }}
+              >
+                <img 
+                  src={mainLogo.file_url} 
+                  alt={`${gym.name} main logo`}
+                  className="max-h-40 max-w-72 object-contain drop-shadow-lg"
+                />
               </div>
-            )}
+              <Button
+                onClick={() => downloadLogo(mainLogo.file_url, mainLogo.filename)}
+                className="text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                style={{ 
+                  backgroundColor: primaryColor,
+                }}
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Download Main Logo
+              </Button>
+            </div>
+          )}
 
-            {/* Right: Brand Colors */}
-            <BrandCard variant="hero" className="h-fit">
+          {/* Brand Colors - Full Width Below Logo */}
+          <div className="max-w-2xl mx-auto">
+            <BrandCard variant="hero">
               <BrandCardHeader className="pb-4">
                 <BrandCardTitle className="flex items-center justify-between text-xl">
                   🎨 Brand Colors
-                  <Button
-                    onClick={copyAllColors}
-                    size="sm"
-                    className="bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg hover:shadow-xl transition-smooth"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy All
-                  </Button>
+                  <div className="flex gap-2">
+                    {isAdmin && (
+                      <Button
+                        onClick={() => setIsEditingColors(!isEditingColors)}
+                        size="sm"
+                        variant={isEditingColors ? "default" : "outline"}
+                        className={isEditingColors 
+                          ? "bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg"
+                          : ""}
+                      >
+                        {isEditingColors ? '✓ Done Editing' : '✏️ Edit Colors'}
+                      </Button>
+                    )}
+                    <Button
+                      onClick={copyAllColors}
+                      size="sm"
+                      className="bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground shadow-lg hover:shadow-xl transition-smooth"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy All
+                    </Button>
+                  </div>
                 </BrandCardTitle>
               </BrandCardHeader>
               <BrandCardContent className="pt-0">
@@ -574,6 +636,9 @@ const GymProfile = () => {
                       color={color.color_hex}
                       label={`Primary Color ${index + 1}`}
                       size="lg"
+                      showControls={true}
+                      editMode={isEditingColors}
+                      onEdit={() => handleEditColor(color.id, color.color_hex)}
                       className="group p-3 rounded-xl hover:bg-card/60 transition-smooth cursor-pointer border border-border/20 hover:border-border/40 hover:shadow-lg"
                     />
                   ))}
