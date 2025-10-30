@@ -221,7 +221,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
         }}
         id={`gym-${gym.code}`}
       >
-        <div className="text-center pb-4 px-6 border-b"
+        <div className="flex items-center justify-between pb-4 px-6 border-b"
              style={{
                background: `
                  radial-gradient(1px 1px at 15px 10px, rgba(255,255,255,0.6), transparent),
@@ -231,25 +231,26 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                `,
                borderColor: 'hsl(var(--brand-rose-gold) / 0.2)'
              }}>
-          <div className="mb-3">
-            <span className="inline-block px-4 py-2 rounded-full text-sm font-bold tracking-wider text-white shadow-lg"
-                  style={{
-                    background: `
-                      radial-gradient(1.5px 1.5px at 8px 8px, rgba(255,255,255,1), transparent),
-                      radial-gradient(1px 1px at 20px 5px, rgba(255,255,255,0.95), transparent),
-                      radial-gradient(1.5px 1.5px at 32px 10px, rgba(255,255,255,0.9), transparent),
-                      radial-gradient(1px 1px at 44px 6px, rgba(255,255,255,0.85), transparent),
-                      radial-gradient(1.5px 1.5px at 56px 12px, rgba(255,255,255,0.95), transparent),
-                      radial-gradient(1px 1px at 12px 14px, rgba(255,255,255,0.8), transparent),
-                      linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)
-                    `
-                  }}>
-              {gym.code}
-            </span>
-          </div>
+          {/* Gym Name on Left */}
           <h3 className="text-lg font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
             {gym.name}
           </h3>
+          
+          {/* Gym Code Badge on Right */}
+          <span className="inline-block px-4 py-2 rounded-full text-sm font-bold tracking-wider text-white shadow-lg flex-shrink-0"
+                style={{
+                  background: `
+                    radial-gradient(1.5px 1.5px at 8px 8px, rgba(255,255,255,1), transparent),
+                    radial-gradient(1px 1px at 20px 5px, rgba(255,255,255,0.95), transparent),
+                    radial-gradient(1.5px 1.5px at 32px 10px, rgba(255,255,255,0.9), transparent),
+                    radial-gradient(1px 1px at 44px 6px, rgba(255,255,255,0.85), transparent),
+                    radial-gradient(1.5px 1.5px at 56px 12px, rgba(255,255,255,0.95), transparent),
+                    radial-gradient(1px 1px at 12px 14px, rgba(255,255,255,0.8), transparent),
+                    linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)
+                  `
+                }}>
+            {gym.code}
+          </span>
         </div>
 
         <BrandCardContent>
