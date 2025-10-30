@@ -232,12 +232,15 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                borderColor: 'hsl(var(--brand-rose-gold) / 0.2)'
              }}>
           <div className="mb-3">
-            <span className="inline-block px-4 py-2 rounded-full text-sm font-bold tracking-wider text-white"
+            <span className="inline-block px-4 py-2 rounded-full text-sm font-bold tracking-wider text-white shadow-lg"
                   style={{
                     background: `
-                      radial-gradient(1px 1px at 5px 5px, rgba(255,255,255,0.9), transparent),
-                      radial-gradient(1px 1px at 15px 10px, rgba(255,255,255,0.7), transparent),
-                      radial-gradient(1px 1px at 25px 8px, rgba(255,255,255,0.8), transparent),
+                      radial-gradient(1.5px 1.5px at 8px 8px, rgba(255,255,255,1), transparent),
+                      radial-gradient(1px 1px at 20px 5px, rgba(255,255,255,0.95), transparent),
+                      radial-gradient(1.5px 1.5px at 32px 10px, rgba(255,255,255,0.9), transparent),
+                      radial-gradient(1px 1px at 44px 6px, rgba(255,255,255,0.85), transparent),
+                      radial-gradient(1.5px 1.5px at 56px 12px, rgba(255,255,255,0.95), transparent),
+                      radial-gradient(1px 1px at 12px 14px, rgba(255,255,255,0.8), transparent),
                       linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)
                     `
                   }}>
@@ -363,7 +366,13 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             <Link to={`/gym/${gym.code}`} className="block w-full">
               <Button className="w-full text-sm py-2 text-white shadow-lg hover:shadow-xl transition-smooth"
                       style={{
-                        background: `linear-gradient(135deg, hsl(280, 20%, 70%) 0%, hsl(280, 20%, 65%) 50%, hsl(280, 20%, 60%) 100%)`
+                        background: `
+                          radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.9), transparent),
+                          radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.7), transparent),
+                          radial-gradient(1px 1px at 40px 12px, rgba(255,255,255,0.85), transparent),
+                          radial-gradient(1px 1px at 60px 20px, rgba(255,255,255,0.6), transparent),
+                          linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)
+                        `
                       }}>
                 <Eye className="w-4 h-4 mr-2" />
                 View {gym.code} Profile
