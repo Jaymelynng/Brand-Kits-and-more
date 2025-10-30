@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Maximize, Plus, Sparkles, CheckSquare, Square } from "lucide-react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Maximize, Plus, Sparkles, CheckSquare, Square, Link as LinkIcon, Code } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -504,6 +504,22 @@ const GymProfile = () => {
   const copyElementData = (data: string) => {
     navigator.clipboard.writeText(data).then(() => {
       showCopyFeedback('element-data', 'Element data copied!');
+    });
+  };
+
+  const isUrl = (data: string): boolean => {
+    return data.startsWith('http://') || data.startsWith('https://');
+  };
+
+  const copyElementUrl = (url: string) => {
+    navigator.clipboard.writeText(url).then(() => {
+      showCopyFeedback('element-url', 'Element URL copied! Ready to paste in emails 📧');
+    });
+  };
+
+  const copyElementSvgCode = (svgCode: string) => {
+    navigator.clipboard.writeText(svgCode).then(() => {
+      showCopyFeedback('element-svg', 'SVG code copied! Ready to paste in design tools 🎨');
     });
   };
 
@@ -1546,14 +1562,26 @@ const GymProfile = () => {
                             </SelectContent>
                           </Select>
                           
+                          {isUrl(element.svg_data) && (
+                            <Button
+                              onClick={() => copyElementUrl(element.svg_data)}
+                              size="sm"
+                              variant="outline"
+                              className="w-full bg-white/80 border-white/40 hover:bg-white/90"
+                            >
+                              <LinkIcon className="w-4 h-4 mr-2" />
+                              Copy URL
+                            </Button>
+                          )}
+                          
                           <Button
-                            onClick={() => copyElementData(element.svg_data)}
+                            onClick={() => copyElementSvgCode(element.svg_data)}
                             size="sm"
                             variant="outline"
                             className="w-full bg-white/80 border-white/40 hover:bg-white/90"
                           >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copy Data
+                            <Code className="w-4 h-4 mr-2" />
+                            Copy SVG Code
                           </Button>
                           
                           <Button
