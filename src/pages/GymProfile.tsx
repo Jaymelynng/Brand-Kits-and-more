@@ -1123,7 +1123,10 @@ const GymProfile = () => {
                                 {/* Action Buttons */}
                                 <div className="flex flex-col gap-2">
                                   <Button
-                                    onClick={() => downloadLogo(logo.file_url, logo.filename)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadLogo(logo.file_url, logo.filename);
+                                    }}
                                     size="sm"
                                     className="w-full text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                                     style={{ backgroundColor: primaryColor }}
@@ -1133,7 +1136,10 @@ const GymProfile = () => {
                                   </Button>
                                   
                                   <Button
-                                    onClick={() => copyUrl(logo.file_url)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      copyUrl(logo.file_url);
+                                    }}
                                     size="sm"
                                     variant="outline"
                                     className={cn(
@@ -1147,7 +1153,10 @@ const GymProfile = () => {
                                   
                                   {!logo.is_main_logo && (
                                     <Button
-                                      onClick={() => setMainLogo(logo.id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMainLogo(logo.id);
+                                      }}
                                       size="sm"
                                       variant="outline"
                                       className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-yellow-700 hover:text-yellow-800 hover:scale-105 transition-all"
@@ -1158,7 +1167,10 @@ const GymProfile = () => {
                                   )}
                                   
                                   <Button
-                                    onClick={() => handleDeleteLogo(logo.id, logo.filename)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteLogo(logo.id, logo.filename);
+                                    }}
                                     size="sm"
                                     variant="outline"
                                     className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-red-600 hover:text-red-700 hover:scale-105 transition-all"
@@ -1173,6 +1185,18 @@ const GymProfile = () => {
                         </CarouselItem>
                       ))}
                     </CarouselContent>
+                    <CarouselPrevious 
+                      className="left-4 bg-white/90 border-white/40 text-foreground hover:bg-white shadow-lg"
+                      style={{ 
+                        boxShadow: `0 4px 12px ${primaryColor}40`
+                      }}
+                    />
+                    <CarouselNext 
+                      className="right-4 bg-white/90 border-white/40 text-foreground hover:bg-white shadow-lg"
+                      style={{ 
+                        boxShadow: `0 4px 12px ${primaryColor}40`
+                      }}
+                    />
                   </Carousel>
                 </div>
               ) : viewMode === 'grid' ? (
