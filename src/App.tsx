@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import GymProfile from "./pages/GymProfile";
 import Auth from "./pages/Auth";
+import BulkUpload from "./pages/BulkUpload";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/gym/:gymCode" element={<GymProfile />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/bulk-upload" element={<BulkUpload />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
