@@ -41,6 +41,65 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_tags: {
+        Row: {
+          asset_id: string
+          asset_type: string
+          campaign_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          asset_id: string
+          asset_type: string
+          campaign_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          asset_id?: string
+          asset_type?: string
+          campaign_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_tags_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       gym_colors: {
         Row: {
           color_hex: string

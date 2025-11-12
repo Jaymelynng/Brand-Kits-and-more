@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { DiamondSelector } from "./DiamondSelector";
 import { SecretAdminButton } from "./SecretAdminButton";
-import { LogOut } from "lucide-react";
+import { LogOut, Folder } from "lucide-react";
 import { GymWithColors } from "@/hooks/useGyms";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface GymNavigationProps {
   gyms: GymWithColors[];
@@ -34,6 +35,7 @@ export const GymNavigation = ({
   onAdminClick,
   onSignOut
 }: GymNavigationProps) => {
+  const navigate = useNavigate();
   const totalCount = gyms.length;
   const selectedCount = selectedGyms.size;
   const isPerfectState = selectedCount === totalCount;
@@ -49,6 +51,15 @@ export const GymNavigation = ({
           All gym brand colors and logos displayed for easy reference and copying
         </p>
         <div className="flex items-center justify-center gap-2 mt-2">
+          <Button
+            onClick={() => navigate('/campaigns')}
+            size="sm"
+            variant="outline"
+            className="gap-2"
+          >
+            <Folder className="w-4 h-4" />
+            Campaigns
+          </Button>
           <SecretAdminButton onClick={onAdminClick} />
           {user && (
             <Button
