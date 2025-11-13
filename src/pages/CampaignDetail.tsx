@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share, Tag, Trash2, CheckSquare, Copy } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share, Tag, Trash2, CheckSquare, Copy, ChevronDown, Code, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -337,7 +338,7 @@ const CampaignDetail = () => {
     }
   };
 
-  const bulkCopyLinks = async (format: 'line' | 'markdown' | 'html' | 'csv' = 'line') => {
+  const bulkCopyLinks = async (format: 'line' | 'markdown' | 'html-links' | 'html-video' | 'csv' = 'line') => {
     if (selectedAssets.size === 0) return;
     
     const selectedAssetObjects = campaignAssets?.filter(a => selectedAssets.has(a.id)) || [];
@@ -351,8 +352,23 @@ const CampaignDetail = () => {
       case 'markdown':
         formattedLinks = selectedAssetObjects.map(a => `[${a.filename}](${a.file_url})`).join('\n');
         break;
-      case 'html':
+      case 'html-links':
         formattedLinks = selectedAssetObjects.map(a => `<a href="${a.file_url}">${a.filename}</a>`).join('\n');
+        break;
+      case 'html-video':
+        formattedLinks = selectedAssetObjects.map(a => {
+          const isVideo = a.file_type.startsWith('video/');
+          if (isVideo) {
+            return `<video controls width="600" style="max-width: 100%;">
+  <source src="${a.file_url}" type="${a.file_type}">
+  Your email client doesn't support embedded videos. <a href="${a.file_url}">Watch video</a>
+</video>`;
+          } else if (a.file_type.startsWith('image/')) {
+            return `<img src="${a.file_url}" alt="${a.filename}" style="max-width: 600px; width: 100%;">`;
+          } else {
+            return `<a href="${a.file_url}">${a.filename}</a>`;
+          }
+        }).join('\n\n');
         break;
       case 'csv':
         formattedLinks = selectedAssetObjects.map(a => a.file_url).join(', ');
@@ -361,8 +377,15 @@ const CampaignDetail = () => {
     
     try {
       await navigator.clipboard.writeText(formattedLinks);
-      toast.success(`Copied ${selectedAssets.size} links to clipboard!`, {
-        description: 'Links are ready to paste'
+      const formatDescriptions = {
+        'line': 'Plain URLs copied',
+        'markdown': 'Markdown links copied',
+        'html-links': 'HTML links copied',
+        'html-video': 'HTML video embeds copied - paste into your email HTML editor',
+        'csv': 'CSV format copied'
+      };
+      toast.success(`Copied ${selectedAssets.size} links!`, {
+        description: formatDescriptions[format]
       });
     } catch (error) {
       toast.error('Failed to copy links');
@@ -738,14 +761,33 @@ const CampaignDetail = () => {
                     
                     <div className="h-8 w-px bg-border" />
                     
-                    <Button 
-                      variant="outline"
-                      onClick={() => bulkCopyLinks('line')}
-                      disabled={isBulkProcessing}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy Links
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" disabled={isBulkProcessing}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Links ({selectedAssets.size})
+                          <ChevronDown className="h-4 w-4 ml-2" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => bulkCopyLinks('line')}>
+                          <Link2 className="h-4 w-4 mr-2" />
+                          Plain URLs (one per line)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => bulkCopyLinks('html-links')}>
+                          <Code className="h-4 w-4 mr-2" />
+                          HTML Links (&lt;a&gt; tags)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => bulkCopyLinks('html-video')}>
+                          <Video className="h-4 w-4 mr-2" />
+                          HTML Video Embeds (&lt;video&gt; tags)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => bulkCopyLinks('markdown')}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Markdown Links
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     
                     <Button 
                       variant="outline"
