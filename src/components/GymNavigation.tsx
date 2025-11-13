@@ -43,93 +43,47 @@ export const GymNavigation = ({
   return (
     <>
       {/* Main Title Section */}
-      <div className="text-center py-3 px-6" style={{ background: 'hsl(var(--brand-white))' }}>
+      <div className="text-center py-2 px-6" style={{ background: 'hsl(var(--brand-white))' }}>
         <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
           🏆 Gym Brand Kit Database
         </h1>
         <p className="text-xs mt-1" style={{ color: 'hsl(var(--brand-text-primary) / 0.7)' }}>
-          All gym brand colors and logos displayed for easy reference and copying
+          Select gyms to copy their info or view campaigns
         </p>
-        <div className="flex items-center justify-center gap-2 mt-2">
-          <Button
-            onClick={() => navigate('/campaigns')}
-            size="sm"
-            variant="outline"
-            className="gap-2"
-          >
-            <Folder className="w-4 h-4" />
-            Campaigns
-          </Button>
-          <SecretAdminButton onClick={onAdminClick} />
-          {user && (
-            <Button
-              onClick={onSignOut}
-              size="sm"
-              variant="outline"
-              className="ml-2"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          )}
-        </div>
       </div>
 
       {/* Selection Dashboard */}
-      <div className="text-center py-4 relative overflow-hidden" style={{
-        background: `
-          radial-gradient(circle at 20% 30%, hsl(var(--brand-rose-gold) / 0.12), transparent 45%),
-          radial-gradient(circle at 80% 70%, hsl(var(--brand-blue-gray) / 0.15), transparent 45%),
-          linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(0 0% 100%) 40%, hsl(var(--brand-rose-gold) / 0.08) 100%)
-        `,
-        borderBottom: '2px solid',
-        borderImage: 'linear-gradient(90deg, transparent, hsl(var(--brand-rose-gold) / 0.6), hsl(var(--brand-blue-gray) / 0.6), transparent) 1'
+      <div className="py-2 px-6" style={{
+        background: `linear-gradient(to bottom, hsl(var(--brand-navy) / 0.02), transparent)`,
+        borderBottom: '1px solid hsl(var(--brand-rose-gold) / 0.1)'
       }}>
-
-        {/* Selection Counter */}
-        <div className="mb-3 relative z-10">
-          <div className="inline-block px-6 py-2 rounded-full text-base font-bold border-[3px] transition-all duration-200 shadow-xl"
-            style={{
-              background: isPerfectState 
-                ? `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`
-                : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(250, 250, 250, 0.9))',
-              borderColor: isPerfectState 
-                ? 'hsl(var(--brand-rose-gold))' 
-                : 'hsl(var(--brand-rose-gold) / 0.4)',
-              color: isPerfectState ? 'white' : 'hsl(var(--brand-text-primary))',
-              boxShadow: isPerfectState 
-                ? '0 3px 12px hsl(var(--brand-rose-gold) / 0.4), 0 0 20px hsl(var(--brand-rose-gold) / 0.3)' 
-                : '0 2px 8px rgba(0, 0, 0, 0.08)',
-            }}>
-            {isPerfectState ? '✨ ' : '⭐ '}{selectedCount} of {totalCount} selected
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap justify-center gap-3 items-center mb-4">
+        {/* Single Action Bar with All Buttons */}
+        <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
+          {/* Selection Actions */}
           <Button
-            onClick={selectedCount === totalCount ? () => {} : onSelectAllGyms}
-            className="px-4 py-1.5 rounded-full font-medium transition-all"
+            onClick={onSelectAllGyms}
+            size="sm"
+            variant="outline"
+            disabled={isPerfectState}
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
             style={{
-              background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`,
-              color: 'white',
-              boxShadow: selectedCount === totalCount
-                ? '0 3px 12px hsl(var(--brand-rose-gold) / 0.4), 0 0 20px hsl(var(--brand-rose-gold) / 0.3)'
-                : '0 2px 8px hsl(var(--brand-rose-gold) / 0.3)',
-              cursor: selectedCount === totalCount ? 'default' : 'pointer'
+              borderColor: isPerfectState ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy) / 0.2)',
+              color: isPerfectState ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy))',
+              background: isPerfectState ? 'hsl(var(--brand-rose-gold) / 0.1)' : 'transparent',
             }}
           >
-            {selectedCount === totalCount ? '✓ All Selected' : 'Select All'}
+            {isPerfectState ? '✓ All Selected' : 'Select All'}
           </Button>
 
           <Button
             onClick={onDeselectAllGyms}
+            size="sm"
+            variant="outline"
             disabled={selectedCount === 0}
-            className="px-4 py-1.5 rounded-full font-medium disabled:opacity-50"
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
             style={{
-              background: `linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.7) 0%, hsl(var(--brand-rose-gold-dark) / 0.8) 100%)`,
-              color: 'white',
-              boxShadow: selectedCount === 0 ? 'none' : '0 2px 8px hsl(var(--brand-rose-gold) / 0.25)'
+              borderColor: 'hsl(var(--brand-navy) / 0.2)',
+              color: 'hsl(var(--brand-navy))',
             }}
           >
             Clear All
@@ -137,12 +91,13 @@ export const GymNavigation = ({
 
           <Button
             onClick={onCopySelected}
+            size="sm"
+            variant="outline"
             disabled={selectedCount === 0}
-            className="px-4 py-1.5 rounded-full font-medium disabled:opacity-50"
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
             style={{
-              background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`,
-              color: 'white',
-              boxShadow: selectedCount === 0 ? 'none' : '0 2px 8px hsl(var(--brand-rose-gold) / 0.3)'
+              borderColor: 'hsl(var(--brand-rose-gold) / 0.3)',
+              color: 'hsl(var(--brand-rose-gold))',
             }}
           >
             Copy Selected ({selectedCount})
@@ -150,56 +105,95 @@ export const GymNavigation = ({
 
           <Button
             onClick={onCopyAll}
+            size="sm"
             variant="outline"
-            className="px-4 py-1.5 rounded-full border-2 font-medium"
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
             style={{
-              borderColor: 'hsl(var(--brand-rose-gold) / 0.6)',
-              color: 'hsl(var(--brand-text-primary))',
-              backgroundColor: 'white'
+              borderColor: 'hsl(var(--brand-rose-gold))',
+              color: 'hsl(var(--brand-rose-gold))',
             }}
           >
             Copy All
           </Button>
+
+          {/* Separator */}
+          <div className="h-8 w-px bg-border mx-1" />
+
+          {/* Navigation Actions */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/campaigns')}
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
+            style={{ borderColor: 'hsl(var(--brand-rose-gold))' }}
+          >
+            <Folder className="w-4 h-4 mr-2" />
+            Campaigns
+          </Button>
+          
+          {isAdmin && <SecretAdminButton onClick={onAdminClick} />}
+          
+          {user && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSignOut}
+              className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          )}
         </div>
 
         {/* Gym Navigation Grid */}
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-wrap justify-center gap-3">
-            {gyms.map((gym) => {
-              const isSelected = selectedGyms.has(gym.code);
-              const primaryColor = gym.colors[0]?.color_hex || '#667eea';
-              
-              return (
-                <div key={gym.code} className="flex flex-col items-center gap-2">
-                  <Button
-                    onClick={() => onScrollToGym(gym.code)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-200 relative",
-                      isSelected && "ring-2 ring-offset-2"
-                    )}
-                    style={{
-                      background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`,
-                      color: 'white',
-                      boxShadow: isSelected 
-                        ? `0 3px 10px hsl(var(--brand-rose-gold) / 0.4), 0 0 0 3px ${primaryColor}40`
-                        : '0 3px 10px hsl(var(--brand-rose-gold) / 0.4)'
-                    }}
-                  >
-                    {gym.code}
-                    {isSelected && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-pulse"
-                            style={{ backgroundColor: primaryColor }} />
-                    )}
-                  </Button>
+        <div className="grid grid-cols-5 gap-3 px-4 mb-2">
+          {gyms.map((gym) => {
+            const isSelected = selectedGyms.has(gym.code);
+            const primaryColor = gym.colors[0]?.color_hex || '#667eea';
+
+            return (
+              <button
+                key={gym.id}
+                onClick={() => navigate(`/gym/${gym.id}`)}
+                className={cn(
+                  "relative flex flex-col items-center gap-2 px-3 py-1.5",
+                  "rounded-lg border transition-all duration-300",
+                  "hover:scale-105 hover:shadow-lg group"
+                )}
+                style={{
+                  borderColor: isSelected ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy) / 0.1)',
+                  background: isSelected ? 'hsl(var(--brand-rose-gold) / 0.05)' : 'hsl(var(--brand-navy) / 0.02)',
+                }}
+              >
+                <span className="text-xs font-bold tracking-wider" style={{ color: primaryColor }}>
+                  {gym.code}
+                </span>
+
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
                   <DiamondSelector
                     gymCode={gym.code}
                     isSelected={isSelected}
-                    onToggle={() => onToggleGymSelection(gym.code)}
                     primaryColor={primaryColor}
+                    onToggle={() => onToggleGymSelection(gym.code)}
                   />
                 </div>
-              );
-            })}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Selection Counter - Small at Bottom */}
+        <div className="flex justify-center mt-3">
+          <div
+            className="inline-block px-3 py-1 rounded-md text-sm font-medium border-2"
+            style={{
+              borderColor: 'hsl(var(--brand-rose-gold))',
+              color: 'hsl(var(--brand-text-primary))',
+              backgroundColor: 'transparent',
+            }}
+          >
+            {selectedCount} of {totalCount} gyms selected
           </div>
         </div>
       </div>
