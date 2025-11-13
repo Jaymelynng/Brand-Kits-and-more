@@ -43,11 +43,11 @@ export const GymNavigation = ({
   return (
     <>
       {/* Main Title Section */}
-      <div className="text-center py-6 px-6" style={{ background: 'hsl(var(--brand-white))' }}>
-        <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
+      <div className="text-center py-3 px-6" style={{ background: 'hsl(var(--brand-white))' }}>
+        <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
           🏆 Gym Brand Kit Database
         </h1>
-        <p className="text-sm mt-1" style={{ color: 'hsl(var(--brand-text-primary) / 0.7)' }}>
+        <p className="text-xs mt-1" style={{ color: 'hsl(var(--brand-text-primary) / 0.7)' }}>
           All gym brand colors and logos displayed for easy reference and copying
         </p>
         <div className="flex items-center justify-center gap-2 mt-2">
@@ -76,7 +76,7 @@ export const GymNavigation = ({
       </div>
 
       {/* Selection Dashboard */}
-      <div className="text-center py-8 relative overflow-hidden" style={{ 
+      <div className="text-center py-4 relative overflow-hidden" style={{
         background: `
           radial-gradient(circle at 20% 30%, hsl(var(--brand-rose-gold) / 0.12), transparent 45%),
           radial-gradient(circle at 80% 70%, hsl(var(--brand-blue-gray) / 0.15), transparent 45%),
@@ -85,17 +85,10 @@ export const GymNavigation = ({
         borderBottom: '2px solid',
         borderImage: 'linear-gradient(90deg, transparent, hsl(var(--brand-rose-gold) / 0.6), hsl(var(--brand-blue-gray) / 0.6), transparent) 1'
       }}>
-        {/* Decorative floating elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-4 left-[10%] text-2xl opacity-30 animate-pulse">⭐</div>
-          <div className="absolute top-6 right-[15%] text-xl opacity-20 animate-bounce" style={{ animationDelay: '0.5s' }}>💪</div>
-          <div className="absolute bottom-4 left-[20%] text-lg opacity-25 animate-pulse" style={{ animationDelay: '1s' }}>✨</div>
-          <div className="absolute bottom-6 right-[25%] text-2xl opacity-20 animate-pulse" style={{ animationDelay: '1.5s' }}>🏋️</div>
-        </div>
 
         {/* Selection Counter */}
-        <div className="mb-6 relative z-10">
-          <div className="inline-block px-8 py-3 rounded-full text-lg font-bold border-[3px] transition-all duration-200 shadow-xl"
+        <div className="mb-3 relative z-10">
+          <div className="inline-block px-6 py-2 rounded-full text-base font-bold border-[3px] transition-all duration-200 shadow-xl"
             style={{
               background: isPerfectState 
                 ? `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`
@@ -113,10 +106,10 @@ export const GymNavigation = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap justify-center gap-3 items-center mb-8">
+        <div className="flex flex-wrap justify-center gap-3 items-center mb-4">
           <Button
             onClick={selectedCount === totalCount ? () => {} : onSelectAllGyms}
-            className="px-5 py-2 rounded-full font-medium transition-all"
+            className="px-4 py-1.5 rounded-full font-medium transition-all"
             style={{
               background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`,
               color: 'white',
@@ -132,7 +125,7 @@ export const GymNavigation = ({
           <Button
             onClick={onDeselectAllGyms}
             disabled={selectedCount === 0}
-            className="px-5 py-2 rounded-full font-medium disabled:opacity-50"
+            className="px-4 py-1.5 rounded-full font-medium disabled:opacity-50"
             style={{
               background: `linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.7) 0%, hsl(var(--brand-rose-gold-dark) / 0.8) 100%)`,
               color: 'white',
@@ -145,7 +138,7 @@ export const GymNavigation = ({
           <Button
             onClick={onCopySelected}
             disabled={selectedCount === 0}
-            className="px-5 py-2 rounded-full font-medium disabled:opacity-50"
+            className="px-4 py-1.5 rounded-full font-medium disabled:opacity-50"
             style={{
               background: `linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-dark)) 100%)`,
               color: 'white',
@@ -158,7 +151,7 @@ export const GymNavigation = ({
           <Button
             onClick={onCopyAll}
             variant="outline"
-            className="px-5 py-2 rounded-full border-2 font-medium"
+            className="px-4 py-1.5 rounded-full border-2 font-medium"
             style={{
               borderColor: 'hsl(var(--brand-rose-gold) / 0.6)',
               color: 'hsl(var(--brand-text-primary))',
@@ -171,7 +164,7 @@ export const GymNavigation = ({
 
         {/* Gym Navigation Grid */}
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-3">
             {gyms.map((gym) => {
               const isSelected = selectedGyms.has(gym.code);
               const primaryColor = gym.colors[0]?.color_hex || '#667eea';
@@ -181,7 +174,7 @@ export const GymNavigation = ({
                   <Button
                     onClick={() => onScrollToGym(gym.code)}
                     className={cn(
-                      "px-4 py-2 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-200 relative",
+                      "px-3 py-1.5 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-200 relative",
                       isSelected && "ring-2 ring-offset-2"
                     )}
                     style={{
