@@ -43,7 +43,7 @@ export const GymNavigation = ({
   return (
     <>
       {/* Main Title Section */}
-      <div className="text-center py-2 px-6" style={{ background: 'hsl(var(--brand-white))' }}>
+      <div className="text-center py-1 px-6" style={{ background: 'hsl(var(--brand-white))' }}>
         <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
           🏆 Gym Brand Kit Database
         </h1>
@@ -53,12 +53,12 @@ export const GymNavigation = ({
       </div>
 
       {/* Selection Dashboard */}
-      <div className="py-2 px-6" style={{
+      <div className="py-1 px-6" style={{
         background: `linear-gradient(to bottom, hsl(var(--brand-navy) / 0.02), transparent)`,
         borderBottom: '1px solid hsl(var(--brand-rose-gold) / 0.1)'
       }}>
         {/* Single Action Bar with All Buttons */}
-        <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
+        <div className="flex items-center justify-center gap-2 flex-wrap mb-1">
           {/* Selection Actions */}
           <Button
             onClick={onSelectAllGyms}
@@ -147,7 +147,7 @@ export const GymNavigation = ({
         </div>
 
         {/* Gym Navigation Grid */}
-        <div className="flex flex-nowrap gap-3 px-4 pb-8 justify-center overflow-x-auto">
+        <div className="flex flex-nowrap gap-3 px-4 pb-4 justify-center overflow-x-auto">
           {gyms.map((gym) => {
             const isSelected = selectedGyms.has(gym.code);
             const primaryColor = gym.colors[0]?.color_hex || '#667eea';
