@@ -200,7 +200,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <BrandCard 
-        className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group border-2 flex flex-col h-full min-h-[600px]"
+        className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group border-2 flex flex-col h-full min-h-[480px]"
         style={{
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
@@ -221,7 +221,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
         }}
         id={`gym-${gym.code}`}
       >
-        <div className="flex items-center justify-between pb-4 px-6 border-b"
+        <div className="flex items-center justify-between pb-3 px-6 border-b"
              style={{
                background: `
                  radial-gradient(1px 1px at 15px 10px, rgba(255,255,255,0.6), transparent),
@@ -255,10 +255,10 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
 
         <BrandCardContent>
           {/* Main Logo Display */}
-          <div className="mb-6">
+          <div className="mb-4">
             <div 
               className={cn(
-                "w-full h-32 border-2 border-dashed rounded-xl flex items-center justify-center cursor-pointer transition-smooth bg-gradient-primary",
+                "w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center cursor-pointer transition-smooth bg-gradient-primary",
                 isDragOver 
                   ? "border-gym-primary/60 bg-gym-primary/20" 
                   : "border-gym-primary/30 hover:border-gym-primary/50"
@@ -273,7 +273,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                   <img 
                     src={mainLogo.file_url} 
                     alt="Main logo" 
-                    className="max-h-28 max-w-full object-contain drop-shadow-lg"
+                    className="max-h-20 max-w-full object-contain drop-shadow-lg"
                   />
                   <div className="absolute inset-0 bg-gym-primary/10 opacity-0 group-hover:opacity-100 transition-smooth rounded-lg" />
                 </div>
@@ -304,11 +304,11 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="flex-1 flex flex-col mb-4 min-h-[280px]">
+          <div className="flex-1 flex flex-col mb-3 min-h-[220px]">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-foreground">🎨 Brand Colors</h4>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {gym.colors.map((color, index) => (
                 <ColorSwatch
                   key={color.id}
@@ -318,14 +318,14 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                   showControls={true}
                   editMode={editMode}
                   onEdit={() => editColor(color.id, color.color_hex)}
-                  className="p-3 rounded-xl bg-card/30 border border-border/50 hover:bg-card/50 transition-smooth"
+                  className="p-2 rounded-xl bg-card/30 border border-border/50 hover:bg-card/50 transition-smooth"
                 />
               ))}
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => copyGymColors(true)}
