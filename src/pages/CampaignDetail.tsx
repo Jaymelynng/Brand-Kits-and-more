@@ -12,7 +12,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share, Tag, Trash2, CheckSquare, Copy, ChevronDown, Code, FileText } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share, Tag, Trash2, CheckSquare, Copy, ChevronDown, Code, FileText, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -21,6 +23,7 @@ import { CampaignAssetUpload } from "@/components/CampaignAssetUpload";
 import { AssetPreview } from "@/components/AssetPreview";
 import { AssetEditModal } from "@/components/AssetEditModal";
 import { AssetShareModal } from "@/components/AssetShareModal";
+import { AssetDetailModal } from "@/components/AssetDetailModal";
 import { AssetSidebar } from "@/components/AssetSidebar";
 import { AssetStatusCards } from "@/components/AssetStatusCards";
 import { AssetFilterBar } from "@/components/AssetFilterBar";
@@ -35,6 +38,8 @@ const CampaignDetail = () => {
   const [downloading, setDownloading] = useState(false);
   const [editingAsset, setEditingAsset] = useState<CampaignAsset | null>(null);
   const [sharingAsset, setSharingAsset] = useState<CampaignAsset | null>(null);
+  const [previewAsset, setPreviewAsset] = useState<CampaignAsset | null>(null);
+  const [detailAsset, setDetailAsset] = useState<CampaignAsset | null>(null);
   const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
   const [bulkAssigningGym, setBulkAssigningGym] = useState<string | null>(null);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
@@ -632,8 +637,16 @@ const CampaignDetail = () => {
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {groupAssets.map((asset) => (
-                        <Card key={asset.id} className={`group hover:shadow-lg transition-all relative ${selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''}`}>
-                          <div className="absolute top-2 left-2 z-10">
+                        <Card 
+                          key={asset.id} 
+                          className={`group hover:shadow-lg transition-all relative cursor-pointer ${selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''}`}
+                          onClick={(e) => {
+                            // Don't open detail modal if clicking checkbox or action buttons
+                            if ((e.target as HTMLElement).closest('[data-no-detail]')) return;
+                            setDetailAsset(asset);
+                          }}
+                        >
+                          <div className="absolute top-2 left-2 z-10" data-no-detail>
                             <Checkbox
                               checked={selectedAssets.has(asset.id)}
                               onCheckedChange={() => toggleAssetSelection(asset.id)}
@@ -652,21 +665,48 @@ const CampaignDetail = () => {
                             </Badge>
                           )}
                           <CardContent className="p-4">
-                            <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                              <AssetPreview asset={asset} />
-                            </div>
+                            <HoverCard openDelay={200}>
+                              <HoverCardTrigger asChild>
+                                <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                                  <AssetPreview asset={asset} />
+                                </div>
+                              </HoverCardTrigger>
+                              <HoverCardContent side="right" className="w-96 h-96 p-2">
+                                <AssetPreview asset={asset} className="w-full h-full" />
+                                <p className="text-xs text-center mt-2 truncate">{asset.filename}</p>
+                              </HoverCardContent>
+                            </HoverCard>
                             <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
                               <span>{formatFileSize(asset.file_size)}</span>
                             </div>
                             <p className="text-sm font-medium truncate mb-3">{asset.filename}</p>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1" data-no-detail>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Button 
                                     size="sm" 
                                     variant="outline"
                                     className="flex-1"
-                                    onClick={() => setEditingAsset(asset)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPreviewAsset(asset);
+                                    }}
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Preview</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingAsset(asset);
+                                    }}
                                   >
                                     <Edit className="h-3 w-3" />
                                   </Button>
@@ -679,7 +719,10 @@ const CampaignDetail = () => {
                                     size="sm" 
                                     variant="outline"
                                     className="flex-1"
-                                    onClick={() => copyAssetUrl(asset.file_url)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      copyAssetUrl(asset.file_url);
+                                    }}
                                   >
                                     <Link2 className="h-3 w-3" />
                                   </Button>
@@ -692,7 +735,10 @@ const CampaignDetail = () => {
                                     size="sm" 
                                     variant="outline"
                                     className="flex-1"
-                                    onClick={() => setSharingAsset(asset)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSharingAsset(asset);
+                                    }}
                                   >
                                     <Share className="h-3 w-3" />
                                   </Button>
@@ -704,7 +750,10 @@ const CampaignDetail = () => {
                                   <Button 
                                     size="sm" 
                                     className="flex-1"
-                                    onClick={() => downloadAsset(asset.file_url, asset.filename)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadAsset(asset.file_url, asset.filename);
+                                    }}
                                   >
                                     <Download className="h-3 w-3" />
                                   </Button>
@@ -1035,6 +1084,73 @@ const CampaignDetail = () => {
               onOpenChange={(open) => !open && setSharingAsset(null)}
             />
           )}
+
+          {/* Eye Icon Preview Dialog */}
+          {previewAsset && (
+            <Dialog open={!!previewAsset} onOpenChange={() => setPreviewAsset(null)}>
+              <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+                <DialogHeader>
+                  <DialogTitle>{previewAsset.filename}</DialogTitle>
+                  <DialogDescription>
+                    {previewAsset.file_type} • {formatFileSize(previewAsset.file_size)}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex-1 overflow-auto bg-muted rounded-lg p-4 flex items-center justify-center">
+                  <AssetPreview asset={previewAsset} className="max-h-full" />
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {/* Detail Modal */}
+          <AssetDetailModal
+            asset={detailAsset}
+            onClose={() => setDetailAsset(null)}
+            onEdit={() => {
+              setEditingAsset(detailAsset);
+              setDetailAsset(null);
+            }}
+            onShare={() => {
+              setSharingAsset(detailAsset);
+              setDetailAsset(null);
+            }}
+            onDelete={() => {
+              if (detailAsset) {
+                // Delete logic
+                const confirmDelete = confirm(`Are you sure you want to delete "${detailAsset.filename}"?`);
+                if (confirmDelete) {
+                  setIsBulkProcessing(true);
+                  const urlParts = detailAsset.file_url.split('/');
+                  const filename = urlParts[urlParts.length - 1];
+                  
+                  supabase.storage
+                    .from('campaign-assets')
+                    .remove([filename])
+                    .then(({ error: storageError }) => {
+                      if (storageError) throw storageError;
+                      
+                      return supabase
+                        .from('campaign_assets')
+                        .delete()
+                        .eq('id', detailAsset.id);
+                    })
+                    .then(({ error: dbError }) => {
+                      if (dbError) throw dbError;
+                      toast.success('Asset deleted successfully');
+                      queryClient.invalidateQueries({ queryKey: ['campaign-assets'] });
+                      setDetailAsset(null);
+                    })
+                    .catch((error) => {
+                      console.error('Error deleting asset:', error);
+                      toast.error('Failed to delete asset');
+                    })
+                    .finally(() => {
+                      setIsBulkProcessing(false);
+                    });
+                }
+              }
+            }}
+          />
         </div>
       </div>
     </div>
