@@ -5,10 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { parseFilename, getFileExtension } from "@/lib/assetNaming";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, X, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Upload, X, CheckCircle2, AlertCircle, Loader2, Edit2, Sparkles, Check, XCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 
 interface ParsedCampaignAsset {
   file: File;
@@ -21,6 +22,10 @@ interface ParsedCampaignAsset {
   status: 'valid' | 'warning' | 'error';
   statusMessage: string;
   uploadStatus?: 'pending' | 'uploading' | 'success' | 'failed';
+  editedFilename?: string;
+  aiSuggestedFilename?: string;
+  isEditingFilename: boolean;
+  isAnalyzing: boolean;
 }
 
 interface CampaignAssetUploadProps {
@@ -35,6 +40,7 @@ export function CampaignAssetUpload({ campaignId, campaignName, gyms, onSuccess 
   const [uploadingAssets, setUploadingAssets] = useState<ParsedCampaignAsset[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isBatchAnalyzing, setIsBatchAnalyzing] = useState(false);
 
   const gymCodes = gyms.map(g => g.code);
 
@@ -76,6 +82,9 @@ export function CampaignAssetUpload({ campaignId, campaignName, gyms, onSuccess 
         status,
         statusMessage,
         uploadStatus: 'pending',
+        editedFilename: file.name,
+        isEditingFilename: false,
+        isAnalyzing: false,
       };
     });
     
@@ -111,6 +120,156 @@ export function CampaignAssetUpload({ campaignId, campaignName, gyms, onSuccess 
     setUploadingAssets(prev => prev.filter(a => a.id !== assetId));
   };
 
+  const toggleEditFilename = (assetId: string) => {
+    setUploadingAssets(prev => prev.map(a =>
+      a.id === assetId ? { ...a, isEditingFilename: !a.isEditingFilename } : a
+    ));
+  };
+
+  const updateFilename = (assetId: string, newFilename: string) => {
+    setUploadingAssets(prev => prev.map(a => {
+      if (a.id !== assetId) return a;
+      
+      // Re-parse the filename to detect gym codes
+      const filenameResult = parseFilename(newFilename, gymCodes);
+      let gymId: string | undefined;
+      let gymName: string | undefined;
+      let isAdminResource = a.isAdminResource;
+      let status: 'valid' | 'warning' | 'error' = 'valid';
+      let statusMessage = 'Ready to upload';
+
+      if (!filenameResult.isValid) {
+        isAdminResource = true;
+        status = 'warning';
+        statusMessage = 'No gym code found - will be uploaded as Admin Resource';
+      } else {
+        const gym = gyms?.find(g => g.code.toUpperCase() === filenameResult.gymCode.toUpperCase());
+        if (gym) {
+          gymId = gym.id;
+          gymName = gym.name;
+          isAdminResource = false;
+          statusMessage = `Will upload to ${gymName} (${filenameResult.gymCode})`;
+        } else {
+          isAdminResource = true;
+          status = 'warning';
+          statusMessage = `Gym "${filenameResult.gymCode}" not found - will be uploaded as Admin Resource`;
+        }
+      }
+
+      return {
+        ...a,
+        editedFilename: newFilename,
+        gymCode: filenameResult.gymCode,
+        gymId,
+        gymName,
+        isAdminResource,
+        status,
+        statusMessage,
+      };
+    }));
+  };
+
+  const analyzeFile = async (asset: ParsedCampaignAsset) => {
+    if (!asset.fileType.startsWith('image/')) {
+      toast.error('AI analysis only works with images');
+      return;
+    }
+
+    setUploadingAssets(prev => prev.map(a =>
+      a.id === asset.id ? { ...a, isAnalyzing: true } : a
+    ));
+
+    const tempUrl = URL.createObjectURL(asset.file);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-image', {
+        body: {
+          imageUrl: tempUrl,
+          gymCode: asset.gymCode || 'ADMIN',
+          gymName: asset.gymName || 'Admin Resource',
+          currentFilename: asset.editedFilename || asset.file.name,
+        }
+      });
+
+      if (error) throw error;
+
+      const suggestedName = data.suggestedName;
+      
+      // Re-parse to detect gym codes in suggested name
+      const filenameResult = parseFilename(suggestedName, gymCodes);
+      let gymId: string | undefined;
+      let gymName: string | undefined;
+      let isAdminResource = false;
+      let status: 'valid' | 'warning' | 'error' = 'valid';
+      let statusMessage = 'AI suggested filename';
+
+      if (!filenameResult.isValid) {
+        isAdminResource = true;
+        status = 'warning';
+        statusMessage = 'AI suggested - No gym code found';
+      } else {
+        const gym = gyms?.find(g => g.code.toUpperCase() === filenameResult.gymCode.toUpperCase());
+        if (gym) {
+          gymId = gym.id;
+          gymName = gym.name;
+          statusMessage = `AI suggested for ${gymName} (${filenameResult.gymCode})`;
+        } else {
+          isAdminResource = true;
+          status = 'warning';
+          statusMessage = `AI suggested - Gym "${filenameResult.gymCode}" not found`;
+        }
+      }
+
+      setUploadingAssets(prev => prev.map(a =>
+        a.id === asset.id
+          ? {
+              ...a,
+              aiSuggestedFilename: suggestedName,
+              editedFilename: suggestedName,
+              gymCode: filenameResult.gymCode,
+              gymId,
+              gymName,
+              isAdminResource,
+              status,
+              statusMessage,
+              isAnalyzing: false,
+            }
+          : a
+      ));
+
+      toast.success('AI filename generated!');
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      toast.error('Failed to analyze image');
+      setUploadingAssets(prev => prev.map(a =>
+        a.id === asset.id ? { ...a, isAnalyzing: false } : a
+      ));
+    } finally {
+      URL.revokeObjectURL(tempUrl);
+    }
+  };
+
+  const analyzeAllFiles = async () => {
+    const imageAssets = uploadingAssets.filter(a => a.fileType.startsWith('image/'));
+    
+    if (imageAssets.length === 0) {
+      toast.error('No images to analyze');
+      return;
+    }
+
+    setIsBatchAnalyzing(true);
+    let analyzed = 0;
+
+    for (const asset of imageAssets) {
+      await analyzeFile(asset);
+      analyzed++;
+      toast.info(`Analyzing... ${analyzed}/${imageAssets.length}`);
+    }
+
+    setIsBatchAnalyzing(false);
+    toast.success(`Analyzed ${imageAssets.length} images!`);
+  };
+
   const uploadAssets = async () => {
     setIsUploading(true);
     setUploadProgress(0);
@@ -124,7 +283,8 @@ export function CampaignAssetUpload({ campaignId, campaignName, gyms, onSuccess 
           a.id === asset.id ? { ...a, uploadStatus: 'uploading' } : a
         ));
         
-        const fileExt = getFileExtension(asset.file.name);
+        const finalFilename = asset.editedFilename || asset.file.name;
+        const fileExt = getFileExtension(finalFilename);
         const fileName = `${campaignId}-${asset.gymId || 'admin'}-${Date.now()}-${Math.random()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
@@ -149,7 +309,7 @@ export function CampaignAssetUpload({ campaignId, campaignName, gyms, onSuccess 
             campaign_id: campaignId,
             gym_id: asset.isAdminResource ? null : asset.gymId,
             file_url: publicUrl,
-            filename: asset.file.name,
+            filename: finalFilename,
             file_type: asset.fileType,
             file_size: asset.file.size,
             asset_category: assetCategory,
@@ -233,7 +393,29 @@ export function CampaignAssetUpload({ campaignId, campaignName, gyms, onSuccess 
 
           {uploadingAssets.length > 0 && (
             <div className="mt-6 space-y-4">
-              <h3 className="font-semibold">Files to Upload ({uploadingAssets.length})</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Files to Upload ({uploadingAssets.length})</h3>
+                {uploadingAssets.some(a => a.fileType.startsWith('image/')) && !isUploading && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={analyzeAllFiles}
+                    disabled={isBatchAnalyzing}
+                  >
+                    {isBatchAnalyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        AI Suggest All
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
               
               {isUploading && (
                 <div className="space-y-2">
@@ -248,37 +430,116 @@ export function CampaignAssetUpload({ campaignId, campaignName, gyms, onSuccess 
                 {uploadingAssets.map((asset) => (
                   <div
                     key={asset.id}
-                    className="flex items-center justify-between p-3 border rounded-lg bg-card"
+                    className="p-3 border rounded-lg bg-card space-y-2"
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{asset.file.name}</p>
-                      <p className={`text-xs ${asset.status === 'error' ? 'text-destructive' : 'text-muted-foreground'}`}>
-                        {asset.statusMessage}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 ml-4">
-                      {asset.uploadStatus && getStatusIcon(asset.uploadStatus)}
-                      
-                      {!isUploading && asset.uploadStatus !== 'success' && (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={asset.isAdminResource}
-                              onCheckedChange={() => toggleAdminResource(asset.id)}
-                              disabled={!asset.gymId}
-                            />
-                            <Label className="text-xs whitespace-nowrap">Admin</Label>
-                          </div>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => removeAsset(asset.id)}
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </>
+                    <div className="flex items-start gap-3">
+                      {/* File preview thumbnail */}
+                      {asset.fileType.startsWith('image/') && (
+                        <img
+                          src={URL.createObjectURL(asset.file)}
+                          alt="Preview"
+                          className="w-16 h-16 object-cover rounded"
+                        />
                       )}
+                      
+                      <div className="flex-1 min-w-0 space-y-1">
+                        {/* Filename editor */}
+                        {asset.isEditingFilename && !isUploading ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={asset.editedFilename || asset.file.name}
+                              onChange={(e) => updateFilename(asset.id, e.target.value)}
+                              className="text-sm"
+                            />
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => toggleEditFilename(asset.id)}
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium truncate flex-1">
+                              {asset.editedFilename || asset.file.name}
+                            </p>
+                            {!isUploading && asset.uploadStatus !== 'success' && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => toggleEditFilename(asset.id)}
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* AI suggestion display */}
+                        {asset.aiSuggestedFilename && asset.aiSuggestedFilename !== asset.editedFilename && (
+                          <p className="text-xs text-muted-foreground">
+                            AI suggested: {asset.aiSuggestedFilename}
+                          </p>
+                        )}
+
+                        {/* Status message */}
+                        <div className="flex items-center gap-2">
+                          {asset.status === 'valid' && <Check className="w-3 h-3 text-green-500" />}
+                          {asset.status === 'warning' && <AlertCircle className="w-3 h-3 text-yellow-500" />}
+                          {asset.status === 'error' && <XCircle className="w-3 h-3 text-destructive" />}
+                          <p className={`text-xs ${asset.status === 'error' ? 'text-destructive' : 'text-muted-foreground'}`}>
+                            {asset.statusMessage}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2">
+                        {asset.uploadStatus && getStatusIcon(asset.uploadStatus)}
+                        
+                        {!isUploading && asset.uploadStatus !== 'success' && (
+                          <>
+                            {/* AI analyze button */}
+                            {asset.fileType.startsWith('image/') && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => analyzeFile(asset)}
+                                disabled={asset.isAnalyzing}
+                              >
+                                {asset.isAnalyzing ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-3 h-3 mr-1" />
+                                    AI
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                            
+                            {/* Admin resource toggle */}
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={asset.isAdminResource}
+                                onCheckedChange={() => toggleAdminResource(asset.id)}
+                                disabled={!asset.gymId}
+                              />
+                              <Label className="text-xs whitespace-nowrap">Admin</Label>
+                            </div>
+                            
+                            {/* Remove button */}
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => removeAsset(asset.id)}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
