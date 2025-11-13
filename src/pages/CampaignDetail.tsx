@@ -27,6 +27,7 @@ import { AssetDetailModal } from "@/components/AssetDetailModal";
 import { AssetSidebar } from "@/components/AssetSidebar";
 import { AssetStatusCards } from "@/components/AssetStatusCards";
 import { AssetFilterBar } from "@/components/AssetFilterBar";
+import { BulkGymAssignmentDialog } from "@/components/BulkGymAssignmentDialog";
 import { CampaignAsset } from "@/hooks/useCampaignAssets";
 
 const CampaignDetail = () => {
@@ -41,7 +42,7 @@ const CampaignDetail = () => {
   const [previewAsset, setPreviewAsset] = useState<CampaignAsset | null>(null);
   const [detailAsset, setDetailAsset] = useState<CampaignAsset | null>(null);
   const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
-  const [bulkAssigningGym, setBulkAssigningGym] = useState<string | null>(null);
+  const [showBulkAssignDialog, setShowBulkAssignDialog] = useState(false);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [fileTypeFilter, setFileTypeFilter] = useState<'all' | 'video' | 'image' | 'document' | 'other'>('all');
   const [gymFilter, setGymFilter] = useState<string | null>(null);
@@ -270,32 +271,6 @@ const CampaignDetail = () => {
 
   const clearSelection = () => {
     setSelectedAssets(new Set());
-  };
-
-  const bulkAssignToGym = async () => {
-    if (!bulkAssigningGym || selectedAssets.size === 0) return;
-
-    setIsBulkProcessing(true);
-    try {
-      const gymId = bulkAssigningGym === 'admin' ? null : bulkAssigningGym;
-      
-      const { error } = await supabase
-        .from('campaign_assets')
-        .update({ gym_id: gymId })
-        .in('id', Array.from(selectedAssets));
-
-      if (error) throw error;
-
-      toast.success(`${selectedAssets.size} assets reassigned successfully`);
-      queryClient.invalidateQueries({ queryKey: ['campaign-assets'] });
-      clearSelection();
-      setBulkAssigningGym(null);
-    } catch (error) {
-      console.error('Error bulk assigning:', error);
-      toast.error('Failed to reassign assets');
-    } finally {
-      setIsBulkProcessing(false);
-    }
   };
 
   const bulkDeleteAssets = async () => {
@@ -784,29 +759,14 @@ const CampaignDetail = () => {
                     
                     <div className="h-8 w-px bg-border" />
                     
-                    <div className="flex items-center gap-2">
-                      <Select value={bulkAssigningGym || ''} onValueChange={setBulkAssigningGym}>
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Assign to gym..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin Resource (No Gym)</SelectItem>
-                          {gyms?.map((gym) => (
-                            <SelectItem key={gym.id} value={gym.id}>
-                              {gym.name} ({gym.code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      
-                      <Button 
-                        onClick={bulkAssignToGym}
-                        disabled={!bulkAssigningGym || isBulkProcessing}
-                      >
-                        <Tag className="h-4 w-4 mr-2" />
-                        {isBulkProcessing ? 'Assigning...' : 'Apply'}
-                      </Button>
-                    </div>
+                    <Button 
+                      onClick={() => setShowBulkAssignDialog(true)}
+                      disabled={selectedAssets.size === 0 || isBulkProcessing}
+                      variant="default"
+                    >
+                      <Tag className="h-4 w-4 mr-2" />
+                      Assign to Gym ({selectedAssets.size})
+                    </Button>
                     
                     <div className="h-8 w-px bg-border" />
                     
@@ -1150,6 +1110,15 @@ const CampaignDetail = () => {
                 }
               }
             }}
+          />
+
+          {/* Bulk Gym Assignment Dialog */}
+          <BulkGymAssignmentDialog
+            open={showBulkAssignDialog}
+            onOpenChange={setShowBulkAssignDialog}
+            selectedAssets={selectedAssets}
+            gyms={gyms}
+            onSuccess={clearSelection}
           />
         </div>
       </div>
