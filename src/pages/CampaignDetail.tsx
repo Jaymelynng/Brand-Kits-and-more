@@ -9,7 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share, Tag, Trash2, CheckSquare } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { CampaignAssetUpload } from "@/components/CampaignAssetUpload";
@@ -27,6 +31,10 @@ const CampaignDetail = () => {
   const [downloading, setDownloading] = useState(false);
   const [editingAsset, setEditingAsset] = useState<CampaignAsset | null>(null);
   const [sharingAsset, setSharingAsset] = useState<CampaignAsset | null>(null);
+  const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
+  const [bulkAssigningGym, setBulkAssigningGym] = useState<string | null>(null);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+  const queryClient = useQueryClient();
 
   if (isLoading) {
     return (
@@ -105,6 +113,102 @@ const CampaignDetail = () => {
       taggedAssetsByGym[gymCode].campaignAssets.push(asset);
     }
   });
+
+  const toggleAssetSelection = (assetId: string) => {
+    setSelectedAssets(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(assetId)) {
+        newSet.delete(assetId);
+      } else {
+        newSet.add(assetId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllAssets = () => {
+    const allAssetIds = new Set<string>();
+    adminAssets.forEach(asset => allAssetIds.add(asset.id));
+    Object.values(taggedAssetsByGym).forEach((gymData: any) => {
+      gymData.campaignAssets.forEach((asset: any) => allAssetIds.add(asset.id));
+    });
+    setSelectedAssets(allAssetIds);
+  };
+
+  const clearSelection = () => {
+    setSelectedAssets(new Set());
+  };
+
+  const bulkAssignToGym = async () => {
+    if (!bulkAssigningGym || selectedAssets.size === 0) return;
+
+    setIsBulkProcessing(true);
+    try {
+      const gymId = bulkAssigningGym === 'admin' ? null : bulkAssigningGym;
+      
+      const { error } = await supabase
+        .from('campaign_assets')
+        .update({ gym_id: gymId })
+        .in('id', Array.from(selectedAssets));
+
+      if (error) throw error;
+
+      toast.success(`${selectedAssets.size} assets reassigned successfully`);
+      queryClient.invalidateQueries({ queryKey: ['campaign-assets'] });
+      clearSelection();
+      setBulkAssigningGym(null);
+    } catch (error) {
+      console.error('Error bulk assigning:', error);
+      toast.error('Failed to reassign assets');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const bulkDeleteAssets = async () => {
+    if (selectedAssets.size === 0) return;
+    
+    if (!confirm(`Are you sure you want to delete ${selectedAssets.size} assets? This cannot be undone.`)) {
+      return;
+    }
+
+    setIsBulkProcessing(true);
+    try {
+      // Get all assets to delete
+      const assetsToDelete = campaignAssets?.filter(a => selectedAssets.has(a.id)) || [];
+      
+      // Delete from storage
+      const filenames = assetsToDelete.map(asset => {
+        const urlParts = asset.file_url.split('/');
+        return urlParts[urlParts.length - 1];
+      });
+
+      if (filenames.length > 0) {
+        const { error: storageError } = await supabase.storage
+          .from('campaign-assets')
+          .remove(filenames);
+
+        if (storageError) throw storageError;
+      }
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('campaign_assets')
+        .delete()
+        .in('id', Array.from(selectedAssets));
+
+      if (dbError) throw dbError;
+
+      toast.success(`${selectedAssets.size} assets deleted successfully`);
+      queryClient.invalidateQueries({ queryKey: ['campaign-assets'] });
+      clearSelection();
+    } catch (error) {
+      console.error('Error bulk deleting:', error);
+      toast.error('Failed to delete assets');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
 
   const copyAssetUrl = async (url: string) => {
     try {
@@ -231,6 +335,16 @@ const CampaignDetail = () => {
               </Badge>
             </div>
             <div className="flex gap-2">
+              {selectedAssets.size === 0 ? (
+                <Button variant="outline" onClick={selectAllAssets}>
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  Select All
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={clearSelection}>
+                  Clear Selection ({selectedAssets.size})
+                </Button>
+              )}
               <CampaignAssetUpload
                 campaignId={campaign.id}
                 campaignName={campaign.name}
@@ -257,7 +371,14 @@ const CampaignDetail = () => {
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {adminAssets.map((asset) => (
-                  <Card key={asset.id} className="group hover:shadow-lg transition-all relative">
+                  <Card key={asset.id} className={`group hover:shadow-lg transition-all relative ${selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''}`}>
+                    <div className="absolute top-2 left-2 z-10">
+                      <Checkbox
+                        checked={selectedAssets.has(asset.id)}
+                        onCheckedChange={() => toggleAssetSelection(asset.id)}
+                        className="bg-background"
+                      />
+                    </div>
                     <Badge variant="outline" className="absolute top-2 right-2 bg-background">
                       Admin
                     </Badge>
@@ -380,7 +501,14 @@ const CampaignDetail = () => {
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                           {gymAssets.campaignAssets.map((asset: any) => (
-                            <Card key={asset.id} className="group hover:shadow-lg transition-all relative">
+                            <Card key={asset.id} className={`group hover:shadow-lg transition-all relative ${selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''}`}>
+                              <div className="absolute top-2 left-2 z-10">
+                                <Checkbox
+                                  checked={selectedAssets.has(asset.id)}
+                                  onCheckedChange={() => toggleAssetSelection(asset.id)}
+                                  className="bg-background"
+                                />
+                              </div>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Badge variant="default" className="absolute top-2 right-2">
@@ -523,6 +651,63 @@ const CampaignDetail = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Bulk Actions Toolbar */}
+        {selectedAssets.size > 0 && (
+          <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+            <Card className="shadow-2xl border-2">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <CheckSquare className="h-5 w-5 text-primary" />
+                    <span className="font-semibold">{selectedAssets.size} selected</span>
+                  </div>
+                  
+                  <div className="h-8 w-px bg-border" />
+                  
+                  <div className="flex items-center gap-2">
+                    <Select value={bulkAssigningGym || ''} onValueChange={setBulkAssigningGym}>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Assign to gym..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin Resource (No Gym)</SelectItem>
+                        {gyms?.map((gym) => (
+                          <SelectItem key={gym.id} value={gym.id}>
+                            {gym.name} ({gym.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button 
+                      onClick={bulkAssignToGym}
+                      disabled={!bulkAssigningGym || isBulkProcessing}
+                    >
+                      <Tag className="h-4 w-4 mr-2" />
+                      {isBulkProcessing ? 'Assigning...' : 'Apply'}
+                    </Button>
+                  </div>
+                  
+                  <div className="h-8 w-px bg-border" />
+                  
+                  <Button 
+                    variant="destructive"
+                    onClick={bulkDeleteAssets}
+                    disabled={isBulkProcessing}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                  
+                  <Button variant="ghost" onClick={clearSelection}>
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
