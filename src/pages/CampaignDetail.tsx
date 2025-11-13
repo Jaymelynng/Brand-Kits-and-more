@@ -43,6 +43,126 @@ const CampaignDetail = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
 
+  // Calculate asset counts - MUST be before any conditional returns
+  const assetCounts = useMemo(() => {
+    const all = campaignAssets?.length || 0;
+    const videos = campaignAssets?.filter(a => a.file_type.startsWith('video/')).length || 0;
+    const images = campaignAssets?.filter(a => a.file_type.startsWith('image/')).length || 0;
+    const documents = campaignAssets?.filter(a => a.file_type.includes('pdf') || a.file_type.includes('document')).length || 0;
+    const other = campaignAssets?.filter(a => {
+      const ft = a.file_type;
+      return !ft.startsWith('video/') && !ft.startsWith('image/') && !ft.includes('pdf') && !ft.includes('document');
+    }).length || 0;
+    
+    return { all, videos, images, documents, other };
+  }, [campaignAssets]);
+
+  // Calculate gym counts
+  const gymCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    campaignAssets?.forEach(asset => {
+      if (asset.gym_id) {
+        counts[asset.gym_id] = (counts[asset.gym_id] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [campaignAssets]);
+
+  const adminCount = useMemo(() => {
+    return campaignAssets?.filter(a => !a.gym_id).length || 0;
+  }, [campaignAssets]);
+
+  // Filter assets
+  const filteredAssets = useMemo(() => {
+    let filtered = campaignAssets || [];
+    
+    // File type filter
+    if (fileTypeFilter !== 'all') {
+      filtered = filtered.filter(a => {
+        const type = a.file_type.toLowerCase();
+        switch (fileTypeFilter) {
+          case 'video': return type.startsWith('video/');
+          case 'image': return type.startsWith('image/');
+          case 'document': return type.includes('pdf') || type.includes('document');
+          case 'other': return !type.startsWith('video/') && !type.startsWith('image/') && !type.includes('pdf') && !type.includes('document');
+          default: return true;
+        }
+      });
+    }
+    
+    // Gym filter
+    if (gymFilter) {
+      if (gymFilter === 'admin') {
+        filtered = filtered.filter(a => !a.gym_id);
+      } else {
+        filtered = filtered.filter(a => a.gym_id === gymFilter);
+      }
+    }
+    
+    // Search
+    if (searchQuery) {
+      filtered = filtered.filter(a =>
+        a.filename.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return filtered;
+  }, [campaignAssets, fileTypeFilter, gymFilter, searchQuery]);
+
+  // Group assets
+  const groupedAssets = useMemo(() => {
+    if (groupBy === 'none') return { 'All Assets': filteredAssets };
+    
+    if (groupBy === 'gym') {
+      return filteredAssets.reduce((acc, asset) => {
+        const key = asset.gym?.name || 'Admin Resources';
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(asset);
+        return acc;
+      }, {} as Record<string, CampaignAsset[]>);
+    }
+    
+    if (groupBy === 'type') {
+      return filteredAssets.reduce((acc, asset) => {
+        let key = 'Other';
+        const type = asset.file_type.toLowerCase();
+        if (type.startsWith('video/')) key = 'Videos';
+        else if (type.startsWith('image/')) key = 'Images';
+        else if (type.includes('pdf') || type.includes('document')) key = 'Documents';
+        
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(asset);
+        return acc;
+      }, {} as Record<string, CampaignAsset[]>);
+    }
+    
+    return { 'All Assets': filteredAssets };
+  }, [filteredAssets, groupBy]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-500/10 text-green-700 border-green-500/20';
+      case 'upcoming': return 'bg-blue-500/10 text-blue-700 border-blue-500/20';
+      case 'archived': return 'bg-gray-500/10 text-gray-700 border-gray-500/20';
+      default: return 'bg-gray-500/10 text-gray-700 border-gray-500/20';
+    }
+  };
+
+  const getFileTypeLabel = (mimeType: string): string => {
+    if (mimeType.startsWith('video/')) return 'VIDEO';
+    if (mimeType.startsWith('image/')) return 'IMAGE';
+    if (mimeType.includes('pdf')) return 'PDF';
+    if (mimeType.includes('document')) return 'DOC';
+    return 'FILE';
+  };
+
+  const formatFileSize = (bytes: number | null): string => {
+    if (!bytes) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -389,126 +509,6 @@ const CampaignDetail = () => {
     } finally {
       setDownloading(false);
     }
-  };
-
-  // Calculate asset counts
-  const assetCounts = useMemo(() => {
-    const all = campaignAssets?.length || 0;
-    const videos = campaignAssets?.filter(a => a.file_type.startsWith('video/')).length || 0;
-    const images = campaignAssets?.filter(a => a.file_type.startsWith('image/')).length || 0;
-    const documents = campaignAssets?.filter(a => a.file_type.includes('pdf') || a.file_type.includes('document')).length || 0;
-    const other = campaignAssets?.filter(a => {
-      const ft = a.file_type;
-      return !ft.startsWith('video/') && !ft.startsWith('image/') && !ft.includes('pdf') && !ft.includes('document');
-    }).length || 0;
-    
-    return { all, videos, images, documents, other };
-  }, [campaignAssets]);
-
-  // Calculate gym counts
-  const gymCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    campaignAssets?.forEach(asset => {
-      if (asset.gym_id) {
-        counts[asset.gym_id] = (counts[asset.gym_id] || 0) + 1;
-      }
-    });
-    return counts;
-  }, [campaignAssets]);
-
-  const adminCount = useMemo(() => {
-    return campaignAssets?.filter(a => !a.gym_id).length || 0;
-  }, [campaignAssets]);
-
-  // Filter assets
-  const filteredAssets = useMemo(() => {
-    let filtered = campaignAssets || [];
-    
-    // File type filter
-    if (fileTypeFilter !== 'all') {
-      filtered = filtered.filter(a => {
-        const type = a.file_type.toLowerCase();
-        switch (fileTypeFilter) {
-          case 'video': return type.startsWith('video/');
-          case 'image': return type.startsWith('image/');
-          case 'document': return type.includes('pdf') || type.includes('document');
-          case 'other': return !type.startsWith('video/') && !type.startsWith('image/') && !type.includes('pdf') && !type.includes('document');
-          default: return true;
-        }
-      });
-    }
-    
-    // Gym filter
-    if (gymFilter) {
-      if (gymFilter === 'admin') {
-        filtered = filtered.filter(a => !a.gym_id);
-      } else {
-        filtered = filtered.filter(a => a.gym_id === gymFilter);
-      }
-    }
-    
-    // Search
-    if (searchQuery) {
-      filtered = filtered.filter(a =>
-        a.filename.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    return filtered;
-  }, [campaignAssets, fileTypeFilter, gymFilter, searchQuery]);
-
-  // Group assets
-  const groupedAssets = useMemo(() => {
-    if (groupBy === 'none') return { 'All Assets': filteredAssets };
-    
-    if (groupBy === 'gym') {
-      return filteredAssets.reduce((acc, asset) => {
-        const key = asset.gym?.name || 'Admin Resources';
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(asset);
-        return acc;
-      }, {} as Record<string, CampaignAsset[]>);
-    }
-    
-    if (groupBy === 'type') {
-      return filteredAssets.reduce((acc, asset) => {
-        let key = 'Other';
-        const type = asset.file_type.toLowerCase();
-        if (type.startsWith('video/')) key = 'Videos';
-        else if (type.startsWith('image/')) key = 'Images';
-        else if (type.includes('pdf') || type.includes('document')) key = 'Documents';
-        
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(asset);
-        return acc;
-      }, {} as Record<string, CampaignAsset[]>);
-    }
-    
-    return { 'All Assets': filteredAssets };
-  }, [filteredAssets, groupBy]);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-500/10 text-green-700 border-green-500/20';
-      case 'upcoming': return 'bg-blue-500/10 text-blue-700 border-blue-500/20';
-      case 'archived': return 'bg-gray-500/10 text-gray-700 border-gray-500/20';
-      default: return 'bg-gray-500/10 text-gray-700 border-gray-500/20';
-    }
-  };
-
-  const getFileTypeLabel = (mimeType: string): string => {
-    if (mimeType.startsWith('video/')) return 'VIDEO';
-    if (mimeType.startsWith('image/')) return 'IMAGE';
-    if (mimeType.includes('pdf')) return 'PDF';
-    if (mimeType.includes('document')) return 'DOC';
-    return 'FILE';
-  };
-
-  const formatFileSize = (bytes: number | null): string => {
-    if (!bytes) return '0 B';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
