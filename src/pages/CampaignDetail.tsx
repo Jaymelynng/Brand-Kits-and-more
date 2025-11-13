@@ -12,9 +12,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share, Tag, Trash2, CheckSquare, Copy, ChevronDown, Code, FileText, Eye } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share, Tag, Trash2, CheckSquare, Copy, ChevronDown, Code, FileText, Eye, ChevronRight, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -602,146 +602,98 @@ const CampaignDetail = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-4">
               {Object.entries(groupedAssets).map(([groupName, groupAssets]) => (
-                <Card key={groupName}>
-                  <CardHeader>
-                    <CardTitle>{groupName}</CardTitle>
-                    <CardDescription>{groupAssets.length} asset{groupAssets.length !== 1 ? 's' : ''}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {groupAssets.map((asset) => (
-                        <Card 
-                          key={asset.id} 
-                          className={`group hover:shadow-lg transition-all relative cursor-pointer ${selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''}`}
-                          onClick={(e) => {
-                            // Don't open detail modal if clicking checkbox or action buttons
-                            if ((e.target as HTMLElement).closest('[data-no-detail]')) return;
-                            setDetailAsset(asset);
-                          }}
+                <div key={groupName}>
+                  <div className="flex items-center gap-2 pb-2 mb-3 border-b">
+                    <h3 className="text-sm font-semibold">{groupName}</h3>
+                    <Badge variant="secondary" className="text-xs h-5">
+                      {groupAssets.length}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+                    {groupAssets.map((asset) => (
+                      <Card 
+                        key={asset.id} 
+                        className={`group hover:shadow-md transition-all relative cursor-pointer ${
+                          selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''
+                        }`}
+                        onClick={(e) => {
+                          if ((e.target as HTMLElement).closest('[data-no-detail]')) return;
+                          setDetailAsset(asset);
+                        }}
+                      >
+                        <div className="absolute top-1 left-1 z-10" data-no-detail>
+                          <Checkbox
+                            checked={selectedAssets.has(asset.id)}
+                            onCheckedChange={() => toggleAssetSelection(asset.id)}
+                            className="h-3 w-3 bg-background"
+                          />
+                        </div>
+                        
+                        <Badge 
+                          variant={asset.file_type.startsWith('video/') ? 'destructive' : 'default'}
+                          className="absolute top-1 right-1 text-[10px] h-4 px-1"
                         >
-                          <div className="absolute top-2 left-2 z-10" data-no-detail>
-                            <Checkbox
-                              checked={selectedAssets.has(asset.id)}
-                              onCheckedChange={() => toggleAssetSelection(asset.id)}
-                              className="bg-background"
-                            />
-                          </div>
-                          <Badge 
-                            variant={asset.file_type.startsWith('video/') ? 'destructive' : asset.file_type.startsWith('image/') ? 'default' : 'secondary'}
-                            className="absolute top-2 right-2 text-xs"
-                          >
-                            {getFileTypeLabel(asset.file_type)}
+                          {getFileTypeLabel(asset.file_type).slice(0, 3)}
+                        </Badge>
+                        
+                        {asset.gym && (
+                          <Badge variant="outline" className="absolute top-6 right-1 text-[10px] h-4 px-1">
+                            {asset.gym.code}
                           </Badge>
-                          {asset.gym && (
-                            <Badge variant="outline" className="absolute top-10 right-2 text-xs">
-                              {asset.gym.code}
-                            </Badge>
-                          )}
-                          <CardContent className="p-4">
-                            <HoverCard openDelay={200}>
-                              <HoverCardTrigger asChild>
-                                <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                                  <AssetPreview asset={asset} />
-                                </div>
-                              </HoverCardTrigger>
-                              <HoverCardContent side="right" className="w-96 h-96 p-2">
-                                <AssetPreview asset={asset} className="w-full h-full" />
-                                <p className="text-xs text-center mt-2 truncate">{asset.filename}</p>
-                              </HoverCardContent>
-                            </HoverCard>
-                            <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
-                              <span>{formatFileSize(asset.file_size)}</span>
-                            </div>
-                            <p className="text-sm font-medium truncate mb-3">{asset.filename}</p>
-                            <div className="flex gap-1" data-no-detail>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setPreviewAsset(asset);
-                                    }}
-                                  >
-                                    <Eye className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Preview</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setEditingAsset(asset);
-                                    }}
-                                  >
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Edit</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      copyAssetUrl(asset.file_url);
-                                    }}
-                                  >
-                                    <Link2 className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Copy Link</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSharingAsset(asset);
-                                    }}
-                                  >
-                                    <Share className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Share</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    size="sm" 
-                                    className="flex-1"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      downloadAsset(asset.file_url, asset.filename);
-                                    }}
-                                  >
-                                    <Download className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Download</TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                        )}
+                        
+                        <CardContent className="p-1.5">
+                          <div className="aspect-video bg-muted rounded mb-1.5 flex items-center justify-center overflow-hidden">
+                            <AssetPreview asset={asset} />
+                          </div>
+                          
+                          <p className="text-[10px] font-medium truncate mb-1" title={asset.filename}>
+                            {asset.filename}
+                          </p>
+                          
+                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" data-no-detail>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewAsset(asset);
+                              }}
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                downloadAsset(asset.file_url, asset.filename);
+                              }}
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSharingAsset(asset);
+                              }}
+                            >
+                              <Share className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -827,204 +779,143 @@ const CampaignDetail = () => {
             </div>
           )}
 
-          {/* Keep old gym-based view for logos/elements */}
+          {/* Legacy Assets Section */}
           {Object.keys(taggedAssetsByGym).length > 0 && (
-            <div className="mt-12 space-y-8">
-              <h2 className="text-2xl font-bold">Legacy Assets (Logos & Elements)</h2>
+            <div className="mt-8 space-y-3">
+              <h2 className="text-lg font-bold">Legacy Assets (Logos & Elements)</h2>
+              
               {Object.entries(taggedAssetsByGym).map(([gymCode, gymAssets]) => (
-              <Card key={gymCode}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>{gymAssets.gym_name} ({gymCode})</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => navigate(`/gym/${gymCode}`)}
-                    >
-                      View Gym
-                    </Button>
-                  </CardTitle>
-                  <CardDescription>
-                    {gymAssets.logos.length} logo{gymAssets.logos.length !== 1 ? 's' : ''}, {' '}
-                    {gymAssets.elements.length} element{gymAssets.elements.length !== 1 ? 's' : ''}, {' '}
-                    {gymAssets.campaignAssets.length} campaign asset{gymAssets.campaignAssets.length !== 1 ? 's' : ''}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="campaign-assets">
-                    <TabsList>
-                      <TabsTrigger value="campaign-assets">
-                        <Video className="h-4 w-4 mr-2" />
-                        Campaign Assets ({gymAssets.campaignAssets.length})
-                      </TabsTrigger>
-                      <TabsTrigger value="logos">
-                        <FileImage className="h-4 w-4 mr-2" />
-                        Logos ({gymAssets.logos.length})
-                      </TabsTrigger>
-                      <TabsTrigger value="elements">
-                        <Shapes className="h-4 w-4 mr-2" />
-                        Elements ({gymAssets.elements.length})
-                      </TabsTrigger>
-                    </TabsList>
+                <Collapsible key={gymCode} defaultOpen>
+                  <Card>
+                    <CollapsibleTrigger asChild>
+                      <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50">
+                        <div className="flex items-center gap-2">
+                          <ChevronRight className="h-4 w-4 transition-transform" />
+                          <h3 className="text-sm font-semibold">{gymAssets.gym_name}</h3>
+                          <Badge variant="outline" className="text-xs h-5">{gymCode}</Badge>
+                          <Badge variant="secondary" className="text-xs h-5">
+                            {gymAssets.campaignAssets.length + gymAssets.logos.length + gymAssets.elements.length}
+                          </Badge>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-7"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/gym/${gymCode}`);
+                          }}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent>
+                      <CardContent className="p-3 pt-0">
+                        <Tabs defaultValue="campaign-assets">
+                          <TabsList className="h-8">
+                            <TabsTrigger value="campaign-assets" className="text-xs py-1">
+                              Assets ({gymAssets.campaignAssets.length})
+                            </TabsTrigger>
+                            <TabsTrigger value="logos" className="text-xs py-1">
+                              Logos ({gymAssets.logos.length})
+                            </TabsTrigger>
+                            <TabsTrigger value="elements" className="text-xs py-1">
+                              Elements ({gymAssets.elements.length})
+                            </TabsTrigger>
+                          </TabsList>
 
-                    <TabsContent value="campaign-assets" className="mt-4">
-                      {gymAssets.campaignAssets.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">No campaign assets</p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                          {gymAssets.campaignAssets.map((asset: any) => (
-                            <Card key={asset.id} className={`group hover:shadow-lg transition-all relative ${selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''}`}>
-                              <div className="absolute top-2 left-2 z-10">
-                                <Checkbox
-                                  checked={selectedAssets.has(asset.id)}
-                                  onCheckedChange={() => toggleAssetSelection(asset.id)}
-                                  className="bg-background"
-                                />
+                          <TabsContent value="campaign-assets" className="mt-2">
+                            {gymAssets.campaignAssets.length === 0 ? (
+                              <p className="text-xs text-muted-foreground text-center py-4">No assets</p>
+                            ) : (
+                              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                {gymAssets.campaignAssets.map((asset: any) => (
+                                  <Card 
+                                    key={asset.id} 
+                                    className={`group hover:shadow-md transition-all relative cursor-pointer ${
+                                      selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''
+                                    }`}
+                                    onClick={() => setDetailAsset(asset)}
+                                  >
+                                    <div className="absolute top-1 left-1 z-10" onClick={(e) => e.stopPropagation()}>
+                                      <Checkbox
+                                        checked={selectedAssets.has(asset.id)}
+                                        onCheckedChange={() => toggleAssetSelection(asset.id)}
+                                        className="h-3 w-3 bg-background"
+                                      />
+                                    </div>
+                                    
+                                    <CardContent className="p-1.5">
+                                      <div className="aspect-video bg-muted rounded mb-1 flex items-center justify-center overflow-hidden">
+                                        <AssetPreview asset={asset} />
+                                      </div>
+                                      <p className="text-[10px] truncate" title={asset.filename}>
+                                        {asset.filename}
+                                      </p>
+                                    </CardContent>
+                                  </Card>
+                                ))}
                               </div>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge variant="default" className="absolute top-2 right-2">
-                                    {gymAssets.gym_code}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>{gymAssets.gym_name}</TooltipContent>
-                              </Tooltip>
-                              <CardContent className="p-4">
-                                <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                                  <AssetPreview asset={asset} />
-                                </div>
-                                <p className="text-sm font-medium truncate mb-2">{asset.filename}</p>
-                                <div className="flex gap-1">
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button 
-                                        size="sm" 
-                                        variant="outline"
-                                        className="flex-1"
-                                        onClick={() => setEditingAsset(asset)}
-                                      >
-                                        <Edit className="h-3 w-3" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Edit</TooltipContent>
-                                  </Tooltip>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button 
-                                        size="sm" 
-                                        variant="outline"
-                                        className="flex-1"
-                                        onClick={() => copyAssetUrl(asset.file_url)}
-                                      >
-                                        <Link2 className="h-3 w-3" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Copy Link</TooltipContent>
-                                  </Tooltip>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button 
-                                        size="sm" 
-                                        variant="outline"
-                                        className="flex-1"
-                                        onClick={() => setSharingAsset(asset)}
-                                      >
-                                        <Share className="h-3 w-3" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Share</TooltipContent>
-                                  </Tooltip>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button 
-                                        size="sm" 
-                                        className="flex-1"
-                                        onClick={() => downloadAsset(asset.file_url, asset.filename)}
-                                      >
-                                        <Download className="h-3 w-3" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Download</TooltipContent>
-                                  </Tooltip>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      )}
-                    </TabsContent>
+                            )}
+                          </TabsContent>
 
-                    <TabsContent value="logos" className="mt-4">
-                      {gymAssets.logos.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">No logos</p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                          {gymAssets.logos.map((logo: any) => (
-                            <Card key={logo.id} className="group hover:shadow-lg transition-all">
-                              <CardContent className="p-4">
-                                <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                                  <img 
-                                    src={logo.file_url} 
-                                    alt={logo.filename}
-                                    className="max-w-full max-h-full object-contain"
-                                  />
-                                </div>
-                                <p className="text-sm font-medium truncate mb-2">{logo.filename}</p>
-                                <Button 
-                                  size="sm" 
-                                  className="w-full"
-                                  onClick={() => downloadAsset(logo.file_url, logo.filename)}
-                                >
-                                  <Download className="h-3 w-3 mr-2" />
-                                  Download
-                                </Button>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      )}
-                    </TabsContent>
+                          <TabsContent value="logos" className="mt-2">
+                            {gymAssets.logos.length === 0 ? (
+                              <p className="text-xs text-muted-foreground text-center py-4">No logos</p>
+                            ) : (
+                              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                {gymAssets.logos.map((logo: any) => (
+                                  <Card key={logo.id} className="group hover:shadow-md transition-all cursor-pointer">
+                                    <CardContent className="p-1.5">
+                                      <div className="aspect-square bg-muted rounded mb-1 flex items-center justify-center overflow-hidden">
+                                        <img 
+                                          src={logo.file_url} 
+                                          alt={logo.filename}
+                                          className="max-w-full max-h-full object-contain"
+                                        />
+                                      </div>
+                                      <p className="text-[10px] truncate" title={logo.filename}>
+                                        {logo.filename}
+                                      </p>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            )}
+                          </TabsContent>
 
-                    <TabsContent value="elements" className="mt-4">
-                      {gymAssets.elements.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">No elements</p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                          {gymAssets.elements.map((element: any) => (
-                            <Card key={element.id} className="group hover:shadow-lg transition-all">
-                              <CardContent className="p-4">
-                                <div 
-                                  className="aspect-square rounded-lg mb-3 flex items-center justify-center"
-                                  style={{ backgroundColor: element.element_color }}
-                                  dangerouslySetInnerHTML={{ __html: element.svg_data }}
-                                />
-                                <p className="text-sm font-medium mb-2">
-                                  {element.element_type}
-                                </p>
-                                <Button 
-                                  size="sm" 
-                                  className="w-full"
-                                  onClick={() => {
-                                    const blob = new Blob([element.svg_data], { type: 'image/svg+xml' });
-                                    const url = window.URL.createObjectURL(blob);
-                                    downloadAsset(url, `${element.element_type}_${element.id.slice(0, 8)}.svg`);
-                                  }}
-                                >
-                                  <Download className="h-3 w-3 mr-2" />
-                                  Download SVG
-                                </Button>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                          <TabsContent value="elements" className="mt-2">
+                            {gymAssets.elements.length === 0 ? (
+                              <p className="text-xs text-muted-foreground text-center py-4">No elements</p>
+                            ) : (
+                              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                {gymAssets.elements.map((element: any) => (
+                                  <Card key={element.id} className="group hover:shadow-md transition-all cursor-pointer">
+                                    <CardContent className="p-1.5">
+                                      <div 
+                                        className="aspect-square rounded mb-1 flex items-center justify-center"
+                                        style={{ backgroundColor: element.element_color }}
+                                        dangerouslySetInnerHTML={{ __html: element.svg_data }}
+                                      />
+                                      <p className="text-[10px] truncate" title={element.element_type}>
+                                        {element.element_type}
+                                      </p>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            )}
+                          </TabsContent>
+                        </Tabs>
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
+              ))}
+            </div>
+          )}
 
 
           {/* Modals */}

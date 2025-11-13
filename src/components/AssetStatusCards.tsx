@@ -17,71 +17,63 @@ export function AssetStatusCards({
   onFilterClick,
 }: AssetStatusCardsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="flex gap-2 mb-3 flex-wrap">
       <Card 
-        className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary"
+        className="cursor-pointer hover:shadow-md transition-all flex-1 min-w-[120px]"
         onClick={() => onFilterClick('all')}
       >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground font-medium">Total Assets</p>
-              <p className="text-3xl font-bold mt-2">{total}</p>
-            </div>
-            <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <File className="h-6 w-6 text-primary" />
-            </div>
+        <CardContent className="p-2 flex items-center gap-2">
+          <div className="h-6 w-6 bg-primary/10 rounded flex items-center justify-center flex-shrink-0">
+            <File className="h-3 w-3 text-primary" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase">Total</p>
+            <p className="text-lg font-bold">{total}</p>
           </div>
         </CardContent>
       </Card>
 
       <Card 
-        className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-destructive"
+        className="cursor-pointer hover:shadow-md transition-all flex-1 min-w-[120px]"
         onClick={() => onFilterClick('video')}
       >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground font-medium">Videos</p>
-              <p className="text-3xl font-bold mt-2">{videos}</p>
-            </div>
-            <div className="h-12 w-12 bg-destructive/10 rounded-lg flex items-center justify-center">
-              <Video className="h-6 w-6 text-destructive" />
-            </div>
+        <CardContent className="p-2 flex items-center gap-2">
+          <div className="h-6 w-6 bg-destructive/10 rounded flex items-center justify-center flex-shrink-0">
+            <Video className="h-3 w-3 text-destructive" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase">Videos</p>
+            <p className="text-lg font-bold">{videos}</p>
           </div>
         </CardContent>
       </Card>
 
       <Card 
-        className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-blue-500"
+        className="cursor-pointer hover:shadow-md transition-all flex-1 min-w-[120px]"
         onClick={() => onFilterClick('image')}
       >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground font-medium">Images</p>
-              <p className="text-3xl font-bold mt-2">{images}</p>
-            </div>
-            <div className="h-12 w-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
-              <FileImage className="h-6 w-6 text-blue-500" />
-            </div>
+        <CardContent className="p-2 flex items-center gap-2">
+          <div className="h-6 w-6 bg-blue-500/10 rounded flex items-center justify-center flex-shrink-0">
+            <FileImage className="h-3 w-3 text-blue-500" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase">Images</p>
+            <p className="text-lg font-bold">{images}</p>
           </div>
         </CardContent>
       </Card>
 
       <Card 
-        className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-green-500"
+        className="cursor-pointer hover:shadow-md transition-all flex-1 min-w-[120px]"
         onClick={() => onFilterClick('document')}
       >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground font-medium">Documents</p>
-              <p className="text-3xl font-bold mt-2">{documents}</p>
-            </div>
-            <div className="h-12 w-12 bg-green-500/10 rounded-lg flex items-center justify-center">
-              <FileText className="h-6 w-6 text-green-500" />
-            </div>
+        <CardContent className="p-2 flex items-center gap-2">
+          <div className="h-6 w-6 bg-green-500/10 rounded flex items-center justify-center flex-shrink-0">
+            <FileText className="h-3 w-3 text-green-500" />
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase">Documents</p>
+            <p className="text-lg font-bold">{documents}</p>
           </div>
         </CardContent>
       </Card>
