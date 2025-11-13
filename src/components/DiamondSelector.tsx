@@ -21,7 +21,7 @@ export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = 
         style={{
           backgroundColor: primaryColor,
           boxShadow: isSelected 
-            ? `0 0 20px ${primaryColor}60, 0 0 40px ${primaryColor}30, inset 0 0 20px rgba(255,255,255,0.3)` 
+            ? `0 0 15px ${primaryColor}60, 0 0 25px ${primaryColor}30, inset 0 0 15px rgba(255,255,255,0.3)` 
             : `0 4px 12px ${primaryColor}30, inset 0 0 10px rgba(255,255,255,0.2)`,
         }}
         onClick={onToggle}
