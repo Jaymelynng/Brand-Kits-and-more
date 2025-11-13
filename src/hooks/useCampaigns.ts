@@ -7,6 +7,7 @@ export interface Campaign {
   name: string;
   description: string | null;
   status: 'active' | 'upcoming' | 'archived';
+  thumbnail_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -137,7 +138,7 @@ export const useAddCampaign = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (campaign: { name: string; description?: string; status?: 'active' | 'upcoming' | 'archived' }) => {
+    mutationFn: async (campaign: { name: string; description?: string; status?: 'active' | 'upcoming' | 'archived'; thumbnail_url?: string }) => {
       const { data, error } = await supabase
         .from("campaigns")
         .insert([campaign])

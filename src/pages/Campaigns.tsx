@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCampaigns, useAddCampaign, useDeleteCampaign, useUpdateCampaign } from "@/hooks/useCampaigns";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,8 @@ const Campaigns = () => {
   const [newCampaignName, setNewCampaignName] = useState("");
   const [newCampaignDescription, setNewCampaignDescription] = useState("");
   const [newCampaignStatus, setNewCampaignStatus] = useState<'active' | 'upcoming' | 'archived'>('active');
+  const [newCampaignThumbnail, setNewCampaignThumbnail] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   // Filter campaigns
   const filteredCampaigns = campaigns?.filter(campaign => {
@@ -43,16 +46,42 @@ const Campaigns = () => {
       return;
     }
 
+    let thumbnailUrl: string | undefined;
+
+    // Upload thumbnail if provided
+    if (newCampaignThumbnail) {
+      const fileExt = newCampaignThumbnail.name.split('.').pop();
+      const fileName = `${Date.now()}-${newCampaignName.replace(/\s+/g, '-')}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('campaign-assets')
+        .upload(fileName, newCampaignThumbnail);
+      
+      if (uploadError) {
+        toast.error("Failed to upload thumbnail");
+        return;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('campaign-assets')
+        .getPublicUrl(fileName);
+      
+      thumbnailUrl = publicUrl;
+    }
+
     await addCampaign.mutateAsync({
       name: newCampaignName,
       description: newCampaignDescription || undefined,
       status: newCampaignStatus,
+      thumbnail_url: thumbnailUrl,
     });
 
     setIsCreateDialogOpen(false);
     setNewCampaignName("");
     setNewCampaignDescription("");
     setNewCampaignStatus('active');
+    setNewCampaignThumbnail(null);
+    setThumbnailPreview(null);
   };
 
   const handleDeleteCampaign = async (id: string, name: string) => {
@@ -163,6 +192,32 @@ const Campaigns = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div>
+                      <Label htmlFor="thumbnail">Campaign Thumbnail (optional)</Label>
+                      <div className="space-y-2">
+                        <Input
+                          id="thumbnail"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setNewCampaignThumbnail(file);
+                              setThumbnailPreview(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                        {thumbnailPreview && (
+                          <div className="relative w-full h-32 rounded-md overflow-hidden border">
+                            <img 
+                              src={thumbnailPreview} 
+                              alt="Preview" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
@@ -198,20 +253,22 @@ const Campaigns = () => {
             {filteredCampaigns.map((campaign) => (
               <Card
                 key={campaign.id}
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 group"
+                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 group overflow-hidden"
                 onClick={() => navigate(`/campaigns/${encodeURIComponent(campaign.name)}`)}
               >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
-                        {getStatusIcon(campaign.status)}
-                        {campaign.name}
-                      </CardTitle>
-                      <CardDescription className="mt-2">
-                        {campaign.description || "No description"}
-                      </CardDescription>
-                    </div>
+                {campaign.thumbnail_url ? (
+                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20">
+                    <img 
+                      src={campaign.thumbnail_url} 
+                      alt={campaign.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    
+                    <Badge className={`absolute top-3 right-3 ${getStatusColor(campaign.status)}`}>
+                      {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                    </Badge>
+                    
                     {isAdmin && (
                       <Button
                         variant="ghost"
@@ -220,18 +277,42 @@ const Campaigns = () => {
                           e.stopPropagation();
                           handleDeleteCampaign(campaign.id, campaign.name);
                         }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 text-white" />
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="relative h-48 bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5 flex items-center justify-center">
+                    <Folder className="h-24 w-24 text-muted-foreground/20" />
+                    <Badge className={`absolute top-3 right-3 ${getStatusColor(campaign.status)}`}>
+                      {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                    </Badge>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCampaign(campaign.id, campaign.name);
+                        }}
+                        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     )}
                   </div>
+                )}
+                
+                <CardHeader className="pb-3">
+                  <CardTitle className="group-hover:text-primary transition-colors text-xl">
+                    {campaign.name}
+                  </CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    {campaign.description || "No description"}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Badge className={getStatusColor(campaign.status)}>
-                    {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-                  </Badge>
-                </CardContent>
               </Card>
             ))}
           </div>
