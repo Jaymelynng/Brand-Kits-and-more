@@ -35,7 +35,7 @@ export const BrandCardHeader = ({ children, className }: { children: ReactNode; 
 );
 
 export const BrandCardContent = ({ children, className }: { children: ReactNode; className?: string }) => (
-  <div className={cn("px-6 pb-6", className)}>
+  <div className={cn("px-5 pb-5", className)}>
     {children}
   </div>
 );
