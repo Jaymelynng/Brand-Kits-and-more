@@ -147,7 +147,7 @@ export const GymNavigation = ({
         </div>
 
         {/* Gym Navigation Grid */}
-        <div className="flex flex-nowrap gap-3 px-4 pb-3 justify-center overflow-x-auto">
+        <div className="flex flex-nowrap gap-3 px-4 pb-7 justify-center overflow-x-auto">
           {gyms.map((gym) => {
             const isSelected = selectedGyms.has(gym.code);
             const primaryColor = gym.colors[0]?.color_hex || '#667eea';
@@ -170,7 +170,7 @@ export const GymNavigation = ({
                   {gym.code}
                 </span>
 
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2">
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2">
                   <DiamondSelector
                     gymCode={gym.code}
                     isSelected={isSelected}
