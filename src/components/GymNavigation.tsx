@@ -47,7 +47,7 @@ export const GymNavigation = ({
         <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
           🏆 Gym Brand Kit Database
         </h1>
-        <p className="text-xs mt-1" style={{ color: 'hsl(var(--brand-text-primary) / 0.7)' }}>
+        <p className="text-xs" style={{ color: 'hsl(var(--brand-text-primary) / 0.7)' }}>
           Select gyms to copy their info or view campaigns
         </p>
       </div>
@@ -117,7 +117,7 @@ export const GymNavigation = ({
           </Button>
 
           {/* Separator */}
-          <div className="h-8 w-px bg-border mx-1" />
+          <div className="h-6 w-px bg-border mx-1" />
 
           {/* Navigation Actions */}
           <Button
@@ -147,7 +147,7 @@ export const GymNavigation = ({
         </div>
 
         {/* Gym Navigation Grid */}
-        <div className="flex flex-nowrap gap-3 px-4 pb-4 justify-center overflow-x-auto">
+        <div className="flex flex-nowrap gap-3 px-4 pb-3 justify-center overflow-x-auto">
           {gyms.map((gym) => {
             const isSelected = selectedGyms.has(gym.code);
             const primaryColor = gym.colors[0]?.color_hex || '#667eea';
@@ -157,7 +157,7 @@ export const GymNavigation = ({
                 key={gym.id}
                 onClick={() => navigate(`/gym/${gym.id}`)}
                 className={cn(
-                  "relative flex flex-col items-center gap-2 px-3 py-1.5",
+                  "relative flex flex-col items-center gap-1 px-3 py-1",
                   "rounded-lg border transition-all duration-300",
                   "hover:scale-105 hover:shadow-lg group"
                 )}
@@ -170,7 +170,7 @@ export const GymNavigation = ({
                   {gym.code}
                 </span>
 
-                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
                   <DiamondSelector
                     gymCode={gym.code}
                     isSelected={isSelected}

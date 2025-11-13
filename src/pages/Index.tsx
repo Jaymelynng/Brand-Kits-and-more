@@ -193,7 +193,7 @@ const Index = () => {
       <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d6c5bf 100%)' }}>
 
         {/* Main Content */}
-        <div className="pt-8 pb-16">
+        <div className="pt-2 pb-16">
           <div className="max-w-7xl mx-auto px-6">
             {/* Gym Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
