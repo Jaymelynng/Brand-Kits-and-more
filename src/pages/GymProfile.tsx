@@ -16,6 +16,7 @@ import { BrandCard, BrandCardHeader, BrandCardContent, BrandCardTitle } from "@/
 import { ColorSwatch } from "@/components/shared/ColorSwatch";
 import { AssetRenamer } from "@/components/AssetRenamer";
 import { Checkbox } from "@/components/ui/checkbox";
+import { HeroVideoBackground } from "@/components/HeroVideoBackground";
 
 const GymProfile = () => {
   const { gymCode } = useParams<{ gymCode: string }>();
@@ -604,29 +605,6 @@ const GymProfile = () => {
       >
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        {/* Interactive Sparkles */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[...Array(12)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`
-              }}
-            >
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{
-                  background: `radial-gradient(circle, ${i % 2 === 0 ? primaryColor : secondaryColor}80, transparent)`,
-                  boxShadow: `0 0 6px ${i % 2 === 0 ? primaryColor : secondaryColor}60`
-                }}
-              />
-            </div>
-          ))}
-        </div>
         <div className="relative container mx-auto px-6 py-8">
           {/* Navigation */}
           <div className="flex items-center gap-4 mb-8">
@@ -642,25 +620,69 @@ const GymProfile = () => {
             </Link>
           </div>
 
-          {/* Compact Hero Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-3 mb-4">
-              <span 
-                className="px-4 py-2 rounded-full text-white font-bold text-lg tracking-wider"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {gym.code}
-              </span>
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-              {gym.name}
-            </h1>
-            
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Official brand hub with complete asset library, color palette, and logo collection
-            </p>
-          </div>
+          {/* Hero Video or Compact Hero Header */}
+          {gym.hero_video_url ? (
+            <HeroVideoBackground videoUrl={gym.hero_video_url} overlayOpacity={0.5}>
+              <div className="inline-flex items-center gap-3 mb-4">
+                <span 
+                  className="px-4 py-2 rounded-full text-white font-bold text-lg tracking-wider"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {gym.code}
+                </span>
+              </div>
+              <h1 className="text-5xl md:text-6xl font-bold mb-4 text-white">
+                {gym.name}
+              </h1>
+              <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+                Official brand hub with complete asset library, color palette, and logo collection
+              </p>
+            </HeroVideoBackground>
+          ) : (
+            <>
+              {/* Interactive Sparkles */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {[...Array(12)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute animate-pulse"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                      animationDelay: `${Math.random() * 3}s`,
+                      animationDuration: `${2 + Math.random() * 2}s`
+                    }}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        background: `radial-gradient(circle, ${i % 2 === 0 ? primaryColor : secondaryColor}80, transparent)`,
+                        boxShadow: `0 0 6px ${i % 2 === 0 ? primaryColor : secondaryColor}60`
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-3 mb-4">
+                  <span 
+                    className="px-4 py-2 rounded-full text-white font-bold text-lg tracking-wider"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {gym.code}
+                  </span>
+                </div>
+                
+                <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                  {gym.name}
+                </h1>
+                
+                <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+                  Official brand hub with complete asset library, color palette, and logo collection
+                </p>
+              </div>
+            </>
+          )}
 
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">

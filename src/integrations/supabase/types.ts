@@ -340,6 +340,7 @@ export type Database = {
           code: string
           created_at: string | null
           email: string | null
+          hero_video_url: string | null
           id: string
           name: string
           phone: string | null
@@ -351,6 +352,7 @@ export type Database = {
           code: string
           created_at?: string | null
           email?: string | null
+          hero_video_url?: string | null
           id?: string
           name: string
           phone?: string | null
@@ -362,6 +364,7 @@ export type Database = {
           code?: string
           created_at?: string | null
           email?: string | null
+          hero_video_url?: string | null
           id?: string
           name?: string
           phone?: string | null
