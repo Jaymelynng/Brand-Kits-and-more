@@ -46,7 +46,7 @@ const CampaignDetail = () => {
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [fileTypeFilter, setFileTypeFilter] = useState<'all' | 'video' | 'image' | 'document' | 'other'>('all');
   const [gymFilter, setGymFilter] = useState<string | null>(null);
-  const [groupBy, setGroupBy] = useState<'gym' | 'type' | 'none'>('gym');
+  const [groupBy, setGroupBy] = useState<'gym' | 'type' | 'none'>('none');
   const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
 
@@ -601,6 +601,88 @@ const CampaignDetail = () => {
                 <p className="text-muted-foreground">Try adjusting your filters or upload new assets</p>
               </CardContent>
             </Card>
+          ) : groupBy === 'none' ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3">
+              {filteredAssets.map((asset) => (
+                      <Card 
+                        key={asset.id} 
+                        className={`group hover:shadow-md transition-all relative cursor-pointer ${
+                          selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''
+                        }`}
+                        onClick={(e) => {
+                          if ((e.target as HTMLElement).closest('[data-no-detail]')) return;
+                          setDetailAsset(asset);
+                        }}
+                      >
+                        <div className="absolute top-1 left-1 z-10" data-no-detail>
+                          <Checkbox
+                            checked={selectedAssets.has(asset.id)}
+                            onCheckedChange={() => toggleAssetSelection(asset.id)}
+                            className="h-3 w-3 bg-background"
+                          />
+                        </div>
+                        
+              <Badge 
+                variant={asset.file_type.startsWith('video/') ? 'destructive' : 'default'}
+                className="absolute top-1 right-1 text-xs h-5 px-1"
+              >
+                          {getFileTypeLabel(asset.file_type).slice(0, 3)}
+                        </Badge>
+                        
+                        {asset.gym && (
+                          <Badge variant="outline" className="absolute top-6 right-1 text-[10px] h-4 px-1">
+                            {asset.gym.code}
+                          </Badge>
+                        )}
+                        
+              <CardContent className="p-3">
+                          <div className="aspect-video bg-muted rounded mb-1.5 flex items-center justify-center overflow-hidden">
+                            <AssetPreview asset={asset} />
+                          </div>
+                          
+                          <p className="text-[10px] font-medium truncate mb-1" title={asset.filename}>
+                            {asset.filename}
+                          </p>
+                          
+                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" data-no-detail>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewAsset(asset);
+                  }}
+                >
+                  <Eye className="h-3 w-3" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    downloadAsset(asset.file_url, asset.filename);
+                  }}
+                >
+                  <Download className="h-3 w-3" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSharingAsset(asset);
+                  }}
+                >
+                  <Share className="h-3 w-3" />
+                </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+              ))}
+            </div>
           ) : (
       <div className="space-y-3">
         {Object.entries(groupedAssets).map(([groupName, groupAssets]) => (
@@ -612,7 +694,7 @@ const CampaignDetail = () => {
               </Badge>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                     {groupAssets.map((asset) => (
                       <Card 
                         key={asset.id} 
@@ -692,10 +774,10 @@ const CampaignDetail = () => {
                         </CardContent>
                       </Card>
                     ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                   </div>
+                 </div>
+               ))}
+             </div>
           )}
 
           {/* Bulk Actions Toolbar */}
