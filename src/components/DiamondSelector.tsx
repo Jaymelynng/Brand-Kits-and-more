@@ -12,7 +12,7 @@ export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = 
     <div className="relative group">
       <div
         className={cn(
-          "w-8 h-8 transform rotate-45 cursor-pointer transition-all duration-300",
+          "w-6 h-6 transform rotate-45 cursor-pointer transition-all duration-300",
           "relative overflow-hidden",
           "hover:scale-110 hover:-rotate-12",
           "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/30 before:via-transparent before:to-transparent",
@@ -21,8 +21,8 @@ export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = 
         style={{
           backgroundColor: primaryColor,
           boxShadow: isSelected 
-            ? `0 0 15px ${primaryColor}60, 0 0 25px ${primaryColor}30, inset 0 0 15px rgba(255,255,255,0.3)` 
-            : `0 4px 12px ${primaryColor}30, inset 0 0 10px rgba(255,255,255,0.2)`,
+            ? `0 0 10px ${primaryColor}60, 0 0 20px ${primaryColor}30, inset 0 0 10px rgba(255,255,255,0.3)` 
+            : `0 4px 8px ${primaryColor}30, inset 0 0 8px rgba(255,255,255,0.2)`,
         }}
         onClick={onToggle}
         data-gym={gymCode}
