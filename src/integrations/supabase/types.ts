@@ -41,6 +41,73 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_assets: {
+        Row: {
+          asset_category: string
+          campaign_id: string
+          created_at: string | null
+          file_size: number | null
+          file_type: string
+          file_url: string
+          filename: string
+          gym_id: string | null
+          id: string
+          metadata: Json | null
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          asset_category?: string
+          campaign_id: string
+          created_at?: string | null
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          filename: string
+          gym_id?: string | null
+          id?: string
+          metadata?: Json | null
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          asset_category?: string
+          campaign_id?: string
+          created_at?: string | null
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          filename?: string
+          gym_id?: string | null
+          id?: string
+          metadata?: Json | null
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_assets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_assets_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "campaign_assets_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_tags: {
         Row: {
           asset_id: string
@@ -80,6 +147,7 @@ export type Database = {
           id: string
           name: string
           status: string
+          thumbnail_url: string | null
           updated_at: string | null
         }
         Insert: {
@@ -88,6 +156,7 @@ export type Database = {
           id?: string
           name: string
           status?: string
+          thumbnail_url?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -96,9 +165,48 @@ export type Database = {
           id?: string
           name?: string
           status?: string
+          thumbnail_url?: string | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      flyer_templates: {
+        Row: {
+          campaign_id: string | null
+          created_at: string | null
+          id: string
+          name: string
+          template_url: string
+          template_zones: Json
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          template_url: string
+          template_zones?: Json
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          template_url?: string
+          template_zones?: Json
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flyer_templates_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gym_colors: {
         Row: {
@@ -228,25 +336,37 @@ export type Database = {
       }
       gyms: {
         Row: {
+          address: string | null
           code: string
           created_at: string | null
+          email: string | null
           id: string
           name: string
+          phone: string | null
           updated_at: string | null
+          website: string | null
         }
         Insert: {
+          address?: string | null
           code: string
           created_at?: string | null
+          email?: string | null
           id?: string
           name: string
+          phone?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Update: {
+          address?: string | null
           code?: string
           created_at?: string | null
+          email?: string | null
           id?: string
           name?: string
+          phone?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }

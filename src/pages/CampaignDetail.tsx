@@ -2,20 +2,24 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCampaign } from "@/hooks/useCampaigns";
 import { useGyms } from "@/hooks/useGyms";
+import { useCampaignAssets } from "@/hooks/useCampaignAssets";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Download, FileImage, Shapes } from "lucide-react";
+import { ArrowLeft, Download, FileImage, Shapes, Video } from "lucide-react";
 import { toast } from "sonner";
 import JSZip from "jszip";
+import { CampaignAssetUpload } from "@/components/CampaignAssetUpload";
+import { AssetPreview } from "@/components/AssetPreview";
 
 const CampaignDetail = () => {
   const { campaignName } = useParams<{ campaignName: string }>();
   const navigate = useNavigate();
   const { data, isLoading } = useCampaign(campaignName || "");
   const { data: gyms } = useGyms();
+  const { data: campaignAssets, refetch: refetchAssets } = useCampaignAssets(data?.campaign.id || "");
   const [downloading, setDownloading] = useState(false);
 
   if (isLoading) {
@@ -55,8 +59,8 @@ const CampaignDetail = () => {
 
   const { campaign, assets } = data;
 
-  // Group assets by gym
-  const assetsByGym = assets.reduce((acc, asset) => {
+  // Group tagged assets by gym (logos/elements)
+  const taggedAssetsByGym = assets.reduce((acc, asset) => {
     if (!acc[asset.gym_code]) {
       acc[asset.gym_code] = {
         gym_id: asset.gym_id,
@@ -64,6 +68,7 @@ const CampaignDetail = () => {
         gym_code: asset.gym_code,
         logos: [],
         elements: [],
+        campaignAssets: [],
       };
     }
     if (asset.asset_type === 'logo') {
@@ -73,6 +78,27 @@ const CampaignDetail = () => {
     }
     return acc;
   }, {} as Record<string, any>);
+
+  // Group campaign assets
+  const adminAssets = campaignAssets?.filter(a => !a.gym_id) || [];
+  
+  // Add campaign assets to gym groups
+  campaignAssets?.forEach(asset => {
+    if (asset.gym_id && asset.gym) {
+      const gymCode = asset.gym.code;
+      if (!taggedAssetsByGym[gymCode]) {
+        taggedAssetsByGym[gymCode] = {
+          gym_id: asset.gym.id,
+          gym_name: asset.gym.name,
+          gym_code: gymCode,
+          logos: [],
+          elements: [],
+          campaignAssets: [],
+        };
+      }
+      taggedAssetsByGym[gymCode].campaignAssets.push(asset);
+    }
+  });
 
   const downloadAsset = async (url: string, filename: string) => {
     try {
@@ -98,7 +124,18 @@ const CampaignDetail = () => {
     try {
       const zip = new JSZip();
       
-      for (const [gymCode, gymAssets] of Object.entries(assetsByGym)) {
+      // Add admin resources
+      if (adminAssets.length > 0) {
+        const adminFolder = zip.folder('Admin_Resources');
+        for (const asset of adminAssets) {
+          const response = await fetch(asset.file_url);
+          const blob = await response.blob();
+          adminFolder?.file(asset.filename, blob);
+        }
+      }
+      
+      // Add per-gym folders
+      for (const [gymCode, gymAssets] of Object.entries(taggedAssetsByGym)) {
         const gymFolder = zip.folder(gymCode);
         
         // Download logos
@@ -116,6 +153,13 @@ const CampaignDetail = () => {
             const filename = `${element.element_type}_${element.id.slice(0, 8)}.svg`;
             gymFolder?.file(filename, element.svg_data);
           }
+        }
+        
+        // Download campaign assets
+        for (const asset of gymAssets.campaignAssets) {
+          const response = await fetch(asset.file_url);
+          const blob = await response.blob();
+          gymFolder?.file(asset.filename, blob);
         }
       }
 
@@ -171,15 +215,57 @@ const CampaignDetail = () => {
                 {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
               </Badge>
             </div>
-            <Button onClick={downloadAllAssets} disabled={downloading || assets.length === 0}>
-              <Download className="h-4 w-4 mr-2" />
-              {downloading ? "Downloading..." : "Download All"}
-            </Button>
+            <div className="flex gap-2">
+              <CampaignAssetUpload
+                campaignId={campaign.id}
+                campaignName={campaign.name}
+                gyms={gyms || []}
+                onSuccess={refetchAssets}
+              />
+              <Button onClick={downloadAllAssets} disabled={downloading || (assets.length === 0 && !campaignAssets?.length)}>
+                <Download className="h-4 w-4 mr-2" />
+                {downloading ? "Downloading..." : "Download All"}
+              </Button>
+            </div>
           </div>
         </div>
 
+        {/* Admin Resources */}
+        {adminAssets.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Admin Resources</CardTitle>
+              <CardDescription>
+                {adminAssets.length} shared resource{adminAssets.length !== 1 ? 's' : ''}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {adminAssets.map((asset) => (
+                  <Card key={asset.id} className="group hover:shadow-lg transition-all">
+                    <CardContent className="p-4">
+                      <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                        <AssetPreview asset={asset} />
+                      </div>
+                      <p className="text-xs font-medium truncate mb-2">{asset.filename}</p>
+                      <Button 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => downloadAsset(asset.file_url, asset.filename)}
+                      >
+                        <Download className="h-3 w-3 mr-2" />
+                        Download
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Assets by Gym */}
-        {Object.keys(assetsByGym).length === 0 ? (
+        {Object.keys(taggedAssetsByGym).length === 0 && adminAssets.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
               <FileImage className="h-16 w-16 text-muted-foreground mb-4" />
@@ -189,7 +275,7 @@ const CampaignDetail = () => {
           </Card>
         ) : (
           <div className="space-y-8">
-            {Object.entries(assetsByGym).map(([gymCode, gymAssets]) => (
+            {Object.entries(taggedAssetsByGym).map(([gymCode, gymAssets]) => (
               <Card key={gymCode}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
@@ -204,12 +290,17 @@ const CampaignDetail = () => {
                   </CardTitle>
                   <CardDescription>
                     {gymAssets.logos.length} logo{gymAssets.logos.length !== 1 ? 's' : ''}, {' '}
-                    {gymAssets.elements.length} element{gymAssets.elements.length !== 1 ? 's' : ''}
+                    {gymAssets.elements.length} element{gymAssets.elements.length !== 1 ? 's' : ''}, {' '}
+                    {gymAssets.campaignAssets.length} campaign asset{gymAssets.campaignAssets.length !== 1 ? 's' : ''}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="logos">
+                  <Tabs defaultValue="campaign-assets">
                     <TabsList>
+                      <TabsTrigger value="campaign-assets">
+                        <Video className="h-4 w-4 mr-2" />
+                        Campaign Assets ({gymAssets.campaignAssets.length})
+                      </TabsTrigger>
                       <TabsTrigger value="logos">
                         <FileImage className="h-4 w-4 mr-2" />
                         Logos ({gymAssets.logos.length})
@@ -219,6 +310,33 @@ const CampaignDetail = () => {
                         Elements ({gymAssets.elements.length})
                       </TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="campaign-assets" className="mt-4">
+                      {gymAssets.campaignAssets.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-8">No campaign assets</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                          {gymAssets.campaignAssets.map((asset: any) => (
+                            <Card key={asset.id} className="group hover:shadow-lg transition-all">
+                              <CardContent className="p-4">
+                                <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                                  <AssetPreview asset={asset} />
+                                </div>
+                                <p className="text-sm font-medium truncate mb-2">{asset.filename}</p>
+                                <Button 
+                                  size="sm" 
+                                  className="w-full"
+                                  onClick={() => downloadAsset(asset.file_url, asset.filename)}
+                                >
+                                  <Download className="h-3 w-3 mr-2" />
+                                  Download
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </TabsContent>
 
                     <TabsContent value="logos" className="mt-4">
                       {gymAssets.logos.length === 0 ? (
