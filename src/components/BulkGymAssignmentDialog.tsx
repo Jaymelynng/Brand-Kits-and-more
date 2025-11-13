@@ -29,33 +29,75 @@ export function BulkGymAssignmentDialog({
   gyms,
   onSuccess,
 }: BulkGymAssignmentDialogProps) {
-  const [selectedGymId, setSelectedGymId] = useState<string | null>(null);
+  const [assetGymMap, setAssetGymMap] = useState<Map<string, string | null>>(new Map());
   const [isProcessing, setIsProcessing] = useState(false);
   const queryClient = useQueryClient();
 
+  const toggleGymForAllAssets = (gymId: string | null) => {
+    const newMap = new Map(assetGymMap);
+    const allAssignedToThisGym = Array.from(selectedAssets).every(
+      assetId => assetGymMap.get(assetId) === gymId
+    );
+
+    if (allAssignedToThisGym) {
+      // Unassign all
+      Array.from(selectedAssets).forEach(assetId => newMap.delete(assetId));
+    } else {
+      // Assign all to this gym
+      Array.from(selectedAssets).forEach(assetId => newMap.set(assetId, gymId));
+    }
+    setAssetGymMap(newMap);
+  };
+
+  const getGymAssignmentCount = (gymId: string | null) => {
+    return Array.from(selectedAssets).filter(
+      assetId => assetGymMap.get(assetId) === gymId
+    ).length;
+  };
+
+  const isGymFullySelected = (gymId: string | null) => {
+    return Array.from(selectedAssets).every(
+      assetId => assetGymMap.get(assetId) === gymId
+    );
+  };
+
+  const isGymPartiallySelected = (gymId: string | null) => {
+    const count = getGymAssignmentCount(gymId);
+    return count > 0 && count < selectedAssets.size;
+  };
+
   const handleAssign = async () => {
-    if (!selectedGymId || selectedAssets.size === 0) return;
+    if (assetGymMap.size === 0 || selectedAssets.size === 0) return;
 
     setIsProcessing(true);
     try {
-      const gymId = selectedGymId === 'admin' ? null : selectedGymId;
+      // Group assets by gym for efficient updates
+      const gymGroups = new Map<string | null, string[]>();
+      assetGymMap.forEach((gymId, assetId) => {
+        if (!gymGroups.has(gymId)) {
+          gymGroups.set(gymId, []);
+        }
+        gymGroups.get(gymId)!.push(assetId);
+      });
+
+      // Execute all updates
+      const updates = Array.from(gymGroups.entries()).map(([gymId, assetIds]) => {
+        return supabase
+          .from('campaign_assets')
+          .update({ gym_id: gymId })
+          .in('id', assetIds);
+      });
+
+      const results = await Promise.all(updates);
+      const errors = results.filter(r => r.error);
       
-      const { error } = await supabase
-        .from('campaign_assets')
-        .update({ gym_id: gymId })
-        .in('id', Array.from(selectedAssets));
+      if (errors.length > 0) throw errors[0].error;
 
-      if (error) throw error;
-
-      const gymName = selectedGymId === 'admin' 
-        ? 'Admin Resources'
-        : gyms?.find(g => g.id === selectedGymId)?.name || 'Unknown';
-
-      toast.success(`${selectedAssets.size} assets assigned to ${gymName}`);
+      toast.success(`${assetGymMap.size} assets assigned to gyms`);
       queryClient.invalidateQueries({ queryKey: ['campaign-assets'] });
       onSuccess();
       onOpenChange(false);
-      setSelectedGymId(null);
+      setAssetGymMap(new Map());
     } catch (error) {
       console.error('Error bulk assigning:', error);
       toast.error('Failed to assign assets');
@@ -67,7 +109,7 @@ export function BulkGymAssignmentDialog({
   const handleClose = () => {
     if (!isProcessing) {
       onOpenChange(false);
-      setSelectedGymId(null);
+      setAssetGymMap(new Map());
     }
   };
 
@@ -75,28 +117,38 @@ export function BulkGymAssignmentDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Assign Assets to Gym</DialogTitle>
+          <DialogTitle>Bulk Assign Assets to Gyms</DialogTitle>
           <DialogDescription>
-            Select which gym to assign these {selectedAssets.size} asset{selectedAssets.size !== 1 ? 's' : ''} to.
+            Click a gym to assign ALL {selectedAssets.size} selected asset{selectedAssets.size !== 1 ? 's' : ''} to it. Click multiple gyms to assign different sets.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 py-4 max-h-[400px] overflow-y-auto">
+        <div className="space-y-2 py-4 max-h-[500px] overflow-y-auto">
           {/* Admin Resources Option */}
           <div
             className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer hover:bg-accent ${
-              selectedGymId === 'admin' 
+              isGymFullySelected('admin')
                 ? 'border-primary bg-primary/5' 
+                : isGymPartiallySelected('admin')
+                ? 'border-primary/50 bg-primary/5'
                 : 'border-border'
             }`}
-            onClick={() => setSelectedGymId('admin')}
+            onClick={() => toggleGymForAllAssets('admin')}
           >
             <Checkbox 
-              checked={selectedGymId === 'admin'}
-              onCheckedChange={(checked) => setSelectedGymId(checked ? 'admin' : null)}
+              checked={isGymFullySelected('admin')}
+              className={isGymPartiallySelected('admin') ? 'data-[state=checked]:bg-primary/50' : ''}
+              onCheckedChange={(checked) => toggleGymForAllAssets('admin')}
             />
             <div className="flex-1">
-              <div className="font-medium">Admin Resources</div>
+              <div className="font-medium flex items-center gap-2">
+                Admin Resources
+                {getGymAssignmentCount('admin') > 0 && (
+                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                    {getGymAssignmentCount('admin')}
+                  </span>
+                )}
+              </div>
               <div className="text-sm text-muted-foreground">Not assigned to any specific gym</div>
             </div>
           </div>
@@ -106,18 +158,28 @@ export function BulkGymAssignmentDialog({
             <div
               key={gym.id}
               className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer hover:bg-accent ${
-                selectedGymId === gym.id 
+                isGymFullySelected(gym.id)
                   ? 'border-primary bg-primary/5' 
+                  : isGymPartiallySelected(gym.id)
+                  ? 'border-primary/50 bg-primary/5'
                   : 'border-border'
               }`}
-              onClick={() => setSelectedGymId(gym.id)}
+              onClick={() => toggleGymForAllAssets(gym.id)}
             >
               <Checkbox 
-                checked={selectedGymId === gym.id}
-                onCheckedChange={(checked) => setSelectedGymId(checked ? gym.id : null)}
+                checked={isGymFullySelected(gym.id)}
+                className={isGymPartiallySelected(gym.id) ? 'data-[state=checked]:bg-primary/50' : ''}
+                onCheckedChange={(checked) => toggleGymForAllAssets(gym.id)}
               />
               <div className="flex-1">
-                <div className="font-medium">{gym.name}</div>
+                <div className="font-medium flex items-center gap-2">
+                  {gym.name}
+                  {getGymAssignmentCount(gym.id) > 0 && (
+                    <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                      {getGymAssignmentCount(gym.id)}
+                    </span>
+                  )}
+                </div>
                 <div className="text-sm text-muted-foreground">{gym.code}</div>
               </div>
             </div>
@@ -126,7 +188,7 @@ export function BulkGymAssignmentDialog({
 
         <div className="flex items-center justify-between pt-4 border-t">
           <p className="text-sm text-muted-foreground">
-            {selectedAssets.size} asset{selectedAssets.size !== 1 ? 's' : ''} selected
+            {assetGymMap.size} of {selectedAssets.size} asset{selectedAssets.size !== 1 ? 's' : ''} assigned
           </p>
           <div className="flex gap-2">
             <Button 
@@ -138,10 +200,10 @@ export function BulkGymAssignmentDialog({
             </Button>
             <Button 
               onClick={handleAssign}
-              disabled={!selectedGymId || isProcessing}
+              disabled={assetGymMap.size === 0 || isProcessing}
             >
               <Tag className="h-4 w-4 mr-2" />
-              {isProcessing ? 'Assigning...' : `Assign All (${selectedAssets.size})`}
+              {isProcessing ? 'Saving...' : `Save Assignments (${assetGymMap.size})`}
             </Button>
           </div>
         </div>
