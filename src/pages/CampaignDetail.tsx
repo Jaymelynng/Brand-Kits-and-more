@@ -602,17 +602,17 @@ const CampaignDetail = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
-              {Object.entries(groupedAssets).map(([groupName, groupAssets]) => (
-                <div key={groupName}>
-                  <div className="flex items-center gap-2 pb-2 mb-3 border-b">
-                    <h3 className="text-sm font-semibold">{groupName}</h3>
-                    <Badge variant="secondary" className="text-xs h-5">
-                      {groupAssets.length}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+      <div className="space-y-3">
+        {Object.entries(groupedAssets).map(([groupName, groupAssets]) => (
+          <div key={groupName}>
+            <div className="flex items-center gap-2 pb-2 mb-3 border-b">
+              <h3 className="text-sm font-semibold">{groupName}</h3>
+              <Badge variant="secondary" className="text-xs h-5">
+                {groupAssets.length}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                     {groupAssets.map((asset) => (
                       <Card 
                         key={asset.id} 
@@ -632,10 +632,10 @@ const CampaignDetail = () => {
                           />
                         </div>
                         
-                        <Badge 
-                          variant={asset.file_type.startsWith('video/') ? 'destructive' : 'default'}
-                          className="absolute top-1 right-1 text-[10px] h-4 px-1"
-                        >
+              <Badge 
+                variant={asset.file_type.startsWith('video/') ? 'destructive' : 'default'}
+                className="absolute top-1 right-1 text-xs h-5 px-1"
+              >
                           {getFileTypeLabel(asset.file_type).slice(0, 3)}
                         </Badge>
                         
@@ -645,7 +645,7 @@ const CampaignDetail = () => {
                           </Badge>
                         )}
                         
-                        <CardContent className="p-1.5">
+              <CardContent className="p-3">
                           <div className="aspect-video bg-muted rounded mb-1.5 flex items-center justify-center overflow-hidden">
                             <AssetPreview asset={asset} />
                           </div>
@@ -655,39 +655,39 @@ const CampaignDetail = () => {
                           </p>
                           
                           <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" data-no-detail>
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              className="h-6 w-6 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setPreviewAsset(asset);
-                              }}
-                            >
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              className="h-6 w-6 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                downloadAsset(asset.file_url, asset.filename);
-                              }}
-                            >
-                              <Download className="h-3 w-3" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              className="h-6 w-6 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSharingAsset(asset);
-                              }}
-                            >
-                              <Share className="h-3 w-3" />
-                            </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewAsset(asset);
+                  }}
+                >
+                  <Eye className="h-3 w-3" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    downloadAsset(asset.file_url, asset.filename);
+                  }}
+                >
+                  <Download className="h-3 w-3" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSharingAsset(asset);
+                  }}
+                >
+                  <Share className="h-3 w-3" />
+                </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -781,14 +781,14 @@ const CampaignDetail = () => {
 
           {/* Legacy Assets Section */}
           {Object.keys(taggedAssetsByGym).length > 0 && (
-            <div className="mt-8 space-y-3">
+            <div className="mt-8 space-y-2">
               <h2 className="text-lg font-bold">Legacy Assets (Logos & Elements)</h2>
               
               {Object.entries(taggedAssetsByGym).map(([gymCode, gymAssets]) => (
                 <Collapsible key={gymCode} defaultOpen>
                   <Card>
                     <CollapsibleTrigger asChild>
-                      <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50">
+                      <div className="flex items-center justify-between p-2 cursor-pointer hover:bg-muted/50">
                         <div className="flex items-center gap-2">
                           <ChevronRight className="h-4 w-4 transition-transform" />
                           <h3 className="text-sm font-semibold">{gymAssets.gym_name}</h3>
@@ -811,8 +811,8 @@ const CampaignDetail = () => {
                       </div>
                     </CollapsibleTrigger>
                     
-                    <CollapsibleContent>
-                      <CardContent className="p-3 pt-0">
+              <CollapsibleContent>
+                <CardContent className="p-2 pt-0">
                         <Tabs defaultValue="campaign-assets">
                           <TabsList className="h-8">
                             <TabsTrigger value="campaign-assets" className="text-xs py-1">
@@ -826,11 +826,11 @@ const CampaignDetail = () => {
                             </TabsTrigger>
                           </TabsList>
 
-                          <TabsContent value="campaign-assets" className="mt-2">
+                          <TabsContent value="campaign-assets" className="mt-1">
                             {gymAssets.campaignAssets.length === 0 ? (
                               <p className="text-xs text-muted-foreground text-center py-4">No assets</p>
                             ) : (
-                              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 gap-2">
                                 {gymAssets.campaignAssets.map((asset: any) => (
                                   <Card 
                                     key={asset.id} 
@@ -847,7 +847,7 @@ const CampaignDetail = () => {
                                       />
                                     </div>
                                     
-                                    <CardContent className="p-1.5">
+                          <CardContent className="p-2">
                                       <div className="aspect-video bg-muted rounded mb-1 flex items-center justify-center overflow-hidden">
                                         <AssetPreview asset={asset} />
                                       </div>
@@ -861,11 +861,11 @@ const CampaignDetail = () => {
                             )}
                           </TabsContent>
 
-                          <TabsContent value="logos" className="mt-2">
+                          <TabsContent value="logos" className="mt-1">
                             {gymAssets.logos.length === 0 ? (
                               <p className="text-xs text-muted-foreground text-center py-4">No logos</p>
                             ) : (
-                              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 gap-2">
                                 {gymAssets.logos.map((logo: any) => (
                                   <Card key={logo.id} className="group hover:shadow-md transition-all cursor-pointer">
                                     <CardContent className="p-1.5">
@@ -886,11 +886,11 @@ const CampaignDetail = () => {
                             )}
                           </TabsContent>
 
-                          <TabsContent value="elements" className="mt-2">
+                          <TabsContent value="elements" className="mt-1">
                             {gymAssets.elements.length === 0 ? (
                               <p className="text-xs text-muted-foreground text-center py-4">No elements</p>
                             ) : (
-                              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 gap-2">
                                 {gymAssets.elements.map((element: any) => (
                                   <Card key={element.id} className="group hover:shadow-md transition-all cursor-pointer">
                                     <CardContent className="p-1.5">
