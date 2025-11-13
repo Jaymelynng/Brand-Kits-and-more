@@ -216,7 +216,6 @@ const CampaignDetail = () => {
         gym_code: asset.gym_code,
         logos: [],
         elements: [],
-        campaignAssets: [],
       };
     }
     if (asset.asset_type === 'logo') {
@@ -229,24 +228,6 @@ const CampaignDetail = () => {
 
   // Group campaign assets
   const adminAssets = campaignAssets?.filter(a => !a.gym_id) || [];
-  
-  // Add campaign assets to gym groups
-  campaignAssets?.forEach(asset => {
-    if (asset.gym_id && asset.gym) {
-      const gymCode = asset.gym.code;
-      if (!taggedAssetsByGym[gymCode]) {
-        taggedAssetsByGym[gymCode] = {
-          gym_id: asset.gym.id,
-          gym_name: asset.gym.name,
-          gym_code: gymCode,
-          logos: [],
-          elements: [],
-          campaignAssets: [],
-        };
-      }
-      taggedAssetsByGym[gymCode].campaignAssets.push(asset);
-    }
-  });
 
   const toggleAssetSelection = (assetId: string) => {
     setSelectedAssets(prev => {
@@ -602,7 +583,7 @@ const CampaignDetail = () => {
               </CardContent>
             </Card>
           ) : groupBy === 'none' ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {filteredAssets.map((asset) => (
                       <Card 
                         key={asset.id} 
@@ -694,7 +675,7 @@ const CampaignDetail = () => {
               </Badge>
             </div>
 
-             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                     {groupAssets.map((asset) => (
                       <Card 
                         key={asset.id} 
@@ -727,7 +708,7 @@ const CampaignDetail = () => {
                           </Badge>
                         )}
                         
-              <CardContent className="p-3">
+              <CardContent className="p-4">
                           <div className="aspect-video bg-muted rounded mb-1.5 flex items-center justify-center overflow-hidden">
                             <AssetPreview asset={asset} />
                           </div>
@@ -862,11 +843,15 @@ const CampaignDetail = () => {
           )}
 
           {/* Legacy Assets Section */}
-          {Object.keys(taggedAssetsByGym).length > 0 && (
+          {Object.entries(taggedAssetsByGym).some(([_, gymAssets]) => 
+            gymAssets.logos.length > 0 || gymAssets.elements.length > 0
+          ) && (
             <div className="mt-8 space-y-2">
-              <h2 className="text-lg font-bold">Legacy Assets (Logos & Elements)</h2>
+              <h2 className="text-lg font-bold">Gym Logos & Elements</h2>
               
-              {Object.entries(taggedAssetsByGym).map(([gymCode, gymAssets]) => (
+              {Object.entries(taggedAssetsByGym)
+                .filter(([_, gymAssets]) => gymAssets.logos.length > 0 || gymAssets.elements.length > 0)
+                .map(([gymCode, gymAssets]) => (
                 <Collapsible key={gymCode} defaultOpen>
                   <Card>
                     <CollapsibleTrigger asChild>
@@ -876,7 +861,7 @@ const CampaignDetail = () => {
                           <h3 className="text-sm font-semibold">{gymAssets.gym_name}</h3>
                           <Badge variant="outline" className="text-xs h-5">{gymCode}</Badge>
                           <Badge variant="secondary" className="text-xs h-5">
-                            {gymAssets.campaignAssets.length + gymAssets.logos.length + gymAssets.elements.length}
+                            {gymAssets.logos.length + gymAssets.elements.length}
                           </Badge>
                         </div>
                         <Button 
@@ -895,11 +880,8 @@ const CampaignDetail = () => {
                     
               <CollapsibleContent>
                 <CardContent className="p-2 pt-0">
-                        <Tabs defaultValue="campaign-assets">
+                        <Tabs defaultValue="logos">
                           <TabsList className="h-8">
-                            <TabsTrigger value="campaign-assets" className="text-xs py-1">
-                              Assets ({gymAssets.campaignAssets.length})
-                            </TabsTrigger>
                             <TabsTrigger value="logos" className="text-xs py-1">
                               Logos ({gymAssets.logos.length})
                             </TabsTrigger>
@@ -907,41 +889,6 @@ const CampaignDetail = () => {
                               Elements ({gymAssets.elements.length})
                             </TabsTrigger>
                           </TabsList>
-
-                          <TabsContent value="campaign-assets" className="mt-1">
-                            {gymAssets.campaignAssets.length === 0 ? (
-                              <p className="text-xs text-muted-foreground text-center py-4">No assets</p>
-                            ) : (
-                      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 gap-2">
-                                {gymAssets.campaignAssets.map((asset: any) => (
-                                  <Card 
-                                    key={asset.id} 
-                                    className={`group hover:shadow-md transition-all relative cursor-pointer ${
-                                      selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''
-                                    }`}
-                                    onClick={() => setDetailAsset(asset)}
-                                  >
-                                    <div className="absolute top-1 left-1 z-10" onClick={(e) => e.stopPropagation()}>
-                                      <Checkbox
-                                        checked={selectedAssets.has(asset.id)}
-                                        onCheckedChange={() => toggleAssetSelection(asset.id)}
-                                        className="h-3 w-3 bg-background"
-                                      />
-                                    </div>
-                                    
-                          <CardContent className="p-2">
-                                      <div className="aspect-video bg-muted rounded mb-1 flex items-center justify-center overflow-hidden">
-                                        <AssetPreview asset={asset} />
-                                      </div>
-                                      <p className="text-[10px] truncate" title={asset.filename}>
-                                        {asset.filename}
-                                      </p>
-                                    </CardContent>
-                                  </Card>
-                                ))}
-                              </div>
-                            )}
-                          </TabsContent>
 
                           <TabsContent value="logos" className="mt-1">
                             {gymAssets.logos.length === 0 ? (
