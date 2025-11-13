@@ -147,7 +147,7 @@ export const GymNavigation = ({
         </div>
 
         {/* Gym Navigation Grid */}
-        <div className="flex flex-nowrap gap-3 px-4 mb-2 justify-center overflow-x-auto">
+        <div className="flex flex-nowrap gap-3 px-4 pb-6 mb-2 justify-center overflow-x-auto">
           {gyms.map((gym) => {
             const isSelected = selectedGyms.has(gym.code);
             const primaryColor = gym.colors[0]?.color_hex || '#667eea';
