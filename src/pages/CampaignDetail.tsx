@@ -8,11 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Download, FileImage, Shapes, Video } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share } from "lucide-react";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { CampaignAssetUpload } from "@/components/CampaignAssetUpload";
 import { AssetPreview } from "@/components/AssetPreview";
+import { AssetEditModal } from "@/components/AssetEditModal";
+import { AssetShareModal } from "@/components/AssetShareModal";
+import { CampaignAsset } from "@/hooks/useCampaignAssets";
 
 const CampaignDetail = () => {
   const { campaignName } = useParams<{ campaignName: string }>();
@@ -21,6 +25,8 @@ const CampaignDetail = () => {
   const { data: gyms } = useGyms();
   const { data: campaignAssets, refetch: refetchAssets } = useCampaignAssets(data?.campaign.id || "");
   const [downloading, setDownloading] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<CampaignAsset | null>(null);
+  const [sharingAsset, setSharingAsset] = useState<CampaignAsset | null>(null);
 
   if (isLoading) {
     return (
@@ -99,6 +105,15 @@ const CampaignDetail = () => {
       taggedAssetsByGym[gymCode].campaignAssets.push(asset);
     }
   });
+
+  const copyAssetUrl = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard!');
+    } catch (error) {
+      toast.error('Failed to copy link');
+    }
+  };
 
   const downloadAsset = async (url: string, filename: string) => {
     try {
@@ -242,20 +257,68 @@ const CampaignDetail = () => {
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {adminAssets.map((asset) => (
-                  <Card key={asset.id} className="group hover:shadow-lg transition-all">
+                  <Card key={asset.id} className="group hover:shadow-lg transition-all relative">
+                    <Badge variant="outline" className="absolute top-2 right-2 bg-background">
+                      Admin
+                    </Badge>
                     <CardContent className="p-4">
                       <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                         <AssetPreview asset={asset} />
                       </div>
                       <p className="text-xs font-medium truncate mb-2">{asset.filename}</p>
-                      <Button 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => downloadAsset(asset.file_url, asset.filename)}
-                      >
-                        <Download className="h-3 w-3 mr-2" />
-                        Download
-                      </Button>
+                      <div className="flex gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => setEditingAsset(asset)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => copyAssetUrl(asset.file_url)}
+                            >
+                              <Link2 className="h-3 w-3" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Copy Link</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => setSharingAsset(asset)}
+                            >
+                              <Share className="h-3 w-3" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Share</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              className="flex-1"
+                              onClick={() => downloadAsset(asset.file_url, asset.filename)}
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Download</TooltipContent>
+                        </Tooltip>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -317,20 +380,73 @@ const CampaignDetail = () => {
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                           {gymAssets.campaignAssets.map((asset: any) => (
-                            <Card key={asset.id} className="group hover:shadow-lg transition-all">
+                            <Card key={asset.id} className="group hover:shadow-lg transition-all relative">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge variant="default" className="absolute top-2 right-2">
+                                    {gymAssets.gym_code}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>{gymAssets.gym_name}</TooltipContent>
+                              </Tooltip>
                               <CardContent className="p-4">
                                 <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                                   <AssetPreview asset={asset} />
                                 </div>
                                 <p className="text-sm font-medium truncate mb-2">{asset.filename}</p>
-                                <Button 
-                                  size="sm" 
-                                  className="w-full"
-                                  onClick={() => downloadAsset(asset.file_url, asset.filename)}
-                                >
-                                  <Download className="h-3 w-3 mr-2" />
-                                  Download
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => setEditingAsset(asset)}
+                                      >
+                                        <Edit className="h-3 w-3" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Edit</TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => copyAssetUrl(asset.file_url)}
+                                      >
+                                        <Link2 className="h-3 w-3" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Copy Link</TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => setSharingAsset(asset)}
+                                      >
+                                        <Share className="h-3 w-3" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Share</TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        size="sm" 
+                                        className="flex-1"
+                                        onClick={() => downloadAsset(asset.file_url, asset.filename)}
+                                      >
+                                        <Download className="h-3 w-3" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Download</TooltipContent>
+                                  </Tooltip>
+                                </div>
                               </CardContent>
                             </Card>
                           ))}
@@ -408,6 +524,24 @@ const CampaignDetail = () => {
               </Card>
             ))}
           </div>
+        )}
+
+        {/* Modals */}
+        {editingAsset && (
+          <AssetEditModal
+            asset={editingAsset}
+            gyms={gyms || []}
+            open={!!editingAsset}
+            onOpenChange={(open) => !open && setEditingAsset(null)}
+          />
+        )}
+
+        {sharingAsset && (
+          <AssetShareModal
+            asset={sharingAsset}
+            open={!!sharingAsset}
+            onOpenChange={(open) => !open && setSharingAsset(null)}
+          />
         )}
       </div>
     </div>
