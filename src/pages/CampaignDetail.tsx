@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCampaign } from "@/hooks/useCampaigns";
 import { useGyms } from "@/hooks/useGyms";
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share, Tag, Trash2, CheckSquare } from "lucide-react";
+import { ArrowLeft, Download, FileImage, Shapes, Video, Edit, Link2, Share, Tag, Trash2, CheckSquare, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -20,6 +20,9 @@ import { CampaignAssetUpload } from "@/components/CampaignAssetUpload";
 import { AssetPreview } from "@/components/AssetPreview";
 import { AssetEditModal } from "@/components/AssetEditModal";
 import { AssetShareModal } from "@/components/AssetShareModal";
+import { AssetSidebar } from "@/components/AssetSidebar";
+import { AssetStatusCards } from "@/components/AssetStatusCards";
+import { AssetFilterBar } from "@/components/AssetFilterBar";
 import { CampaignAsset } from "@/hooks/useCampaignAssets";
 
 const CampaignDetail = () => {
@@ -34,6 +37,10 @@ const CampaignDetail = () => {
   const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
   const [bulkAssigningGym, setBulkAssigningGym] = useState<string | null>(null);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+  const [fileTypeFilter, setFileTypeFilter] = useState<'all' | 'video' | 'image' | 'document' | 'other'>('all');
+  const [gymFilter, setGymFilter] = useState<string | null>(null);
+  const [groupBy, setGroupBy] = useState<'gym' | 'type' | 'none'>('gym');
+  const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
 
   if (isLoading) {
@@ -210,6 +217,89 @@ const CampaignDetail = () => {
     }
   };
 
+  const bulkCopyLinks = async (format: 'line' | 'markdown' | 'html' | 'csv' = 'line') => {
+    if (selectedAssets.size === 0) return;
+    
+    const selectedAssetObjects = campaignAssets?.filter(a => selectedAssets.has(a.id)) || [];
+    
+    let formattedLinks = '';
+    
+    switch (format) {
+      case 'line':
+        formattedLinks = selectedAssetObjects.map(a => a.file_url).join('\n');
+        break;
+      case 'markdown':
+        formattedLinks = selectedAssetObjects.map(a => `[${a.filename}](${a.file_url})`).join('\n');
+        break;
+      case 'html':
+        formattedLinks = selectedAssetObjects.map(a => `<a href="${a.file_url}">${a.filename}</a>`).join('\n');
+        break;
+      case 'csv':
+        formattedLinks = selectedAssetObjects.map(a => a.file_url).join(', ');
+        break;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(formattedLinks);
+      toast.success(`Copied ${selectedAssets.size} links to clipboard!`, {
+        description: 'Links are ready to paste'
+      });
+    } catch (error) {
+      toast.error('Failed to copy links');
+    }
+  };
+
+  const downloadSelected = async () => {
+    if (selectedAssets.size === 0) return;
+
+    setDownloading(true);
+    toast.info(`Preparing ${selectedAssets.size} files for download...`);
+
+    try {
+      const zip = new JSZip();
+      const selectedAssetObjects = campaignAssets?.filter(a => selectedAssets.has(a.id)) || [];
+
+      // Group by gym for organized ZIP structure
+      const assetsByGym = selectedAssetObjects.reduce((acc, asset) => {
+        const gymKey = asset.gym_id 
+          ? `${gyms?.find(g => g.id === asset.gym_id)?.name || 'Unknown'}`
+          : 'Admin_Resources';
+        
+        if (!acc[gymKey]) acc[gymKey] = [];
+        acc[gymKey].push(asset);
+        return acc;
+      }, {} as Record<string, CampaignAsset[]>);
+
+      // Add files to ZIP with folder structure
+      for (const [gymName, gymAssets] of Object.entries(assetsByGym)) {
+        for (const asset of gymAssets) {
+          const response = await fetch(asset.file_url);
+          const blob = await response.blob();
+          zip.folder(gymName)?.file(asset.filename, blob);
+        }
+      }
+
+      // Generate and download ZIP
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = window.URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${campaign.name}-selected-${selectedAssets.size}-assets.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success(`Downloaded ${selectedAssets.size} assets!`);
+      clearSelection();
+    } catch (error) {
+      console.error('Error downloading selected assets:', error);
+      toast.error('Failed to download selected assets');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const copyAssetUrl = async (url: string) => {
     try {
       await navigator.clipboard.writeText(url);
@@ -301,6 +391,102 @@ const CampaignDetail = () => {
     }
   };
 
+  // Calculate asset counts
+  const assetCounts = useMemo(() => {
+    const all = campaignAssets?.length || 0;
+    const videos = campaignAssets?.filter(a => a.file_type.startsWith('video/')).length || 0;
+    const images = campaignAssets?.filter(a => a.file_type.startsWith('image/')).length || 0;
+    const documents = campaignAssets?.filter(a => a.file_type.includes('pdf') || a.file_type.includes('document')).length || 0;
+    const other = campaignAssets?.filter(a => {
+      const ft = a.file_type;
+      return !ft.startsWith('video/') && !ft.startsWith('image/') && !ft.includes('pdf') && !ft.includes('document');
+    }).length || 0;
+    
+    return { all, videos, images, documents, other };
+  }, [campaignAssets]);
+
+  // Calculate gym counts
+  const gymCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    campaignAssets?.forEach(asset => {
+      if (asset.gym_id) {
+        counts[asset.gym_id] = (counts[asset.gym_id] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [campaignAssets]);
+
+  const adminCount = useMemo(() => {
+    return campaignAssets?.filter(a => !a.gym_id).length || 0;
+  }, [campaignAssets]);
+
+  // Filter assets
+  const filteredAssets = useMemo(() => {
+    let filtered = campaignAssets || [];
+    
+    // File type filter
+    if (fileTypeFilter !== 'all') {
+      filtered = filtered.filter(a => {
+        const type = a.file_type.toLowerCase();
+        switch (fileTypeFilter) {
+          case 'video': return type.startsWith('video/');
+          case 'image': return type.startsWith('image/');
+          case 'document': return type.includes('pdf') || type.includes('document');
+          case 'other': return !type.startsWith('video/') && !type.startsWith('image/') && !type.includes('pdf') && !type.includes('document');
+          default: return true;
+        }
+      });
+    }
+    
+    // Gym filter
+    if (gymFilter) {
+      if (gymFilter === 'admin') {
+        filtered = filtered.filter(a => !a.gym_id);
+      } else {
+        filtered = filtered.filter(a => a.gym_id === gymFilter);
+      }
+    }
+    
+    // Search
+    if (searchQuery) {
+      filtered = filtered.filter(a =>
+        a.filename.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return filtered;
+  }, [campaignAssets, fileTypeFilter, gymFilter, searchQuery]);
+
+  // Group assets
+  const groupedAssets = useMemo(() => {
+    if (groupBy === 'none') return { 'All Assets': filteredAssets };
+    
+    if (groupBy === 'gym') {
+      return filteredAssets.reduce((acc, asset) => {
+        const key = asset.gym?.name || 'Admin Resources';
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(asset);
+        return acc;
+      }, {} as Record<string, CampaignAsset[]>);
+    }
+    
+    if (groupBy === 'type') {
+      return filteredAssets.reduce((acc, asset) => {
+        let key = 'Other';
+        const type = asset.file_type.toLowerCase();
+        if (type.startsWith('video/')) key = 'Videos';
+        else if (type.startsWith('image/')) key = 'Images';
+        else if (type.includes('pdf') || type.includes('document')) key = 'Documents';
+        
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(asset);
+        return acc;
+      }, {} as Record<string, CampaignAsset[]>);
+    }
+    
+    return { 'All Assets': filteredAssets };
+  }, [filteredAssets, groupBy]);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-500/10 text-green-700 border-green-500/20';
@@ -310,156 +496,291 @@ const CampaignDetail = () => {
     }
   };
 
+  const getFileTypeLabel = (mimeType: string): string => {
+    if (mimeType.startsWith('video/')) return 'VIDEO';
+    if (mimeType.startsWith('image/')) return 'IMAGE';
+    if (mimeType.includes('pdf')) return 'PDF';
+    if (mimeType.includes('document')) return 'DOC';
+    return 'FILE';
+  };
+
+  const formatFileSize = (bytes: number | null): string => {
+    if (!bytes) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/campaigns')}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Campaigns
-          </Button>
-          
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">{campaign.name}</h1>
-              {campaign.description && (
-                <p className="text-muted-foreground mb-4">{campaign.description}</p>
-              )}
-              <Badge className={getStatusColor(campaign.status)}>
-                {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-              </Badge>
-            </div>
-            <div className="flex gap-2">
-              {selectedAssets.size === 0 ? (
-                <Button variant="outline" onClick={selectAllAssets}>
-                  <CheckSquare className="h-4 w-4 mr-2" />
-                  Select All
-                </Button>
-              ) : (
-                <Button variant="outline" onClick={clearSelection}>
-                  Clear Selection ({selectedAssets.size})
-                </Button>
-              )}
-              <CampaignAssetUpload
-                campaignId={campaign.id}
-                campaignName={campaign.name}
-                gyms={gyms || []}
-                onSuccess={refetchAssets}
-              />
-              <Button onClick={downloadAllAssets} disabled={downloading || (assets.length === 0 && !campaignAssets?.length)}>
-                <Download className="h-4 w-4 mr-2" />
-                {downloading ? "Downloading..." : "Download All"}
-              </Button>
-            </div>
-          </div>
-        </div>
+    <div className="flex h-screen w-full bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Sidebar */}
+      <div className="w-64 flex-shrink-0">
+        <AssetSidebar
+          fileTypeFilter={fileTypeFilter}
+          setFileTypeFilter={setFileTypeFilter}
+          gymFilter={gymFilter}
+          setGymFilter={setGymFilter}
+          assetCounts={assetCounts}
+          gymCounts={gymCounts}
+          adminCount={adminCount}
+          gyms={gyms || []}
+        />
+      </div>
 
-        {/* Admin Resources */}
-        {adminAssets.length > 0 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Admin Resources</CardTitle>
-              <CardDescription>
-                {adminAssets.length} shared resource{adminAssets.length !== 1 ? 's' : ''}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {adminAssets.map((asset) => (
-                  <Card key={asset.id} className={`group hover:shadow-lg transition-all relative ${selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''}`}>
-                    <div className="absolute top-2 left-2 z-10">
-                      <Checkbox
-                        checked={selectedAssets.has(asset.id)}
-                        onCheckedChange={() => toggleAssetSelection(asset.id)}
-                        className="bg-background"
-                      />
-                    </div>
-                    <Badge variant="outline" className="absolute top-2 right-2 bg-background">
-                      Admin
-                    </Badge>
-                    <CardContent className="p-4">
-                      <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                        <AssetPreview asset={asset} />
-                      </div>
-                      <p className="text-xs font-medium truncate mb-2">{asset.filename}</p>
-                      <div className="flex gap-1">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => setEditingAsset(asset)}
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Edit</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => copyAssetUrl(asset.file_url)}
-                            >
-                              <Link2 className="h-3 w-3" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Copy Link</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => setSharingAsset(asset)}
-                            >
-                              <Share className="h-3 w-3" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Share</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              size="sm" 
-                              className="flex-1"
-                              onClick={() => downloadAsset(asset.file_url, asset.filename)}
-                            >
-                              <Download className="h-3 w-3" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Download</TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="container mx-auto px-6 py-8">
+          {/* Header */}
+          <div className="mb-6">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/campaigns')}
+              className="mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Campaigns
+            </Button>
+            
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h1 className="text-4xl font-bold text-foreground mb-2">{campaign.name}</h1>
+                {campaign.description && (
+                  <p className="text-muted-foreground mb-4">{campaign.description}</p>
+                )}
+                <Badge className={getStatusColor(campaign.status)}>
+                  {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                </Badge>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className="flex gap-2">
+                <CampaignAssetUpload
+                  campaignId={campaign.id}
+                  campaignName={campaign.name}
+                  gyms={gyms || []}
+                  onSuccess={refetchAssets}
+                />
+                <Button 
+                  onClick={selectedAssets.size > 0 ? downloadSelected : downloadAllAssets} 
+                  disabled={downloading || (!campaignAssets || campaignAssets.length === 0)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {downloading ? "Downloading..." : selectedAssets.size > 0 ? `Download Selected (${selectedAssets.size})` : "Download All"}
+                </Button>
+              </div>
+            </div>
 
-        {/* Assets by Gym */}
-        {Object.keys(taggedAssetsByGym).length === 0 && adminAssets.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <FileImage className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-xl font-semibold text-foreground mb-2">No assets yet</p>
-              <p className="text-muted-foreground">Upload assets and tag them with this campaign to see them here</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-8">
-            {Object.entries(taggedAssetsByGym).map(([gymCode, gymAssets]) => (
+            {/* Status Cards */}
+            <AssetStatusCards
+              total={assetCounts.all}
+              videos={assetCounts.videos}
+              images={assetCounts.images}
+              documents={assetCounts.documents}
+              onFilterClick={setFileTypeFilter}
+            />
+
+            {/* Filter Bar */}
+            <AssetFilterBar
+              groupBy={groupBy}
+              setGroupBy={setGroupBy}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedCount={selectedAssets.size}
+              onSelectAll={selectAllAssets}
+              onClearSelection={clearSelection}
+            />
+          </div>
+
+          {/* Asset Grid */}
+          {Object.keys(groupedAssets).length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <FileImage className="h-16 w-16 text-muted-foreground mb-4" />
+                <p className="text-xl font-semibold text-foreground mb-2">No assets found</p>
+                <p className="text-muted-foreground">Try adjusting your filters or upload new assets</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-8">
+              {Object.entries(groupedAssets).map(([groupName, groupAssets]) => (
+                <Card key={groupName}>
+                  <CardHeader>
+                    <CardTitle>{groupName}</CardTitle>
+                    <CardDescription>{groupAssets.length} asset{groupAssets.length !== 1 ? 's' : ''}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {groupAssets.map((asset) => (
+                        <Card key={asset.id} className={`group hover:shadow-lg transition-all relative ${selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''}`}>
+                          <div className="absolute top-2 left-2 z-10">
+                            <Checkbox
+                              checked={selectedAssets.has(asset.id)}
+                              onCheckedChange={() => toggleAssetSelection(asset.id)}
+                              className="bg-background"
+                            />
+                          </div>
+                          <Badge 
+                            variant={asset.file_type.startsWith('video/') ? 'destructive' : asset.file_type.startsWith('image/') ? 'default' : 'secondary'}
+                            className="absolute top-2 right-2 text-xs"
+                          >
+                            {getFileTypeLabel(asset.file_type)}
+                          </Badge>
+                          {asset.gym && (
+                            <Badge variant="outline" className="absolute top-10 right-2 text-xs">
+                              {asset.gym.code}
+                            </Badge>
+                          )}
+                          <CardContent className="p-4">
+                            <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                              <AssetPreview asset={asset} />
+                            </div>
+                            <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+                              <span>{formatFileSize(asset.file_size)}</span>
+                            </div>
+                            <p className="text-sm font-medium truncate mb-3">{asset.filename}</p>
+                            <div className="flex gap-1">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setEditingAsset(asset)}
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => copyAssetUrl(asset.file_url)}
+                                  >
+                                    <Link2 className="h-3 w-3" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Copy Link</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setSharingAsset(asset)}
+                                  >
+                                    <Share className="h-3 w-3" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Share</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    size="sm" 
+                                    className="flex-1"
+                                    onClick={() => downloadAsset(asset.file_url, asset.filename)}
+                                  >
+                                    <Download className="h-3 w-3" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Download</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Bulk Actions Toolbar */}
+          {selectedAssets.size > 0 && (
+            <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+              <Card className="shadow-2xl border-2">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <CheckSquare className="h-5 w-5 text-primary" />
+                      <span className="font-semibold">{selectedAssets.size} selected</span>
+                    </div>
+                    
+                    <div className="h-8 w-px bg-border" />
+                    
+                    <div className="flex items-center gap-2">
+                      <Select value={bulkAssigningGym || ''} onValueChange={setBulkAssigningGym}>
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder="Assign to gym..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin Resource (No Gym)</SelectItem>
+                          {gyms?.map((gym) => (
+                            <SelectItem key={gym.id} value={gym.id}>
+                              {gym.name} ({gym.code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      <Button 
+                        onClick={bulkAssignToGym}
+                        disabled={!bulkAssigningGym || isBulkProcessing}
+                      >
+                        <Tag className="h-4 w-4 mr-2" />
+                        {isBulkProcessing ? 'Assigning...' : 'Apply'}
+                      </Button>
+                    </div>
+                    
+                    <div className="h-8 w-px bg-border" />
+                    
+                    <Button 
+                      variant="outline"
+                      onClick={() => bulkCopyLinks('line')}
+                      disabled={isBulkProcessing}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Links
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      onClick={downloadSelected}
+                      disabled={isBulkProcessing || downloading}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                    
+                    <div className="h-8 w-px bg-border" />
+                    
+                    <Button 
+                      variant="destructive"
+                      onClick={bulkDeleteAssets}
+                      disabled={isBulkProcessing}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                    
+                    <Button variant="ghost" onClick={clearSelection}>
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Keep old gym-based view for logos/elements */}
+          {Object.keys(taggedAssetsByGym).length > 0 && (
+            <div className="mt-12 space-y-8">
+              <h2 className="text-2xl font-bold">Legacy Assets (Logos & Elements)</h2>
+              {Object.entries(taggedAssetsByGym).map(([gymCode, gymAssets]) => (
               <Card key={gymCode}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
@@ -654,80 +975,25 @@ const CampaignDetail = () => {
           </div>
         )}
 
-        {/* Bulk Actions Toolbar */}
-        {selectedAssets.size > 0 && (
-          <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-            <Card className="shadow-2xl border-2">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <CheckSquare className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">{selectedAssets.size} selected</span>
-                  </div>
-                  
-                  <div className="h-8 w-px bg-border" />
-                  
-                  <div className="flex items-center gap-2">
-                    <Select value={bulkAssigningGym || ''} onValueChange={setBulkAssigningGym}>
-                      <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Assign to gym..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin Resource (No Gym)</SelectItem>
-                        {gyms?.map((gym) => (
-                          <SelectItem key={gym.id} value={gym.id}>
-                            {gym.name} ({gym.code})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    <Button 
-                      onClick={bulkAssignToGym}
-                      disabled={!bulkAssigningGym || isBulkProcessing}
-                    >
-                      <Tag className="h-4 w-4 mr-2" />
-                      {isBulkProcessing ? 'Assigning...' : 'Apply'}
-                    </Button>
-                  </div>
-                  
-                  <div className="h-8 w-px bg-border" />
-                  
-                  <Button 
-                    variant="destructive"
-                    onClick={bulkDeleteAssets}
-                    disabled={isBulkProcessing}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                  
-                  <Button variant="ghost" onClick={clearSelection}>
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
-        {/* Modals */}
-        {editingAsset && (
-          <AssetEditModal
-            asset={editingAsset}
-            gyms={gyms || []}
-            open={!!editingAsset}
-            onOpenChange={(open) => !open && setEditingAsset(null)}
-          />
-        )}
+          {/* Modals */}
+          {editingAsset && (
+            <AssetEditModal
+              asset={editingAsset}
+              gyms={gyms || []}
+              open={!!editingAsset}
+              onOpenChange={(open) => !open && setEditingAsset(null)}
+            />
+          )}
 
-        {sharingAsset && (
-          <AssetShareModal
-            asset={sharingAsset}
-            open={!!sharingAsset}
-            onOpenChange={(open) => !open && setSharingAsset(null)}
-          />
-        )}
+          {sharingAsset && (
+            <AssetShareModal
+              asset={sharingAsset}
+              open={!!sharingAsset}
+              onOpenChange={(open) => !open && setSharingAsset(null)}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
