@@ -587,7 +587,7 @@ const CampaignDetail = () => {
               {filteredAssets.map((asset) => (
                       <Card 
                         key={asset.id} 
-                        className={`group hover:shadow-md transition-all relative cursor-pointer ${
+                        className={`group shadow-md hover:shadow-lg transition-all relative cursor-pointer border-gray-200/80 ${
                           selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''
                         }`}
                         onClick={(e) => {
@@ -679,7 +679,7 @@ const CampaignDetail = () => {
                     {groupAssets.map((asset) => (
                       <Card 
                         key={asset.id} 
-                        className={`group hover:shadow-md transition-all relative cursor-pointer ${
+                        className={`group shadow-md hover:shadow-lg transition-all relative cursor-pointer border-gray-200/80 ${
                           selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : ''
                         }`}
                         onClick={(e) => {
