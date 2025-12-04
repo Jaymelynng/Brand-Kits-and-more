@@ -147,7 +147,7 @@ export const GymNavigation = ({
         </div>
 
         {/* Gym Navigation Grid */}
-        <div className="flex flex-nowrap gap-3 px-4 pb-7 justify-center overflow-x-auto">
+        <div className="flex flex-nowrap gap-3 px-4 pb-2 justify-center overflow-x-auto">
           {gyms.map((gym) => {
             const isSelected = selectedGyms.has(gym.code);
             const primaryColor = gym.colors[0]?.color_hex || '#667eea';
@@ -157,7 +157,7 @@ export const GymNavigation = ({
                 key={gym.id}
                 onClick={() => navigate(`/gym/${gym.id}`)}
                 className={cn(
-                  "relative flex flex-col items-center gap-1 px-3 py-1",
+                  "flex flex-col items-center gap-1.5 px-3 py-1.5",
                   "rounded-lg border transition-all duration-300",
                   "hover:scale-105 hover:shadow-lg group"
                 )}
@@ -170,14 +170,12 @@ export const GymNavigation = ({
                   {gym.code}
                 </span>
 
-                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2">
-                  <DiamondSelector
-                    gymCode={gym.code}
-                    isSelected={isSelected}
-                    primaryColor={primaryColor}
-                    onToggle={() => onToggleGymSelection(gym.code)}
-                  />
-                </div>
+                <DiamondSelector
+                  gymCode={gym.code}
+                  isSelected={isSelected}
+                  primaryColor={primaryColor}
+                  onToggle={() => onToggleGymSelection(gym.code)}
+                />
               </button>
             );
           })}
