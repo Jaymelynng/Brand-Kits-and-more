@@ -43,19 +43,22 @@ export const GymNavigation = ({
   return (
     <>
       {/* Main Title Section */}
-      <div className="text-center py-1 px-6" style={{ background: 'hsl(var(--brand-white))' }}>
-        <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
+      <div className="text-center py-2 px-6 shadow-sm" style={{ 
+        background: 'linear-gradient(to bottom, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.12))',
+        borderBottom: '2px solid hsl(var(--brand-rose-gold) / 0.25)'
+      }}>
+        <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--brand-navy))' }}>
           🏆 Gym Brand Kit Database
         </h1>
-        <p className="text-xs" style={{ color: 'hsl(var(--brand-text-primary) / 0.7)' }}>
+        <p className="text-xs" style={{ color: 'hsl(var(--brand-navy) / 0.7)' }}>
           Select gyms to copy their info or view campaigns
         </p>
       </div>
 
       {/* Selection Dashboard */}
-      <div className="py-1 px-6" style={{
-        background: `linear-gradient(to bottom, hsl(var(--brand-navy) / 0.02), transparent)`,
-        borderBottom: '1px solid hsl(var(--brand-rose-gold) / 0.1)'
+      <div className="py-2 px-6 shadow-md" style={{
+        background: `linear-gradient(to bottom, hsl(var(--brand-rose-gold) / 0.15), hsl(var(--brand-blue-gray) / 0.1))`,
+        borderBottom: '2px solid hsl(var(--brand-rose-gold) / 0.35)'
       }}>
         {/* Single Action Bar with All Buttons */}
         <div className="flex items-center justify-center gap-2 flex-wrap mb-1">
@@ -157,13 +160,19 @@ export const GymNavigation = ({
                 key={gym.id}
                 onClick={() => navigate(`/gym/${gym.id}`)}
                 className={cn(
-                  "flex flex-col items-center gap-1.5 px-3 py-1.5",
-                  "rounded-lg border transition-all duration-300",
-                  "hover:scale-105 hover:shadow-lg group"
+                  "flex flex-col items-center gap-1.5 px-4 py-2",
+                  "rounded-xl border-2 transition-all duration-300",
+                  "hover:scale-105 group",
+                  "backdrop-blur-sm"
                 )}
                 style={{
-                  borderColor: isSelected ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy) / 0.1)',
-                  background: isSelected ? 'hsl(var(--brand-rose-gold) / 0.05)' : 'hsl(var(--brand-navy) / 0.02)',
+                  borderColor: isSelected ? primaryColor : 'hsl(var(--brand-rose-gold) / 0.4)',
+                  background: isSelected 
+                    ? `linear-gradient(135deg, ${primaryColor}20, ${primaryColor}10)` 
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
+                  boxShadow: isSelected 
+                    ? `0 4px 15px ${primaryColor}35, 0 2px 6px rgba(0,0,0,0.12)` 
+                    : '0 3px 10px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.08)'
                 }}
               >
                 <span className="text-xs font-bold tracking-wider" style={{ color: primaryColor }}>
@@ -184,11 +193,12 @@ export const GymNavigation = ({
         {/* Selection Counter - Small at Bottom */}
         <div className="flex justify-center">
           <div
-            className="inline-block px-3 py-1 rounded-md text-sm font-medium border-2"
+            className="inline-block px-4 py-1.5 rounded-full text-sm font-semibold border-2 shadow-sm"
             style={{
               borderColor: 'hsl(var(--brand-rose-gold))',
-              color: 'hsl(var(--brand-text-primary))',
-              backgroundColor: 'transparent',
+              color: 'hsl(var(--brand-navy))',
+              backgroundColor: 'hsl(var(--brand-rose-gold) / 0.18)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}
           >
             {selectedCount} of {totalCount} gyms selected

@@ -40,6 +40,7 @@ All colors MUST be HSL.
     --brand-text-primary: 0 0% 45%;      /* #737373 - Medium gray text */
     --brand-white: 0 0% 100%;            /* #ffffff */
     --brand-gold: 43 74% 49%;            /* #D4AF37 for perfect state */
+    --brand-navy: 222 47% 20%;            /* Deep navy for text/borders */
     
     /* Dynamic gym colors - will be overridden by JS */
     --gym-primary: 222 47% 11%;
