@@ -527,7 +527,7 @@ const CampaignDetail = () => {
             <Button 
               variant="ghost" 
               onClick={() => navigate('/campaigns')}
-              className="mb-3 text-white/80 hover:text-white hover:bg-white/10"
+              className="mb-3 bg-white text-gray-800 hover:bg-white/90 shadow-md"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Campaigns
