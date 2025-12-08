@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCampaigns, useAddCampaign, useDeleteCampaign, useUpdateCampaign } from "@/hooks/useCampaigns";
+import { useCampaignAssets } from "@/hooks/useCampaignAssets";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Folder, Archive, Clock, Trash2, Edit } from "lucide-react";
+import { Search, Plus, Folder, Archive, Clock, Trash2, Edit, Video, FileImage, FileText, ArrowLeft, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 const Campaigns = () => {
@@ -92,183 +93,266 @@ const Campaigns = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'active': return <Folder className="h-4 w-4" />;
-      case 'upcoming': return <Clock className="h-4 w-4" />;
-      case 'archived': return <Archive className="h-4 w-4" />;
-      default: return <Folder className="h-4 w-4" />;
+      case 'active': return <Sparkles className="h-3 w-3" />;
+      case 'upcoming': return <Clock className="h-3 w-3" />;
+      case 'archived': return <Archive className="h-3 w-3" />;
+      default: return <Folder className="h-3 w-3" />;
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyles = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500/10 text-green-700 border-green-500/20';
-      case 'upcoming': return 'bg-blue-500/10 text-blue-700 border-blue-500/20';
-      case 'archived': return 'bg-gray-500/10 text-gray-700 border-gray-500/20';
-      default: return 'bg-gray-500/10 text-gray-700 border-gray-500/20';
+      case 'active': return {
+        badge: 'bg-emerald-500 text-white border-emerald-400 shadow-lg shadow-emerald-500/30',
+        gradient: 'from-emerald-500/20 via-teal-500/10 to-cyan-500/5'
+      };
+      case 'upcoming': return {
+        badge: 'bg-blue-500 text-white border-blue-400 shadow-lg shadow-blue-500/30',
+        gradient: 'from-blue-500/20 via-indigo-500/10 to-purple-500/5'
+      };
+      case 'archived': return {
+        badge: 'bg-gray-500 text-white border-gray-400 shadow-lg shadow-gray-500/30',
+        gradient: 'from-gray-500/20 via-slate-500/10 to-zinc-500/5'
+      };
+      default: return {
+        badge: 'bg-gray-500 text-white border-gray-400',
+        gradient: 'from-gray-500/20 to-transparent'
+      };
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-rose-50/30">
+      {/* Hero Header Section */}
+      <div 
+        className="relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-blue-gray)) 100%)',
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-20 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="container mx-auto px-6 py-8 relative z-10">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Campaigns Hub</h1>
-              <p className="text-muted-foreground">Manage and organize your marketing campaigns</p>
+              <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">Campaigns Hub</h1>
+              <p className="text-white/80 text-lg">Manage and organize your marketing campaigns</p>
             </div>
-            <Button onClick={() => navigate('/')} variant="outline">
+            <Button 
+              onClick={() => navigate('/')} 
+              className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm shadow-lg"
+              style={{
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3)'
+              }}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Gyms
             </Button>
           </div>
+        </div>
+      </div>
 
-          {/* Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search campaigns..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="upcoming">Upcoming</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
-              </SelectContent>
-            </Select>
-            {isAdmin && (
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto">
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Campaign
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Campaign</DialogTitle>
-                    <DialogDescription>
-                      Add a new marketing campaign to organize your assets
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Campaign Name</Label>
+      <div className="container mx-auto px-6 py-8">
+        {/* Search and Filters */}
+        <div 
+          className="flex flex-col sm:flex-row gap-4 mb-8 p-4 rounded-xl"
+          style={{
+            background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.1), hsl(var(--brand-blue-gray) / 0.1))',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
+          }}
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search campaigns..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-white/80 border-white/50 shadow-sm"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[180px] bg-white/80 border-white/50 shadow-sm">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="archived">Archived</SelectItem>
+            </SelectContent>
+          </Select>
+          {isAdmin && (
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="w-full sm:w-auto shadow-lg"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))',
+                    boxShadow: '0 4px 15px hsl(var(--brand-rose-gold) / 0.4), inset 0 1px 0 rgba(255,255,255,0.3)'
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Campaign
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Campaign</DialogTitle>
+                  <DialogDescription>
+                    Add a new marketing campaign to organize your assets
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Campaign Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="e.g., Gift Card 2025"
+                      value={newCampaignName}
+                      onChange={(e) => setNewCampaignName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description">Description (optional)</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Brief description of the campaign..."
+                      value={newCampaignDescription}
+                      onChange={(e) => setNewCampaignDescription(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={newCampaignStatus} onValueChange={(val) => setNewCampaignStatus(val as any)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="upcoming">Upcoming</SelectItem>
+                        <SelectItem value="archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="thumbnail">Campaign Thumbnail (optional)</Label>
+                    <div className="space-y-2">
                       <Input
-                        id="name"
-                        placeholder="e.g., Gift Card 2025"
-                        value={newCampaignName}
-                        onChange={(e) => setNewCampaignName(e.target.value)}
+                        id="thumbnail"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setNewCampaignThumbnail(file);
+                            setThumbnailPreview(URL.createObjectURL(file));
+                          }
+                        }}
                       />
-                    </div>
-                    <div>
-                      <Label htmlFor="description">Description (optional)</Label>
-                      <Textarea
-                        id="description"
-                        placeholder="Brief description of the campaign..."
-                        value={newCampaignDescription}
-                        onChange={(e) => setNewCampaignDescription(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="status">Status</Label>
-                      <Select value={newCampaignStatus} onValueChange={(val) => setNewCampaignStatus(val as any)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="upcoming">Upcoming</SelectItem>
-                          <SelectItem value="archived">Archived</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="thumbnail">Campaign Thumbnail (optional)</Label>
-                      <div className="space-y-2">
-                        <Input
-                          id="thumbnail"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              setNewCampaignThumbnail(file);
-                              setThumbnailPreview(URL.createObjectURL(file));
-                            }
-                          }}
-                        />
-                        {thumbnailPreview && (
-                          <div className="relative w-full h-32 rounded-md overflow-hidden border">
-                            <img 
-                              src={thumbnailPreview} 
-                              alt="Preview" 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                      </div>
+                      {thumbnailPreview && (
+                        <div className="relative w-full h-32 rounded-md overflow-hidden border">
+                          <img 
+                            src={thumbnailPreview} 
+                            alt="Preview" 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleCreateCampaign} disabled={addCampaign.isPending}>
-                      {addCampaign.isPending ? "Creating..." : "Create Campaign"}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateCampaign} disabled={addCampaign.isPending}>
+                    {addCampaign.isPending ? "Creating..." : "Create Campaign"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         {/* Campaign Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i}>
+              <Card key={i} className="overflow-hidden">
+                <Skeleton className="h-48 w-full" />
                 <CardHeader>
                   <Skeleton className="h-6 w-3/4 mb-2" />
                   <Skeleton className="h-4 w-1/2" />
                 </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-20 w-full" />
-                </CardContent>
               </Card>
             ))}
           </div>
         ) : filteredCampaigns && filteredCampaigns.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCampaigns.map((campaign) => (
-              <Card
-                key={campaign.id}
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 group overflow-hidden"
-                onClick={() => navigate(`/campaigns/${encodeURIComponent(campaign.name)}`)}
-              >
-                {campaign.thumbnail_url ? (
-                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20">
-                    <img 
-                      src={campaign.thumbnail_url} 
-                      alt={campaign.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredCampaigns.map((campaign) => {
+              const statusStyles = getStatusStyles(campaign.status);
+              
+              return (
+                <Card
+                  key={campaign.id}
+                  className="cursor-pointer group overflow-hidden border-0 bg-white/80 backdrop-blur-sm"
+                  style={{
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                  onClick={() => navigate(`/campaigns/${encodeURIComponent(campaign.name)}`)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)';
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  {/* Thumbnail Area */}
+                  <div className="relative h-44 overflow-hidden">
+                    {campaign.thumbnail_url ? (
+                      <>
+                        <img 
+                          src={campaign.thumbnail_url} 
+                          alt={campaign.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      </>
+                    ) : (
+                      <div 
+                        className={`w-full h-full bg-gradient-to-br ${statusStyles.gradient} flex items-center justify-center relative`}
+                        style={{
+                          background: `linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.3) 0%, hsl(var(--brand-blue-gray) / 0.2) 50%, hsl(var(--brand-rose-gold) / 0.1) 100%)`
+                        }}
+                      >
+                        <div className="absolute inset-0 opacity-10">
+                          <div className="absolute top-4 left-4 w-16 h-16 border-2 border-current rounded-lg rotate-12" />
+                          <div className="absolute bottom-4 right-4 w-12 h-12 border-2 border-current rounded-full" />
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 border-current rotate-45" />
+                        </div>
+                        <Folder className="h-16 w-16 text-muted-foreground/40" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                      </div>
+                    )}
                     
-                    <Badge className={`absolute top-3 right-3 ${getStatusColor(campaign.status)}`}>
-                      {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-                    </Badge>
+                    {/* Status Badge - Floating */}
+                    <div className="absolute top-3 right-3">
+                      <Badge className={`${statusStyles.badge} flex items-center gap-1 px-2 py-1`}>
+                        {getStatusIcon(campaign.status)}
+                        <span className="text-xs font-semibold">
+                          {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                        </span>
+                      </Badge>
+                    </div>
                     
+                    {/* Delete Button */}
                     {isAdmin && (
                       <Button
                         variant="ghost"
@@ -277,57 +361,60 @@ const Campaigns = () => {
                           e.stopPropagation();
                           handleDeleteCampaign(campaign.id, campaign.name);
                         }}
-                        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-destructive"
+                        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-destructive text-white h-8 w-8 p-0"
                       >
-                        <Trash2 className="h-4 w-4 text-white" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
+                    
+                    {/* Campaign Name Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="text-xl font-bold text-white drop-shadow-lg group-hover:text-white/90 transition-colors">
+                        {campaign.name}
+                      </h3>
+                    </div>
                   </div>
-                ) : (
-                  <div className="relative h-48 bg-gradient-to-br from-primary/10 via-secondary/10 to-primary/5 flex items-center justify-center">
-                    <Folder className="h-24 w-24 text-muted-foreground/20" />
-                    <Badge className={`absolute top-3 right-3 ${getStatusColor(campaign.status)}`}>
-                      {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-                    </Badge>
-                    {isAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteCampaign(campaign.id, campaign.name);
-                        }}
-                        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-                
-                <CardHeader className="pb-3">
-                  <CardTitle className="group-hover:text-primary transition-colors text-xl">
-                    {campaign.name}
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {campaign.description || "No description"}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+                  
+                  {/* Card Footer */}
+                  <CardContent className="p-4 pt-3">
+                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+                      {campaign.description || (
+                        <span className="italic text-muted-foreground/60">Click to add assets and details</span>
+                      )}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         ) : (
-          <Card>
+          <Card 
+            className="border-0 bg-white/60 backdrop-blur-sm"
+            style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+          >
             <CardContent className="flex flex-col items-center justify-center py-16">
-              <Folder className="h-16 w-16 text-muted-foreground mb-4" />
+              <div 
+                className="h-20 w-20 rounded-2xl flex items-center justify-center mb-6"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.2), hsl(var(--brand-blue-gray) / 0.2))',
+                }}
+              >
+                <Folder className="h-10 w-10 text-muted-foreground" />
+              </div>
               <p className="text-xl font-semibold text-foreground mb-2">No campaigns found</p>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-6">
                 {searchQuery || statusFilter !== "all" 
                   ? "Try adjusting your filters" 
                   : "Create your first campaign to get started"}
               </p>
               {isAdmin && !searchQuery && statusFilter === "all" && (
-                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Button 
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))',
+                    boxShadow: '0 4px 15px hsl(var(--brand-rose-gold) / 0.4)'
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Create Campaign
                 </Button>

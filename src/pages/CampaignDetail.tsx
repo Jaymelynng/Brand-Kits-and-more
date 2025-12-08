@@ -496,7 +496,7 @@ const CampaignDetail = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="flex h-screen w-full bg-gradient-to-br from-slate-50 via-white to-rose-50/30">
       {/* Sidebar */}
       <div className="w-64 flex-shrink-0">
         <AssetSidebar
@@ -513,25 +513,39 @@ const CampaignDetail = () => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="container mx-auto px-6 py-8">
-          {/* Header */}
-          <div className="mb-6">
+        {/* Hero Header */}
+        <div 
+          className="relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-blue-gray)) 100%)',
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-5 right-20 w-32 h-32 bg-white/20 rounded-full blur-3xl" />
+            <div className="absolute bottom-5 left-20 w-24 h-24 bg-white/15 rounded-full blur-2xl" />
+          </div>
+          
+          <div className="container mx-auto px-6 py-6 relative z-10">
             <Button 
               variant="ghost" 
               onClick={() => navigate('/campaigns')}
-              className="mb-4"
+              className="mb-3 text-white/80 hover:text-white hover:bg-white/10"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Campaigns
             </Button>
             
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex items-start justify-between">
               <div>
-                <h1 className="text-4xl font-bold text-foreground mb-2">{campaign.name}</h1>
+                <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">{campaign.name}</h1>
                 {campaign.description && (
-                  <p className="text-muted-foreground mb-4">{campaign.description}</p>
+                  <p className="text-white/80 mb-3">{campaign.description}</p>
                 )}
-                <Badge className={getStatusColor(campaign.status)}>
+                <Badge 
+                  className="bg-white/20 text-white border-white/30 backdrop-blur-sm"
+                  style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                >
                   {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
                 </Badge>
               </div>
@@ -545,33 +559,39 @@ const CampaignDetail = () => {
                 <Button 
                   onClick={selectedAssets.size > 0 ? downloadSelected : downloadAllAssets} 
                   disabled={downloading || (!campaignAssets || campaignAssets.length === 0)}
+                  className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
+                  style={{
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3)'
+                  }}
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  {downloading ? "Downloading..." : selectedAssets.size > 0 ? `Download Selected (${selectedAssets.size})` : "Download All"}
+                  {downloading ? "Downloading..." : selectedAssets.size > 0 ? `Download (${selectedAssets.size})` : "Download All"}
                 </Button>
               </div>
             </div>
-
-            {/* Status Cards */}
-            <AssetStatusCards
-              total={assetCounts.all}
-              videos={assetCounts.videos}
-              images={assetCounts.images}
-              documents={assetCounts.documents}
-              onFilterClick={setFileTypeFilter}
-            />
-
-            {/* Filter Bar */}
-            <AssetFilterBar
-              groupBy={groupBy}
-              setGroupBy={setGroupBy}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedCount={selectedAssets.size}
-              onSelectAll={selectAllAssets}
-              onClearSelection={clearSelection}
-            />
           </div>
+        </div>
+
+        <div className="container mx-auto px-6 py-6">
+          {/* Status Cards */}
+          <AssetStatusCards
+            total={assetCounts.all}
+            videos={assetCounts.videos}
+            images={assetCounts.images}
+            documents={assetCounts.documents}
+            onFilterClick={setFileTypeFilter}
+          />
+
+          {/* Filter Bar */}
+          <AssetFilterBar
+            groupBy={groupBy}
+            setGroupBy={setGroupBy}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedCount={selectedAssets.size}
+            onSelectAll={selectAllAssets}
+            onClearSelection={clearSelection}
+          />
 
           {/* Asset Grid */}
           {Object.keys(groupedAssets).length === 0 ? (
