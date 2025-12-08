@@ -187,13 +187,11 @@ export const GymNavigation = ({
             const primaryColor = gym.colors[0]?.color_hex || '#667eea';
 
             return (
-              <button
+              <div
                 key={gym.id}
-                onClick={() => navigate(`/gym/${gym.code}`)}
                 className={cn(
                   "flex flex-col items-center gap-1.5 px-4 py-2",
                   "rounded-xl border-2 transition-all duration-300",
-                  "hover:scale-105 group",
                   "backdrop-blur-sm"
                 )}
                 style={{
@@ -204,17 +202,23 @@ export const GymNavigation = ({
                     : '0 3px 10px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.08)'
                 }}
               >
-                <span className="text-xs font-bold tracking-wider" style={{ color: primaryColor }}>
+                {/* Gym code - click to navigate to profile */}
+                <button
+                  onClick={() => navigate(`/gym/${gym.code}`)}
+                  className="text-xs font-bold tracking-wider hover:underline hover:scale-105 transition-all"
+                  style={{ color: primaryColor }}
+                >
                   {gym.code}
-                </span>
+                </button>
 
+                {/* Diamond - click to toggle selection */}
                 <DiamondSelector
                   gymCode={gym.code}
                   isSelected={isSelected}
                   primaryColor={primaryColor}
                   onToggle={() => onToggleGymSelection(gym.code)}
                 />
-              </button>
+              </div>
             );
           })}
         </div>
