@@ -83,6 +83,23 @@ export const GymNavigation = ({
             {isPerfectState ? '✓ All Selected' : 'Select All'}
           </Button>
 
+          {/* Clear */}
+          <Button
+            onClick={onDeselectAllGyms}
+            size="sm"
+            disabled={selectedCount === 0}
+            className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
+            style={{
+              borderColor: '#94a3b8',
+              color: '#1e3a5f',
+              background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
+              opacity: selectedCount === 0 ? 0.5 : 1,
+            }}
+          >
+            Clear
+          </Button>
+
           {/* Copy - copies selected, or all if none selected */}
           <Button
             onClick={selectedCount > 0 ? onCopySelected : onCopyAll}
