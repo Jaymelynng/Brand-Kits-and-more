@@ -83,16 +83,16 @@ export function AssetFilterBar({
 
       {/* Selection Actions */}
       <div className="flex items-center gap-2">
-        {selectedCount === 0 ? (
-          <Button 
-            variant="outline" 
-            onClick={onSelectAll}
-            className="bg-white/80 border-white/50 shadow-sm hover:bg-white"
-          >
-            <CheckSquare className="h-4 w-4 mr-2" />
-            Select All
-          </Button>
-        ) : (
+        <Button 
+          variant="outline" 
+          onClick={onSelectAll}
+          className="bg-white/80 border-white/50 shadow-sm hover:bg-white"
+        >
+          <CheckSquare className="h-4 w-4 mr-2" />
+          Select All
+        </Button>
+        
+        {selectedCount > 0 && (
           <Button 
             onClick={onClearSelection}
             style={{
