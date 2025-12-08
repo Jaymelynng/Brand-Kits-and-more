@@ -65,75 +65,38 @@ export const GymNavigation = ({
           background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.25), hsl(var(--brand-rose-gold) / 0.15))',
           border: '1px solid hsl(var(--brand-rose-gold) / 0.3)'
         }}>
-          {/* Selection Group */}
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={onSelectAllGyms}
-              size="sm"
-              disabled={isPerfectState}
-              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
-              style={{
-                borderColor: isPerfectState ? '#16a34a' : '#1e3a5f',
-                color: 'white',
-                background: isPerfectState 
-                  ? 'linear-gradient(135deg, #22c55e, #16a34a)' 
-                  : 'linear-gradient(135deg, #2d4a6f, #1e3a5f)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
-              }}
-            >
-              {isPerfectState ? '✓ All Selected' : 'Select All'}
-            </Button>
+          {/* Select All */}
+          <Button
+            onClick={onSelectAllGyms}
+            size="sm"
+            disabled={isPerfectState}
+            className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
+            style={{
+              borderColor: isPerfectState ? '#16a34a' : '#1e3a5f',
+              color: 'white',
+              background: isPerfectState 
+                ? 'linear-gradient(135deg, #22c55e, #16a34a)' 
+                : 'linear-gradient(135deg, #2d4a6f, #1e3a5f)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+            }}
+          >
+            {isPerfectState ? '✓ All Selected' : 'Select All'}
+          </Button>
 
-            <Button
-              onClick={onDeselectAllGyms}
-              size="sm"
-              disabled={selectedCount === 0}
-              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
-              style={{
-                borderColor: '#94a3b8',
-                color: '#1e3a5f',
-                background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
-              }}
-            >
-              Clear All
-            </Button>
-          </div>
-
-          {/* Separator */}
-          <div className="h-8 w-px bg-slate-400" />
-
-          {/* Copy Group */}
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={onCopySelected}
-              size="sm"
-              disabled={selectedCount === 0}
-              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
-              style={{
-                borderColor: '#c9a88c',
-                color: '#1e3a5f',
-                background: 'linear-gradient(135deg, #f5e6db, #e8d4c4)',
-                boxShadow: '0 4px 12px rgba(180,143,143,0.35), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6)',
-              }}
-            >
-              Copy Selected ({selectedCount})
-            </Button>
-
-            <Button
-              onClick={onCopyAll}
-              size="sm"
-              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
-              style={{
-                borderColor: '#a07070',
-                color: 'white',
-                background: 'linear-gradient(135deg, #c9a88c, #b48f8f)',
-                boxShadow: '0 4px 14px rgba(180,143,143,0.5), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)',
-              }}
-            >
-              Copy All
-            </Button>
-          </div>
+          {/* Copy - copies selected, or all if none selected */}
+          <Button
+            onClick={selectedCount > 0 ? onCopySelected : onCopyAll}
+            size="sm"
+            className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
+            style={{
+              borderColor: '#a07070',
+              color: 'white',
+              background: 'linear-gradient(135deg, #c9a88c, #b48f8f)',
+              boxShadow: '0 4px 14px rgba(180,143,143,0.5), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)',
+            }}
+          >
+            Copy {selectedCount > 0 ? `(${selectedCount})` : 'All'}
+          </Button>
 
           {/* Separator */}
           <div className="h-8 w-px" style={{ background: 'hsl(var(--brand-rose-gold) / 0.4)' }} />
