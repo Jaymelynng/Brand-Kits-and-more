@@ -243,10 +243,7 @@ const CampaignDetail = () => {
 
   const selectAllAssets = () => {
     const allAssetIds = new Set<string>();
-    adminAssets.forEach(asset => allAssetIds.add(asset.id));
-    Object.values(taggedAssetsByGym).forEach((gymData: any) => {
-      gymData.campaignAssets.forEach((asset: any) => allAssetIds.add(asset.id));
-    });
+    filteredAssets.forEach(asset => allAssetIds.add(asset.id));
     setSelectedAssets(allAssetIds);
   };
 
