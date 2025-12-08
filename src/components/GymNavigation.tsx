@@ -70,12 +70,14 @@ export const GymNavigation = ({
             disabled={isPerfectState}
             className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             style={{
-              borderColor: isPerfectState ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy) / 0.3)',
-              color: isPerfectState ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy))',
+              borderColor: isPerfectState ? '#22c55e' : 'hsl(var(--brand-navy))',
+              color: isPerfectState ? 'white' : 'hsl(var(--brand-navy))',
               background: isPerfectState 
-                ? 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.2), hsl(var(--brand-rose-gold) / 0.1))' 
-                : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+                ? 'linear-gradient(135deg, #22c55e, #16a34a)' 
+                : 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+              boxShadow: isPerfectState
+                ? '0 6px 20px rgba(34,197,94,0.4), 0 3px 8px rgba(0,0,0,0.15), inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.1)'
+                : '0 6px 16px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.05)',
             }}
           >
             {isPerfectState ? '✓ All Selected' : 'Select All'}
@@ -88,10 +90,10 @@ export const GymNavigation = ({
             disabled={selectedCount === 0}
             className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             style={{
-              borderColor: 'hsl(var(--brand-navy) / 0.3)',
-              color: 'hsl(var(--brand-navy))',
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
-              boxShadow: '0 3px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+              borderColor: '#64748b',
+              color: '#334155',
+              background: 'linear-gradient(135deg, #f1f5f9, #cbd5e1)',
+              boxShadow: '0 6px 16px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.05)',
             }}
           >
             Clear All
@@ -104,10 +106,10 @@ export const GymNavigation = ({
             disabled={selectedCount === 0}
             className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             style={{
-              borderColor: 'hsl(var(--brand-rose-gold) / 0.5)',
-              color: 'hsl(var(--brand-rose-gold))',
-              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.1), hsl(var(--brand-rose-gold) / 0.05))',
-              boxShadow: '0 3px 8px rgba(180,143,143,0.25), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+              borderColor: '#b48f8f',
+              color: '#7c5c5c',
+              background: 'linear-gradient(135deg, #f5e6e6, #e8d4d4)',
+              boxShadow: '0 6px 16px rgba(180,143,143,0.35), 0 3px 6px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.05)',
             }}
           >
             Copy Selected ({selectedCount})
@@ -119,10 +121,10 @@ export const GymNavigation = ({
             variant="outline"
             className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             style={{
-              borderColor: 'hsl(var(--brand-rose-gold))',
+              borderColor: '#9f7070',
               color: 'white',
-              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold) / 0.8))',
-              boxShadow: '0 4px 12px rgba(180,143,143,0.4), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)',
+              background: 'linear-gradient(135deg, #b48f8f, #9f7070)',
+              boxShadow: '0 6px 20px rgba(180,143,143,0.5), 0 3px 8px rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.15)',
             }}
           >
             Copy All
@@ -138,10 +140,10 @@ export const GymNavigation = ({
             onClick={() => navigate('/campaigns')}
             className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             style={{ 
-              borderColor: 'hsl(var(--brand-rose-gold))',
-              color: 'hsl(var(--brand-rose-gold))',
-              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.12), hsl(var(--brand-rose-gold) / 0.05))',
-              boxShadow: '0 3px 8px rgba(180,143,143,0.25), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+              borderColor: '#6366f1',
+              color: 'white',
+              background: 'linear-gradient(135deg, #818cf8, #6366f1)',
+              boxShadow: '0 6px 20px rgba(99,102,241,0.4), 0 3px 8px rgba(0,0,0,0.15), inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.1)',
             }}
           >
             <Folder className="w-4 h-4 mr-2" />
