@@ -15,14 +15,15 @@ export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = 
           "w-6 h-6 transform rotate-45 cursor-pointer transition-all duration-300",
           "relative overflow-hidden",
           "hover:scale-110 hover:-rotate-12",
-          "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/30 before:via-transparent before:to-transparent",
-          isSelected && "shadow-2xl scale-110"
+          "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/40 before:via-transparent before:to-transparent",
+          isSelected && "scale-110"
         )}
         style={{
           backgroundColor: primaryColor,
           boxShadow: isSelected 
-            ? `0 0 10px ${primaryColor}60, 0 0 20px ${primaryColor}30, inset 0 0 10px rgba(255,255,255,0.3)` 
-            : `0 4px 8px ${primaryColor}30, inset 0 0 8px rgba(255,255,255,0.2)`,
+            ? `0 6px 20px ${primaryColor}70, 0 3px 8px rgba(0,0,0,0.3), 0 0 30px ${primaryColor}40, inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.2)` 
+            : `0 4px 12px ${primaryColor}50, 0 2px 6px rgba(0,0,0,0.25), inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -2px 3px rgba(0,0,0,0.15)`,
+          border: `1px solid ${primaryColor}`,
         }}
         onClick={onToggle}
         data-gym={gymCode}
