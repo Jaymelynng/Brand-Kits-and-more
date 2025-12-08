@@ -122,7 +122,7 @@ const CampaignDetail = () => {
     
     if (groupBy === 'gym') {
       return filteredAssets.reduce((acc, asset) => {
-        const key = asset.gym?.name || 'Admin Resources';
+        const key = asset.gym?.name || 'Unassigned';
         if (!acc[key]) acc[key] = [];
         acc[key].push(asset);
         return acc;
@@ -434,9 +434,9 @@ const CampaignDetail = () => {
     try {
       const zip = new JSZip();
       
-      // Add admin resources
+      // Add unassigned assets
       if (adminAssets.length > 0) {
-        const adminFolder = zip.folder('Admin_Resources');
+        const adminFolder = zip.folder('Unassigned');
         for (const asset of adminAssets) {
           const response = await fetch(asset.file_url);
           const blob = await response.blob();
