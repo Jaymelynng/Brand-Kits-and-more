@@ -70,16 +70,15 @@ export const GymNavigation = ({
             <Button
               onClick={onSelectAllGyms}
               size="sm"
-              variant="outline"
               disabled={isPerfectState}
-              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
               style={{
-                borderColor: isPerfectState ? 'hsl(142 76% 36%)' : 'hsl(var(--brand-navy) / 0.3)',
-                color: isPerfectState ? 'white' : 'hsl(var(--brand-navy))',
+                borderColor: isPerfectState ? '#16a34a' : '#1e3a5f',
+                color: 'white',
                 background: isPerfectState 
-                  ? 'linear-gradient(135deg, hsl(142 76% 46%), hsl(142 76% 36%))' 
-                  : 'linear-gradient(135deg, white, hsl(var(--brand-blue-gray) / 0.1))',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)',
+                  ? 'linear-gradient(135deg, #22c55e, #16a34a)' 
+                  : 'linear-gradient(135deg, #2d4a6f, #1e3a5f)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
               }}
             >
               {isPerfectState ? '✓ All Selected' : 'Select All'}
@@ -88,14 +87,13 @@ export const GymNavigation = ({
             <Button
               onClick={onDeselectAllGyms}
               size="sm"
-              variant="outline"
               disabled={selectedCount === 0}
-              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
               style={{
-                borderColor: 'hsl(var(--brand-navy) / 0.2)',
-                color: 'hsl(var(--brand-navy) / 0.8)',
-                background: 'linear-gradient(135deg, white, hsl(var(--brand-blue-gray) / 0.08))',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+                borderColor: '#94a3b8',
+                color: '#1e3a5f',
+                background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
               }}
             >
               Clear All
@@ -103,21 +101,20 @@ export const GymNavigation = ({
           </div>
 
           {/* Separator */}
-          <div className="h-8 w-px" style={{ background: 'hsl(var(--brand-rose-gold) / 0.4)' }} />
+          <div className="h-8 w-px bg-slate-400" />
 
           {/* Copy Group */}
           <div className="flex items-center gap-3">
             <Button
               onClick={onCopySelected}
               size="sm"
-              variant="outline"
               disabled={selectedCount === 0}
-              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
               style={{
-                borderColor: 'hsl(var(--brand-rose-gold) / 0.5)',
-                color: 'hsl(var(--brand-navy))',
-                background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.15), hsl(var(--brand-rose-gold) / 0.25))',
-                boxShadow: '0 4px 12px hsl(var(--brand-rose-gold) / 0.2), inset 0 1px 0 rgba(255,255,255,0.5)',
+                borderColor: '#c9a88c',
+                color: '#1e3a5f',
+                background: 'linear-gradient(135deg, #f5e6db, #e8d4c4)',
+                boxShadow: '0 4px 12px rgba(180,143,143,0.35), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6)',
               }}
             >
               Copy Selected ({selectedCount})
@@ -126,13 +123,12 @@ export const GymNavigation = ({
             <Button
               onClick={onCopyAll}
               size="sm"
-              variant="outline"
-              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
               style={{
-                borderColor: 'hsl(var(--brand-rose-gold))',
+                borderColor: '#a07070',
                 color: 'white',
-                background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(10 30% 55%))',
-                boxShadow: '0 4px 14px hsl(var(--brand-rose-gold) / 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                background: 'linear-gradient(135deg, #c9a88c, #b48f8f)',
+                boxShadow: '0 4px 14px rgba(180,143,143,0.5), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)',
               }}
             >
               Copy All
@@ -145,15 +141,14 @@ export const GymNavigation = ({
           {/* Navigation Group */}
           <div className="flex items-center gap-3">
             <Button
-              variant="outline"
               size="sm"
               onClick={() => navigate('/campaigns')}
-              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
               style={{ 
-                borderColor: 'hsl(var(--brand-navy))',
+                borderColor: '#1e3a5f',
                 color: 'white',
-                background: 'linear-gradient(135deg, hsl(var(--brand-navy) / 0.85), hsl(var(--brand-navy)))',
-                boxShadow: '0 4px 14px hsl(var(--brand-navy) / 0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
+                background: 'linear-gradient(135deg, #2d4a6f, #1e3a5f)',
+                boxShadow: '0 4px 14px rgba(30,58,95,0.4), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.15)',
               }}
             >
               <Folder className="w-4 h-4 mr-2" />
