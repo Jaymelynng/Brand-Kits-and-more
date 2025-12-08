@@ -68,11 +68,14 @@ export const GymNavigation = ({
             size="sm"
             variant="outline"
             disabled={isPerfectState}
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             style={{
-              borderColor: isPerfectState ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy) / 0.2)',
+              borderColor: isPerfectState ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy) / 0.3)',
               color: isPerfectState ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy))',
-              background: isPerfectState ? 'hsl(var(--brand-rose-gold) / 0.1)' : 'transparent',
+              background: isPerfectState 
+                ? 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.2), hsl(var(--brand-rose-gold) / 0.1))' 
+                : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
             }}
           >
             {isPerfectState ? '✓ All Selected' : 'Select All'}
@@ -83,10 +86,12 @@ export const GymNavigation = ({
             size="sm"
             variant="outline"
             disabled={selectedCount === 0}
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             style={{
-              borderColor: 'hsl(var(--brand-navy) / 0.2)',
+              borderColor: 'hsl(var(--brand-navy) / 0.3)',
               color: 'hsl(var(--brand-navy))',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
             }}
           >
             Clear All
@@ -97,10 +102,12 @@ export const GymNavigation = ({
             size="sm"
             variant="outline"
             disabled={selectedCount === 0}
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             style={{
-              borderColor: 'hsl(var(--brand-rose-gold) / 0.3)',
+              borderColor: 'hsl(var(--brand-rose-gold) / 0.5)',
               color: 'hsl(var(--brand-rose-gold))',
+              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.1), hsl(var(--brand-rose-gold) / 0.05))',
+              boxShadow: '0 3px 8px rgba(180,143,143,0.25), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
             }}
           >
             Copy Selected ({selectedCount})
@@ -110,10 +117,12 @@ export const GymNavigation = ({
             onClick={onCopyAll}
             size="sm"
             variant="outline"
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
             style={{
               borderColor: 'hsl(var(--brand-rose-gold))',
-              color: 'hsl(var(--brand-rose-gold))',
+              color: 'white',
+              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold) / 0.8))',
+              boxShadow: '0 4px 12px rgba(180,143,143,0.4), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)',
             }}
           >
             Copy All
@@ -127,8 +136,13 @@ export const GymNavigation = ({
             variant="outline"
             size="sm"
             onClick={() => navigate('/campaigns')}
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
-            style={{ borderColor: 'hsl(var(--brand-rose-gold))' }}
+            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+            style={{ 
+              borderColor: 'hsl(var(--brand-rose-gold))',
+              color: 'hsl(var(--brand-rose-gold))',
+              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.12), hsl(var(--brand-rose-gold) / 0.05))',
+              boxShadow: '0 3px 8px rgba(180,143,143,0.25), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+            }}
           >
             <Folder className="w-4 h-4 mr-2" />
             Campaigns
@@ -141,7 +155,13 @@ export const GymNavigation = ({
               variant="outline"
               size="sm"
               onClick={onSignOut}
-              className="px-4 py-1.5 transition-all duration-300 hover:scale-105"
+              className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
+              style={{
+                borderColor: 'hsl(var(--brand-navy) / 0.3)',
+                color: 'hsl(var(--brand-navy))',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
+                boxShadow: '0 3px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+              }}
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
