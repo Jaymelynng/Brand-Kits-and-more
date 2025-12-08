@@ -10,20 +10,31 @@ interface DiamondSelectorProps {
 export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = "#667eea" }: DiamondSelectorProps) => {
   return (
     <div className="relative group">
+      {/* Glowing ring behind diamond when selected */}
+      {isSelected && (
+        <div
+          className="absolute inset-[-6px] transform rotate-45 rounded-sm animate-pulse"
+          style={{
+            background: `radial-gradient(circle, ${primaryColor}60 0%, transparent 70%)`,
+            boxShadow: `0 0 20px ${primaryColor}80, 0 0 40px ${primaryColor}50, 0 0 60px ${primaryColor}30`,
+          }}
+        />
+      )}
+      
       <div
         className={cn(
           "w-6 h-6 transform rotate-45 cursor-pointer transition-all duration-300",
           "relative overflow-hidden",
           "hover:scale-110 hover:-rotate-12",
           "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/40 before:via-transparent before:to-transparent",
-          isSelected && "scale-110"
+          isSelected && "scale-125"
         )}
         style={{
           backgroundColor: primaryColor,
           boxShadow: isSelected 
-            ? `0 6px 20px ${primaryColor}70, 0 3px 8px rgba(0,0,0,0.3), 0 0 30px ${primaryColor}40, inset 0 2px 4px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(0,0,0,0.2)` 
+            ? `0 6px 25px ${primaryColor}90, 0 3px 10px rgba(0,0,0,0.4), 0 0 40px ${primaryColor}60, inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2)` 
             : `0 4px 12px ${primaryColor}50, 0 2px 6px rgba(0,0,0,0.25), inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -2px 3px rgba(0,0,0,0.15)`,
-          border: `1px solid ${primaryColor}`,
+          border: isSelected ? `2px solid white` : `1px solid ${primaryColor}`,
         }}
         onClick={onToggle}
         data-gym={gymCode}
@@ -38,6 +49,13 @@ export const DiamondSelector = ({ gymCode, isSelected, onToggle, primaryColor = 
         
         {/* Central highlight */}
         <div className="absolute inset-1 bg-gradient-to-br from-white/25 to-transparent rounded-sm" />
+        
+        {/* Checkmark for selected state */}
+        {isSelected && (
+          <div className="absolute inset-0 flex items-center justify-center -rotate-45">
+            <span className="text-white text-xs font-bold drop-shadow-lg">✓</span>
+          </div>
+        )}
       </div>
     </div>
   );
