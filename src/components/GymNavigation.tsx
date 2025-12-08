@@ -189,7 +189,7 @@ export const GymNavigation = ({
             return (
               <button
                 key={gym.id}
-                onClick={() => navigate(`/gym/${gym.id}`)}
+                onClick={() => navigate(`/gym/${gym.code}`)}
                 className={cn(
                   "flex flex-col items-center gap-1.5 px-4 py-2",
                   "rounded-xl border-2 transition-all duration-300",
