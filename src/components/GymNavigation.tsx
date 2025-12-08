@@ -60,119 +60,133 @@ export const GymNavigation = ({
         background: `linear-gradient(to bottom, hsl(var(--brand-rose-gold) / 0.15), hsl(var(--brand-blue-gray) / 0.1))`,
         borderBottom: '2px solid hsl(var(--brand-rose-gold) / 0.35)'
       }}>
-        {/* Single Action Bar with All Buttons */}
-        <div className="flex items-center justify-center gap-2 flex-wrap mb-1" style={{ backgroundColor: '#b48f8f' }}>
-          {/* Selection Actions */}
-          <Button
-            onClick={onSelectAllGyms}
-            size="sm"
-            variant="outline"
-            disabled={isPerfectState}
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
-            style={{
-              borderColor: isPerfectState ? '#22c55e' : 'hsl(var(--brand-navy))',
-              color: isPerfectState ? 'white' : 'hsl(var(--brand-navy))',
-              background: isPerfectState 
-                ? 'linear-gradient(135deg, #22c55e, #16a34a)' 
-                : 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-              boxShadow: isPerfectState
-                ? '0 6px 20px rgba(34,197,94,0.4), 0 3px 8px rgba(0,0,0,0.15), inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.1)'
-                : '0 6px 16px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.05)',
-            }}
-          >
-            {isPerfectState ? '✓ All Selected' : 'Select All'}
-          </Button>
+        {/* Action Bar */}
+        <div className="flex items-center justify-center gap-4 flex-wrap py-3 px-6 rounded-xl mb-3" style={{ 
+          background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.25), hsl(var(--brand-rose-gold) / 0.15))',
+          border: '1px solid hsl(var(--brand-rose-gold) / 0.3)'
+        }}>
+          {/* Selection Group */}
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={onSelectAllGyms}
+              size="sm"
+              variant="outline"
+              disabled={isPerfectState}
+              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                borderColor: isPerfectState ? 'hsl(142 76% 36%)' : 'hsl(var(--brand-navy) / 0.3)',
+                color: isPerfectState ? 'white' : 'hsl(var(--brand-navy))',
+                background: isPerfectState 
+                  ? 'linear-gradient(135deg, hsl(142 76% 46%), hsl(142 76% 36%))' 
+                  : 'linear-gradient(135deg, white, hsl(var(--brand-blue-gray) / 0.1))',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)',
+              }}
+            >
+              {isPerfectState ? '✓ All Selected' : 'Select All'}
+            </Button>
 
-          <Button
-            onClick={onDeselectAllGyms}
-            size="sm"
-            variant="outline"
-            disabled={selectedCount === 0}
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
-            style={{
-              borderColor: '#64748b',
-              color: '#334155',
-              background: 'linear-gradient(135deg, #f1f5f9, #cbd5e1)',
-              boxShadow: '0 6px 16px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.05)',
-            }}
-          >
-            Clear All
-          </Button>
-
-          <Button
-            onClick={onCopySelected}
-            size="sm"
-            variant="outline"
-            disabled={selectedCount === 0}
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
-            style={{
-              borderColor: '#b48f8f',
-              color: '#7c5c5c',
-              background: 'linear-gradient(135deg, #f5e6e6, #e8d4d4)',
-              boxShadow: '0 6px 16px rgba(180,143,143,0.35), 0 3px 6px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.05)',
-            }}
-          >
-            Copy Selected ({selectedCount})
-          </Button>
-
-          <Button
-            onClick={onCopyAll}
-            size="sm"
-            variant="outline"
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
-            style={{
-              borderColor: '#9f7070',
-              color: 'white',
-              background: 'linear-gradient(135deg, #b48f8f, #9f7070)',
-              boxShadow: '0 6px 20px rgba(180,143,143,0.5), 0 3px 8px rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.15)',
-            }}
-          >
-            Copy All
-          </Button>
+            <Button
+              onClick={onDeselectAllGyms}
+              size="sm"
+              variant="outline"
+              disabled={selectedCount === 0}
+              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                borderColor: 'hsl(var(--brand-navy) / 0.2)',
+                color: 'hsl(var(--brand-navy) / 0.8)',
+                background: 'linear-gradient(135deg, white, hsl(var(--brand-blue-gray) / 0.08))',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+              }}
+            >
+              Clear All
+            </Button>
+          </div>
 
           {/* Separator */}
-          <div className="h-6 w-px bg-border mx-1" />
+          <div className="h-8 w-px" style={{ background: 'hsl(var(--brand-rose-gold) / 0.4)' }} />
 
-          {/* Navigation Actions */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/campaigns')}
-            className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
-            style={{ 
-              borderColor: '#6366f1',
-              color: 'white',
-              background: 'linear-gradient(135deg, #818cf8, #6366f1)',
-              boxShadow: '0 6px 20px rgba(99,102,241,0.4), 0 3px 8px rgba(0,0,0,0.15), inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.1)',
-            }}
-          >
-            <Folder className="w-4 h-4 mr-2" />
-            Campaigns
-          </Button>
-          
-          {isAdmin && <SecretAdminButton onClick={onAdminClick} />}
-          
-          {user && (
+          {/* Copy Group */}
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={onCopySelected}
+              size="sm"
+              variant="outline"
+              disabled={selectedCount === 0}
+              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                borderColor: 'hsl(var(--brand-rose-gold) / 0.5)',
+                color: 'hsl(var(--brand-navy))',
+                background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.15), hsl(var(--brand-rose-gold) / 0.25))',
+                boxShadow: '0 4px 12px hsl(var(--brand-rose-gold) / 0.2), inset 0 1px 0 rgba(255,255,255,0.5)',
+              }}
+            >
+              Copy Selected ({selectedCount})
+            </Button>
+
+            <Button
+              onClick={onCopyAll}
+              size="sm"
+              variant="outline"
+              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                borderColor: 'hsl(var(--brand-rose-gold))',
+                color: 'white',
+                background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(10 30% 55%))',
+                boxShadow: '0 4px 14px hsl(var(--brand-rose-gold) / 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+              }}
+            >
+              Copy All
+            </Button>
+          </div>
+
+          {/* Separator */}
+          <div className="h-8 w-px" style={{ background: 'hsl(var(--brand-rose-gold) / 0.4)' }} />
+
+          {/* Navigation Group */}
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
-              onClick={onSignOut}
-              className="px-4 py-1.5 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
-              style={{
-                borderColor: 'hsl(var(--brand-navy) / 0.3)',
-                color: 'hsl(var(--brand-navy))',
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
-                boxShadow: '0 3px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+              onClick={() => navigate('/campaigns')}
+              className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+              style={{ 
+                borderColor: 'hsl(var(--brand-navy))',
+                color: 'white',
+                background: 'linear-gradient(135deg, hsl(var(--brand-navy) / 0.85), hsl(var(--brand-navy)))',
+                boxShadow: '0 4px 14px hsl(var(--brand-navy) / 0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
               }}
             >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+              <Folder className="w-4 h-4 mr-2" />
+              Campaigns
             </Button>
-          )}
+            
+            {isAdmin && <SecretAdminButton onClick={onAdminClick} />}
+            
+            {user && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSignOut}
+                className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
+                style={{
+                  borderColor: 'hsl(var(--brand-navy) / 0.25)',
+                  color: 'hsl(var(--brand-navy))',
+                  background: 'linear-gradient(135deg, white, hsl(var(--brand-blue-gray) / 0.1))',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+                }}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Gym Navigation Grid */}
-        <div className="flex flex-nowrap gap-3 px-4 pb-2 justify-center overflow-x-auto" style={{ backgroundColor: '#b48f8f' }}>
+        <div className="flex flex-nowrap gap-5 px-6 py-3 justify-center overflow-x-auto rounded-xl" style={{ 
+          background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.12), hsl(var(--brand-rose-gold) / 0.08))',
+          border: '1px solid hsl(var(--brand-rose-gold) / 0.2)'
+        }}>
           {gyms.map((gym) => {
             const isSelected = selectedGyms.has(gym.code);
             const primaryColor = gym.colors[0]?.color_hex || '#667eea';
