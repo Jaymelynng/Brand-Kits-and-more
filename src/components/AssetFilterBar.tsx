@@ -23,7 +23,13 @@ export function AssetFilterBar({
   onClearSelection,
 }: AssetFilterBarProps) {
   return (
-    <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+    <div 
+      className="flex items-center justify-between gap-4 mb-6 flex-wrap p-3 rounded-xl"
+      style={{
+        background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.08), hsl(var(--brand-blue-gray) / 0.08))',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 8px rgba(0,0,0,0.04)'
+      }}
+    >
       {/* Search */}
       <div className="relative flex-1 min-w-[200px] max-w-md">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -31,7 +37,7 @@ export function AssetFilterBar({
           placeholder="Search by filename..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
+          className="pl-9 bg-white/80 border-white/50 shadow-sm"
         />
         {searchQuery && (
           <Button
@@ -47,9 +53,9 @@ export function AssetFilterBar({
 
       {/* Group By */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground whitespace-nowrap">Group by:</span>
+        <span className="text-sm text-muted-foreground whitespace-nowrap font-medium">Group by:</span>
         <Select value={groupBy} onValueChange={(value: any) => setGroupBy(value)}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[160px] bg-white/80 border-white/50 shadow-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -78,12 +84,23 @@ export function AssetFilterBar({
       {/* Selection Actions */}
       <div className="flex items-center gap-2">
         {selectedCount === 0 ? (
-          <Button variant="outline" onClick={onSelectAll}>
+          <Button 
+            variant="outline" 
+            onClick={onSelectAll}
+            className="bg-white/80 border-white/50 shadow-sm hover:bg-white"
+          >
             <CheckSquare className="h-4 w-4 mr-2" />
             Select All
           </Button>
         ) : (
-          <Button variant="outline" onClick={onClearSelection}>
+          <Button 
+            onClick={onClearSelection}
+            style={{
+              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))',
+              boxShadow: '0 4px 12px hsl(var(--brand-rose-gold) / 0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+            }}
+            className="text-white"
+          >
             <X className="h-4 w-4 mr-2" />
             Clear ({selectedCount})
           </Button>
