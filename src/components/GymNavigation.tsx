@@ -65,42 +65,24 @@ export const GymNavigation = ({
           background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.25), hsl(var(--brand-rose-gold) / 0.15))',
           border: '1px solid hsl(var(--brand-rose-gold) / 0.3)'
         }}>
-          {/* Select All */}
-          <Button
-            onClick={onSelectAllGyms}
-            size="sm"
-            disabled={isPerfectState}
-            className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
-            style={{
-              borderColor: isPerfectState ? '#16a34a' : '#1e3a5f',
-              color: 'white',
-              background: isPerfectState 
-                ? 'linear-gradient(135deg, #22c55e, #16a34a)' 
-                : 'linear-gradient(135deg, #2d4a6f, #1e3a5f)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
-            }}
-          >
-            {isPerfectState ? '✓ All Selected' : 'Select All'}
-          </Button>
+          {/* Clear - only show when gyms are selected */}
+          {selectedCount > 0 && (
+            <Button
+              onClick={onDeselectAllGyms}
+              size="sm"
+              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
+              style={{
+                borderColor: '#94a3b8',
+                color: '#1e3a5f',
+                background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
+              }}
+            >
+              Clear
+            </Button>
+          )}
 
-          {/* Clear */}
-          <Button
-            onClick={onDeselectAllGyms}
-            size="sm"
-            disabled={selectedCount === 0}
-            className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
-            style={{
-              borderColor: '#94a3b8',
-              color: '#1e3a5f',
-              background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
-              opacity: selectedCount === 0 ? 0.5 : 1,
-            }}
-          >
-            Clear
-          </Button>
-
-          {/* Copy - copies selected, or all if none selected */}
+          {/* Smart Copy Button - shows "Copy All" or "Copy (X)" based on selection */}
           <Button
             onClick={selectedCount > 0 ? onCopySelected : onCopyAll}
             size="sm"
@@ -112,7 +94,7 @@ export const GymNavigation = ({
               boxShadow: '0 4px 14px rgba(180,143,143,0.5), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)',
             }}
           >
-            Copy {selectedCount > 0 ? `(${selectedCount})` : 'All'}
+            {selectedCount > 0 ? `Copy (${selectedCount})` : 'Copy All'}
           </Button>
 
           {/* Separator */}
