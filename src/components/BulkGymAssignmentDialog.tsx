@@ -142,7 +142,7 @@ export function BulkGymAssignmentDialog({
             />
             <div className="flex-1">
               <div className="font-medium flex items-center gap-2">
-                Admin Resources
+                Unassigned
                 {getGymAssignmentCount('admin') > 0 && (
                   <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
                     {getGymAssignmentCount('admin')}
