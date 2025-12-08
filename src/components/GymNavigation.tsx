@@ -61,7 +61,7 @@ export const GymNavigation = ({
         borderBottom: '2px solid hsl(var(--brand-rose-gold) / 0.35)'
       }}>
         {/* Single Action Bar with All Buttons */}
-        <div className="flex items-center justify-center gap-2 flex-wrap mb-1">
+        <div className="flex items-center justify-center gap-2 flex-wrap mb-1" style={{ backgroundColor: '#b48f8f' }}>
           {/* Selection Actions */}
           <Button
             onClick={onSelectAllGyms}
