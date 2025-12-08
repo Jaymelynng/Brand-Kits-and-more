@@ -144,10 +144,7 @@ const Campaigns = () => {
             </div>
             <Button 
               onClick={() => navigate('/')} 
-              className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm shadow-lg"
-              style={{
-                boxShadow: '0 4px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3)'
-              }}
+              className="bg-white text-gray-800 hover:bg-white/90 shadow-md"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Gyms
