@@ -19,6 +19,8 @@ import { AssetRenamer } from "@/components/AssetRenamer";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HeroVideoBackground } from "@/components/HeroVideoBackground";
 import { AssetPreview } from "@/components/AssetPreview";
+import { AssetDetailModal } from "@/components/AssetDetailModal";
+import { AssetShareModal } from "@/components/AssetShareModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const GymProfile = () => {
@@ -48,6 +50,8 @@ const GymProfile = () => {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedLogos, setSelectedLogos] = useState<Set<string>>(new Set());
   const [showRenamer, setShowRenamer] = useState(false);
+  const [detailAsset, setDetailAsset] = useState<GymCampaignAsset | null>(null);
+  const [sharingAsset, setSharingAsset] = useState<GymCampaignAsset | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -1864,7 +1868,8 @@ const GymProfile = () => {
                         {assets.map((asset) => (
                           <div
                             key={asset.id}
-                            className="group relative rounded-lg overflow-hidden border border-border/50 bg-card shadow-md hover:shadow-lg transition-all duration-200"
+                            className="group relative rounded-lg overflow-hidden border border-border/50 bg-card shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
+                            onClick={() => setDetailAsset(asset)}
                           >
                             <div className="aspect-square">
                               <AssetPreview
@@ -1886,7 +1891,8 @@ const GymProfile = () => {
                                 size="icon"
                                 variant="secondary"
                                 className="h-8 w-8"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   const link = document.createElement('a');
                                   link.href = asset.file_url;
                                   link.download = asset.filename;
@@ -1899,14 +1905,15 @@ const GymProfile = () => {
                                 size="icon"
                                 variant="secondary"
                                 className="h-8 w-8"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   navigator.clipboard.writeText(asset.file_url);
                                   toast({ description: "URL copied!" });
                                 }}
                               >
                                 <Copy className="w-4 h-4" />
                               </Button>
-                              <Link to={`/campaigns/${asset.campaign?.name || ''}`}>
+                              <Link to={`/campaigns/${asset.campaign?.name || ''}`} onClick={(e) => e.stopPropagation()}>
                                 <Button size="icon" variant="secondary" className="h-8 w-8">
                                   <ExternalLink className="w-4 h-4" />
                                 </Button>
@@ -1922,6 +1929,29 @@ const GymProfile = () => {
             </BrandCardContent>
           </BrandCard>
         </div>
+      )}
+
+      {/* Campaign Asset Detail Modal */}
+      <AssetDetailModal
+        asset={detailAsset}
+        onClose={() => setDetailAsset(null)}
+        onEdit={() => setDetailAsset(null)}
+        onShare={() => {
+          if (detailAsset) {
+            setSharingAsset(detailAsset);
+            setDetailAsset(null);
+          }
+        }}
+        onDelete={() => setDetailAsset(null)}
+      />
+
+      {/* Campaign Asset Share Modal */}
+      {sharingAsset && (
+        <AssetShareModal
+          asset={sharingAsset}
+          open={!!sharingAsset}
+          onOpenChange={(open) => !open && setSharingAsset(null)}
+        />
       )}
 
       {/* Asset Renamer Modal */}
