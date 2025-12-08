@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useCampaign } from "@/hooks/useCampaigns";
+import { useCampaign, useUpdateCampaign } from "@/hooks/useCampaigns";
 import { useGyms } from "@/hooks/useGyms";
 import { useCampaignAssets } from "@/hooks/useCampaignAssets";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +49,16 @@ const CampaignDetail = () => {
   const [groupBy, setGroupBy] = useState<'gym' | 'type' | 'none'>('none');
   const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
+  const updateCampaign = useUpdateCampaign();
+
+  const handleSetAsThumbnail = (asset: CampaignAsset) => {
+    if (!data?.campaign?.id) return;
+    updateCampaign.mutate({
+      id: data.campaign.id,
+      updates: { thumbnail_url: asset.file_url }
+    });
+    setDetailAsset(null);
+  };
 
   // Calculate asset counts - MUST be before any conditional returns
   const assetCounts = useMemo(() => {
@@ -1047,6 +1057,9 @@ const CampaignDetail = () => {
                 }
               }
             }}
+            campaignId={data?.campaign?.id}
+            onSetAsThumbnail={() => detailAsset && handleSetAsThumbnail(detailAsset)}
+            isCurrentThumbnail={detailAsset?.file_url === data?.campaign?.thumbnail_url}
           />
 
           {/* Bulk Gym Assignment Dialog */}
