@@ -68,3 +68,31 @@ export function useDeleteCampaignAsset() {
     },
   });
 }
+
+export interface GymCampaignAsset extends CampaignAsset {
+  campaign?: {
+    id: string;
+    name: string;
+    status: string;
+  };
+}
+
+export function useGymCampaignAssets(gymId: string) {
+  return useQuery({
+    queryKey: ['gym-campaign-assets', gymId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('campaign_assets')
+        .select(`
+          *,
+          campaign:campaigns(id, name, status)
+        `)
+        .eq('gym_id', gymId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as GymCampaignAsset[];
+    },
+    enabled: !!gymId,
+  });
+}
