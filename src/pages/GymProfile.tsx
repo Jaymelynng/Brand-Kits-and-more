@@ -104,7 +104,7 @@ const GymProfile = () => {
     setShowRenamer(true);
   };
 
-  const gym = gyms.find(g => g.code === gymCode);
+  const gym = gyms.find(g => g.code === gymCode || g.id === gymCode);
 
   const showCopyFeedback = (key: string, message: string) => {
     setCopiedStates(prev => ({ ...prev, [key]: true }));
