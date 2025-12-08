@@ -188,8 +188,8 @@ export const GymNavigation = ({
                 style={{
                   borderColor: isSelected ? primaryColor : 'hsl(var(--brand-rose-gold) / 0.4)',
                   background: isSelected 
-                    ? `linear-gradient(135deg, ${primaryColor}20, ${primaryColor}10)` 
-                    : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))',
+                    ? `linear-gradient(135deg, white, ${primaryColor}12)` 
+                    : 'white',
                   boxShadow: isSelected 
                     ? `0 4px 15px ${primaryColor}35, 0 2px 6px rgba(0,0,0,0.12)` 
                     : '0 3px 10px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.08)'
