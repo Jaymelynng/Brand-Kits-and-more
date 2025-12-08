@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { AssetPreview } from "@/components/AssetPreview";
 import { CampaignAsset } from "@/hooks/useCampaignAssets";
-import { Download, Link2, Share2, Edit, Trash2 } from "lucide-react";
+import { Download, Link2, Share2, Edit, Trash2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 interface AssetDetailModalProps {
@@ -11,6 +11,9 @@ interface AssetDetailModalProps {
   onEdit: () => void;
   onShare: () => void;
   onDelete: () => void;
+  campaignId?: string;
+  onSetAsThumbnail?: () => void;
+  isCurrentThumbnail?: boolean;
 }
 
 const formatFileSize = (bytes: number | null): string => {
@@ -25,7 +28,10 @@ export function AssetDetailModal({
   onClose, 
   onEdit, 
   onShare, 
-  onDelete 
+  onDelete,
+  campaignId,
+  onSetAsThumbnail,
+  isCurrentThumbnail
 }: AssetDetailModalProps) {
   if (!asset) return null;
 
@@ -33,6 +39,8 @@ export function AssetDetailModal({
     navigator.clipboard.writeText(asset.file_url);
     toast.success("URL copied to clipboard!");
   };
+
+  const isImage = asset.file_type.startsWith('image/');
 
   return (
     <Dialog open={!!asset} onOpenChange={onClose}>
@@ -75,6 +83,18 @@ export function AssetDetailModal({
             </div>
             
             <div className="flex flex-col gap-2 mt-auto">
+              {/* Set as Thumbnail button - only for images */}
+              {isImage && campaignId && onSetAsThumbnail && (
+                <Button 
+                  onClick={onSetAsThumbnail} 
+                  variant={isCurrentThumbnail ? "secondary" : "outline"}
+                  disabled={isCurrentThumbnail}
+                  className={isCurrentThumbnail ? "bg-green-100 border-green-300 text-green-700" : ""}
+                >
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  {isCurrentThumbnail ? "Current Thumbnail" : "Set as Thumbnail"}
+                </Button>
+              )}
               <Button onClick={onEdit} variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Details
