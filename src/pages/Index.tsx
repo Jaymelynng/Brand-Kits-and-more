@@ -234,27 +234,17 @@ const Index = () => {
                 Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
               </p>
               
-              {/* Admin Access Button - visible when logged in but not admin */}
-              {user && !isAdmin && (
+              {/* Admin Access Button - always visible, handles login redirect */}
+              {!isAdmin && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="mt-4 text-xs opacity-60 hover:opacity-100 transition-opacity"
-                  onClick={async () => {
-                    try {
-                      const { error } = await supabase.rpc('make_me_admin');
-                      if (error) throw error;
-                      toast({
-                        title: "Admin Access Granted",
-                        description: "Refresh the page to see admin controls.",
-                      });
-                      window.location.reload();
-                    } catch (err: any) {
-                      toast({
-                        title: "Error",
-                        description: err.message || "Failed to grant admin access",
-                        variant: "destructive",
-                      });
+                  onClick={() => {
+                    if (!user) {
+                      navigate("/auth");
+                    } else {
+                      handleAdminClick();
                     }
                   }}
                 >
