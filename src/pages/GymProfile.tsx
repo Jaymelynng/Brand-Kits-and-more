@@ -737,10 +737,7 @@ const GymProfile = () => {
               {mainLogo && (
                 <div className="flex flex-col items-center">
                   <div 
-                    className="flex items-center justify-center w-full h-48 rounded-2xl shadow-2xl border-4 border-white/20 backdrop-blur-sm mb-6"
-                    style={{ 
-                      background: `linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20)` 
-                    }}
+                    className="flex items-center justify-center w-full h-48 mb-6"
                   >
                     <img 
                       src={mainLogo.file_url} 
