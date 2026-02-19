@@ -2,8 +2,8 @@ import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { GymWithColors, useUpdateGymColor, useUploadLogo, useSetMainLogo, useDeleteLogo } from "@/hooks/useGyms";
-import { Upload, Star, X, Copy, Eye, Download } from "lucide-react";
+import { GymWithColors, useUpdateGymColor, useUploadLogo, useSetMainLogo, useDeleteLogo, useAddGymColor, useDeleteGymColor } from "@/hooks/useGyms";
+import { Upload, Star, X, Copy, Eye, Download, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { GymColorProvider } from "./shared/GymColorProvider";
@@ -27,6 +27,8 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   const uploadLogoMutation = useUploadLogo();
   const setMainLogoMutation = useSetMainLogo();
   const deleteLogoMutation = useDeleteLogo();
+  const addColorMutation = useAddGymColor();
+  const deleteColorMutation = useDeleteGymColor();
 
   const showCopyFeedback = (key: string, message: string) => {
     setCopiedStates(prev => ({ ...prev, [key]: true }));
@@ -200,21 +202,21 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <BrandCard 
-        className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 group border-2 flex flex-col h-full min-h-[480px]"
+        className="bg-white rounded-xl transition-all duration-300 transform hover:-translate-y-1 group border-2 flex flex-col h-full min-h-[480px]"
         style={{
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
             : 'transparent',
-          boxShadow: '0 8px 25px hsl(var(--brand-rose-gold) / 0.15)',
+          boxShadow: '0 4px 12px hsl(var(--brand-rose-gold) / 0.12), 0 12px 30px hsl(var(--brand-rose-gold) / 0.18), 0 20px 50px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = '0 15px 35px hsl(var(--brand-rose-gold) / 0.25)';
+          e.currentTarget.style.boxShadow = '0 8px 20px hsl(var(--brand-rose-gold) / 0.2), 0 20px 45px hsl(var(--brand-rose-gold) / 0.28), 0 30px 60px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8)';
           if (!editMode) {
             e.currentTarget.style.borderColor = 'hsl(var(--brand-blue-gray))';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = '0 8px 25px hsl(var(--brand-rose-gold) / 0.15)';
+          e.currentTarget.style.boxShadow = '0 4px 12px hsl(var(--brand-rose-gold) / 0.12), 0 12px 30px hsl(var(--brand-rose-gold) / 0.18), 0 20px 50px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)';
           if (!editMode) {
             e.currentTarget.style.borderColor = 'transparent';
           }
@@ -304,9 +306,31 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="flex-1 flex flex-col mb-3 min-h-[220px]">
+          <div className="flex-1 flex flex-col mb-3 min-h-[280px]">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-foreground">🎨 Brand Colors</h4>
+              {editMode && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="px-2 py-1 h-7 text-xs"
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'color';
+                    input.value = '#A4B4C4';
+                    input.style.display = 'none';
+                    input.onchange = () => {
+                      addColorMutation.mutate({ gymId: gym.id, colorHex: input.value });
+                      document.body.removeChild(input);
+                    };
+                    document.body.appendChild(input);
+                    input.click();
+                  }}
+                  title="Add a new color"
+                >
+                  <Plus className="w-3 h-3" />
+                </Button>
+              )}
             </div>
             <div className="space-y-2">
               {gym.colors.map((color, index) => (
@@ -318,6 +342,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                   showControls={true}
                   editMode={editMode}
                   onEdit={() => editColor(color.id, color.color_hex)}
+                  onDelete={() => deleteColorMutation.mutate(color.id)}
                   className="p-2 rounded-xl bg-card/30 border border-border/50 hover:bg-card/50 transition-smooth"
                 />
               ))}

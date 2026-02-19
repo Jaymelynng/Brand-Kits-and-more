@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { X } from 'lucide-react';
 
 interface ColorSwatchProps {
   color: string;
@@ -9,6 +10,7 @@ interface ColorSwatchProps {
   size?: 'sm' | 'md' | 'lg';
   showControls?: boolean;
   onEdit?: () => void;
+  onDelete?: () => void;
   editMode?: boolean;
   className?: string;
 }
@@ -19,6 +21,7 @@ export const ColorSwatch = ({
   size = 'md', 
   showControls = false, 
   onEdit, 
+  onDelete,
   editMode = false,
   className 
 }: ColorSwatchProps) => {
@@ -42,7 +45,7 @@ export const ColorSwatch = ({
   };
 
   return (
-    <div className={cn("flex items-center gap-3", className)}>
+    <div className={cn("flex items-center gap-3 relative", className)}>
       <div 
         className={cn(
           "rounded-xl shadow-md border-2 border-white/30 flex-shrink-0 cursor-pointer transition-smooth hover:scale-105",
@@ -94,6 +97,18 @@ export const ColorSwatch = ({
             HEX
           </Button>
         </div>
+      )}
+
+      {editMode && onDelete && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="px-1.5 py-1 h-7 text-xs text-destructive hover:bg-destructive/10 border-destructive/30 flex-shrink-0"
+          title="Remove color"
+        >
+          <X className="w-3 h-3" />
+        </Button>
       )}
     </div>
   );
