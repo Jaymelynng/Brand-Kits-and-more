@@ -258,10 +258,10 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           <div className="mb-4">
             <div 
               className={cn(
-                "w-full h-24 border-2 border-dashed rounded-xl flex items-center justify-center cursor-pointer transition-smooth bg-gradient-primary",
+                "w-full h-24 rounded-xl flex items-center justify-center cursor-pointer transition-smooth",
                 isDragOver 
-                  ? "border-gym-primary/60 bg-gym-primary/20" 
-                  : "border-gym-primary/30 hover:border-gym-primary/50"
+                  ? "border-2 border-dashed border-gym-primary/60 bg-gym-primary/20" 
+                  : mainLogo ? "" : "border-2 border-dashed border-gym-primary/30 hover:border-gym-primary/50 bg-gradient-primary"
               )}
               onClick={triggerFileUpload}
               onDragOver={handleDragOver}
