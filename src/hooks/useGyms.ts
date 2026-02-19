@@ -403,6 +403,24 @@ export const useDeleteElement = () => {
   });
 };
 
+export const useDeleteGymColor = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (colorId: string) => {
+      const { error } = await supabase
+        .from('gym_colors')
+        .delete()
+        .eq('id', colorId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
 export const useUpdateElementType = () => {
   const queryClient = useQueryClient();
 
