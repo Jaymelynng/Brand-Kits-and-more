@@ -6,7 +6,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { PlusCircle, Edit3, Shield, Upload } from "lucide-react";
+import { PlusCircle, Edit3, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -93,30 +93,6 @@ export const AdminToolkit = ({
               }}
             >
               {grantingAdmin ? "Granting..." : "Grant Admin Access"}
-            </Button>
-          </div>
-          {/* Bulk Upload Section */}
-          <div className="p-4 border rounded-lg" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.3)' }}>
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <Upload className="w-5 h-5" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
-              Bulk Asset Upload
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Upload multiple assets at once with automatic categorization
-            </p>
-            <Button 
-              onClick={() => {
-                navigate('/bulk-upload');
-                onClose();
-              }}
-              className="w-full"
-              style={{ 
-                background: 'hsl(var(--brand-rose-gold))',
-                color: 'white'
-              }}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              Bulk Upload
             </Button>
           </div>
 
