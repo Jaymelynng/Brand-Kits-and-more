@@ -1,6 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AssetPreview } from "@/components/AssetPreview";
+import { AssetTypeSelector } from "@/components/AssetTypeSelector";
+import { ChannelTagToggle } from "@/components/ChannelTagToggle";
+import { useUpdateAssetType, useAssetTypes } from "@/hooks/useAssetTypes";
 import { CampaignAsset } from "@/hooks/useCampaignAssets";
 import { Download, Link2, Share2, Edit, Trash2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -35,10 +38,15 @@ export function AssetDetailModal({
 }: AssetDetailModalProps) {
   if (!asset) return null;
 
+  const updateType = useUpdateAssetType();
+  const { data: types } = useAssetTypes();
+
   const copyUrl = () => {
     navigator.clipboard.writeText(asset.file_url);
     toast.success("URL copied to clipboard!");
   };
+
+  const currentTypeName = types?.find(t => t.id === (asset as any).asset_type_id)?.name;
 
   const isImage = asset.file_type.startsWith('image/');
 
@@ -65,6 +73,22 @@ export function AssetDetailModal({
                 <p><span className="text-muted-foreground">Gym:</span> {asset.gym?.name || 'Admin Resource'}</p>
                 <p><span className="text-muted-foreground">Category:</span> {asset.asset_category}</p>
                 <p><span className="text-muted-foreground">Uploaded:</span> {new Date(asset.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+
+            {/* Classification */}
+            <div className="space-y-2">
+              <h3 className="font-semibold">Classification</h3>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Asset Type</p>
+                <AssetTypeSelector
+                  value={(asset as any).asset_type_id || undefined}
+                  onChange={(typeId) => updateType.mutate({ assetId: asset.id, typeId: typeId || null })}
+                />
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Channels</p>
+                <ChannelTagToggle assetId={asset.id} />
               </div>
             </div>
             

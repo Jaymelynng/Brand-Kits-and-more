@@ -41,9 +41,94 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_channel_tags: {
+        Row: {
+          asset_id: string
+          channel_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          asset_id: string
+          channel_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          asset_id?: string
+          channel_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_channel_tags_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_channel_tags_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "asset_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_channels: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      asset_types: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       campaign_assets: {
         Row: {
           asset_category: string
+          asset_type_id: string | null
           campaign_id: string
           created_at: string | null
           file_size: number | null
@@ -58,6 +143,7 @@ export type Database = {
         }
         Insert: {
           asset_category?: string
+          asset_type_id?: string | null
           campaign_id: string
           created_at?: string | null
           file_size?: number | null
@@ -72,6 +158,7 @@ export type Database = {
         }
         Update: {
           asset_category?: string
+          asset_type_id?: string | null
           campaign_id?: string
           created_at?: string | null
           file_size?: number | null
@@ -85,6 +172,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "campaign_assets_asset_type_id_fkey"
+            columns: ["asset_type_id"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "campaign_assets_campaign_id_fkey"
             columns: ["campaign_id"]

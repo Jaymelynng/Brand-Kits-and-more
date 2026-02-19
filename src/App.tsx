@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import BulkUpload from "./pages/BulkUpload";
 import Campaigns from "./pages/Campaigns";
 import CampaignDetail from "./pages/CampaignDetail";
+import AssetLibrary from "./pages/AssetLibrary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/bulk-upload" element={<BulkUpload />} />
           <Route path="/campaigns" element={<Campaigns />} />
           <Route path="/campaigns/:campaignName" element={<CampaignDetail />} />
+          <Route path="/assets" element={<AssetLibrary />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
