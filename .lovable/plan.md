@@ -1,90 +1,135 @@
 
 
-## Asset Organization System Implementation Plan
+## Simplified Asset Organization System
 
-### Phase 1: Database Setup
+### The Problem You're Solving
+You cross-use assets everywhere and lose track of what you already made. This system lets you label assets so you can always find them, no matter how you search.
 
-**Create new tables with RLS policies:**
+### How It Works - Two Simple Labels
 
-1. **`asset_types` table**
-   - Columns: id, name, icon, sort_order, created_at
-   - Seed with: Email Header, Divider, Icon, Shape, Photo, Graphic, Video, Logo, Badge, Button, Background
-   - RLS: Public read, Admin write
+**Label 1 - "What is it?" (Asset Type)**
+Pick ONE type when you upload:
+- Email Header
+- Divider
+- Icon
+- Shape
+- Photo
+- Graphic
+- Video
+- Logo
+- Badge
+- Button
+- Background
+- (Add more anytime)
 
-2. **`asset_channels` table**
-   - Columns: id, name, icon, sort_order, created_at
-   - Seed with: Email, Social Media, Print, Website, Internal
-   - RLS: Public read, Admin write
+**Label 2 - "Where do I use it?" (Channel)**
+Check ALL that apply:
+- Email
+- Social Media
+- In-Gym Signage
+- (Add more anytime)
 
-3. **`asset_channel_tags` junction table**
-   - Columns: id, asset_id, channel_id, created_at
-   - Foreign keys to campaign_assets and asset_channels
-   - Unique constraint on (asset_id, channel_id)
-   - RLS: Public read, Admin write
+### What Gets Built
 
-4. **Update `campaign_assets` table**
-   - Add `asset_type_id` column (UUID, nullable, FK to asset_types)
+#### Phase 1: Database Tables
+- `asset_types` table seeded with 11 starter types (expandable)
+- `asset_channels` table seeded with 3 channels: Email, Social Media, In-Gym Signage (expandable)
+- `asset_channel_tags` junction table to link assets to multiple channels
+- Add `asset_type_id` column to existing `campaign_assets` table
+- RLS policies: public read, admin write
 
-### Phase 2: New Hooks
+#### Phase 2: New Hooks
+- `useAssetTypes.ts` - fetch types, update asset type
+- `useAssetChannels.ts` - fetch channels, add/remove channel tags for assets
 
-1. **`src/hooks/useAssetTypes.ts`**
-   - Fetch all asset types
-   - Update asset type for an asset
+#### Phase 3: Asset Library Page (`/assets`)
+A new page to find ANY asset across all campaigns and gyms:
+- Filter by: Asset Type, Channel, Campaign, Gym
+- Search by filename
+- Thumbnail grid with quick-copy URL button
+- Click any asset to open detail modal
+- Table view toggle for seeing all gym URLs at once
 
-2. **`src/hooks/useAssetChannels.ts`**
-   - Fetch all channels
-   - Fetch channels for an asset
-   - Add/remove channel tags
+#### Phase 4: Update Upload Flow
+When uploading assets in a campaign:
+- Add "What is this?" dropdown (Asset Type)
+- Add "Where will you use it?" checkboxes (Channels)
 
-### Phase 3: Asset Library Page
+#### Phase 5: Update Asset Detail Modal
+- Add Classification section (change type, toggle channels)
+- Add Gym URLs section (see all gym URLs, one-click copy)
 
-1. **Create `src/pages/AssetLibrary.tsx`**
-   - Filter sidebar with type chips, channel toggles, campaign dropdown, gym selector
-   - Search by filename
-   - Asset grid with thumbnails and quick actions
-   - Table view toggle option
+#### Phase 6: Navigation
+- Add "Asset Library" link to main navigation
 
-2. **Create supporting components:**
-   - `src/components/AssetLibraryFilters.tsx` - Filter sidebar
-   - `src/components/AssetLibraryGrid.tsx` - Asset grid display
-   - `src/components/AssetTypeSelector.tsx` - Dropdown for type selection
-   - `src/components/ChannelTagToggle.tsx` - Toggle buttons for channels
-   - `src/components/GymUrlTable.tsx` - Per-gym URL list with copy buttons
+### Technical Details
 
-3. **Add route in `src/App.tsx`**
-   - `/assets` route pointing to AssetLibrary page
+**New database migration:**
+```sql
+CREATE TABLE asset_types (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  icon TEXT,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 
-### Phase 4: Enhance Existing Components
+INSERT INTO asset_types (name, icon, sort_order) VALUES
+  ('Email Header', 'mail', 1),
+  ('Divider', 'minus', 2),
+  ('Icon', 'shapes', 3),
+  ('Shape', 'circle', 4),
+  ('Photo', 'image', 5),
+  ('Graphic', 'palette', 6),
+  ('Video', 'video', 7),
+  ('Logo', 'crown', 8),
+  ('Badge', 'award', 9),
+  ('Button', 'square', 10),
+  ('Background', 'layers', 11);
 
-1. **Update `src/components/AssetDetailModal.tsx`**
-   - Add "Classification" section with type selector and channel toggles
-   - Add "Gym URLs" section with table showing all gyms and copy buttons
-   - Add "Copy All URLs" button for bulk copying
+CREATE TABLE asset_channels (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  icon TEXT,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 
-2. **Update `src/components/CampaignAssetUpload.tsx`**
-   - Add asset type dropdown (required field)
-   - Add channel checkboxes (optional)
-   - Save type and channels with asset on upload
+INSERT INTO asset_channels (name, icon, sort_order) VALUES
+  ('Email', 'mail', 1),
+  ('Social Media', 'share-2', 2),
+  ('In-Gym Signage', 'monitor', 3);
 
-### Phase 5: Navigation Update
+CREATE TABLE asset_channel_tags (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  asset_id UUID REFERENCES campaign_assets(id) ON DELETE CASCADE,
+  channel_id UUID REFERENCES asset_channels(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(asset_id, channel_id)
+);
 
-1. **Add Asset Library link to navigation**
-   - Add to main nav or campaigns section
-   - Icon: Library or Grid icon
+ALTER TABLE campaign_assets
+ADD COLUMN asset_type_id UUID REFERENCES asset_types(id);
+```
 
-### Files Created
-- `src/pages/AssetLibrary.tsx`
-- `src/hooks/useAssetTypes.ts`
-- `src/hooks/useAssetChannels.ts`
-- `src/components/AssetLibraryFilters.tsx`
-- `src/components/AssetLibraryGrid.tsx`
-- `src/components/AssetTypeSelector.tsx`
-- `src/components/ChannelTagToggle.tsx`
-- `src/components/GymUrlTable.tsx`
+**RLS policies** on all 3 new tables: public SELECT, admin INSERT/UPDATE/DELETE.
 
-### Files Updated
-- `src/components/AssetDetailModal.tsx`
-- `src/components/CampaignAssetUpload.tsx`
-- `src/App.tsx`
-- `src/integrations/supabase/types.ts` (auto-updated after migration)
+**New files:**
+| File | Purpose |
+|------|---------|
+| `src/pages/AssetLibrary.tsx` | Global asset browser with filters |
+| `src/hooks/useAssetTypes.ts` | Fetch/manage asset types |
+| `src/hooks/useAssetChannels.ts` | Fetch/manage channel tags |
+| `src/components/AssetLibraryFilters.tsx` | Filter sidebar |
+| `src/components/AssetLibraryGrid.tsx` | Asset grid display |
+| `src/components/AssetTypeSelector.tsx` | Dropdown for type selection |
+| `src/components/ChannelTagToggle.tsx` | Toggle buttons for channels |
+| `src/components/GymUrlTable.tsx` | Per-gym URL list with copy buttons |
+
+**Updated files:**
+| File | Changes |
+|------|---------|
+| `src/components/AssetDetailModal.tsx` | Add type selector, channel toggles, gym URL table |
+| `src/components/CampaignAssetUpload.tsx` | Add type/channel selection during upload |
+| `src/App.tsx` | Add `/assets` route |
 
