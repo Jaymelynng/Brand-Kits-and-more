@@ -6,6 +6,10 @@ export interface Gym {
   name: string;
   code: string;
   hero_video_url?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
   created_at?: string;
   updated_at?: string;
 }

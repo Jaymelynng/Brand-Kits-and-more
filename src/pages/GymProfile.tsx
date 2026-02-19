@@ -1,14 +1,14 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor } from "@/hooks/useGyms";
 import { useAuth } from "@/hooks/useAuth";
-import { useGymCampaignAssets, GymCampaignAsset } from "@/hooks/useCampaignAssets";
+import { GymContactInfo } from "@/components/GymContactInfo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Maximize, Plus, Sparkles, CheckSquare, Square, Link as LinkIcon, Code, Package, ExternalLink } from "lucide-react";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive } from "lucide-react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -18,10 +18,7 @@ import { ColorSwatch } from "@/components/shared/ColorSwatch";
 import { AssetRenamer } from "@/components/AssetRenamer";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HeroVideoBackground } from "@/components/HeroVideoBackground";
-import { AssetPreview } from "@/components/AssetPreview";
-import { AssetDetailModal } from "@/components/AssetDetailModal";
-import { AssetShareModal } from "@/components/AssetShareModal";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import JSZip from "jszip";
 
 const GymProfile = () => {
   const { gymCode } = useParams<{ gymCode: string }>();
@@ -29,9 +26,8 @@ const GymProfile = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   
-  // Find gym first to get ID for campaign assets query
+  // Find gym
   const gym = gyms.find(g => g.code === gymCode || g.id === gymCode);
-  const { data: campaignAssets = [], isLoading: isLoadingCampaignAssets } = useGymCampaignAssets(gym?.id || '');
   
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
@@ -50,8 +46,8 @@ const GymProfile = () => {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedLogos, setSelectedLogos] = useState<Set<string>>(new Set());
   const [showRenamer, setShowRenamer] = useState(false);
-  const [detailAsset, setDetailAsset] = useState<GymCampaignAsset | null>(null);
-  const [sharingAsset, setSharingAsset] = useState<GymCampaignAsset | null>(null);
+  const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark'>('light');
+  const [downloadingZip, setDownloadingZip] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -535,6 +531,43 @@ const GymProfile = () => {
     });
   };
 
+  const handleDownloadAllAsZip = useCallback(async () => {
+    if (!gym) return;
+    setDownloadingZip(true);
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(`${gym.code}-brand-assets`);
+      
+      // Add logos
+      for (const logo of gym.logos) {
+        try {
+          const response = await fetch(logo.file_url);
+          const blob = await response.blob();
+          folder?.file(`logos/${logo.filename}`, blob);
+        } catch (e) {
+          console.warn(`Failed to fetch ${logo.filename}`);
+        }
+      }
+      
+      // Add color palette as text
+      const colorText = gym.colors.map((c, i) => `Color ${i + 1}: ${c.color_hex}`).join('\n');
+      folder?.file('brand-colors.txt', `${gym.name} (${gym.code}) Brand Colors\n\n${colorText}`);
+      
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `${gym.code}-brand-assets.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      
+      toast({ description: `${gym.code} brand kit downloaded!` });
+    } catch (err) {
+      toast({ variant: "destructive", description: "Failed to create ZIP" });
+    } finally {
+      setDownloadingZip(false);
+    }
+  }, [gym, toast]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -564,6 +597,7 @@ const GymProfile = () => {
   const mainLogo = gym.logos.find(logo => logo.is_main_logo);
   const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
   const secondaryColor = gym.colors[1]?.color_hex || '#9CA3AF';
+  const logoBgColor = logoBgMode === 'dark' ? '#1a1a2e' : `${primaryColor}08`;
 
   // Convert hex to HSL for better manipulation
   const hexToHsl = (hex: string) => {
@@ -960,6 +994,36 @@ const GymProfile = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
                 <div className="flex items-center gap-2">
+                  {/* Dark/Light Preview Toggle */}
+                  <Button
+                    onClick={() => setLogoBgMode(logoBgMode === 'light' ? 'dark' : 'light')}
+                    variant="outline"
+                    size="sm"
+                    className="font-semibold shadow-lg"
+                    style={{ 
+                      backgroundColor: logoBgMode === 'dark' ? '#1a1a2e' : 'white',
+                      color: logoBgMode === 'dark' ? 'white' : '#1a1a2e',
+                      borderColor: `${primaryColor}40`
+                    }}
+                    title={`Switch to ${logoBgMode === 'light' ? 'dark' : 'light'} background`}
+                  >
+                    {logoBgMode === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                    {logoBgMode === 'dark' ? 'Light' : 'Dark'}
+                  </Button>
+
+                  {/* Download All as ZIP */}
+                  <Button
+                    onClick={handleDownloadAllAsZip}
+                    variant="outline"
+                    size="sm"
+                    disabled={downloadingZip}
+                    className="text-white font-semibold shadow-lg"
+                    style={{ backgroundColor: primaryColor, borderColor: `${primaryColor}40` }}
+                  >
+                    {downloadingZip ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileArchive className="w-4 h-4 mr-2" />}
+                    {downloadingZip ? 'Zipping...' : 'Download All'}
+                  </Button>
+
                   <Button
                     onClick={() => setShowUpload(!showUpload)}
                     variant="outline"
@@ -1138,7 +1202,7 @@ const GymProfile = () => {
                                 <div 
                                   className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
                                   style={{ 
-                                    backgroundColor: `${primaryColor}08`,
+                                    backgroundColor: logoBgColor,
                                   }}
                                 >
                                   <img 
@@ -1268,7 +1332,7 @@ const GymProfile = () => {
                         {/* Logo Display */}
                         <div 
                           className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
-                          style={{ backgroundColor: `${primaryColor}08` }}
+                          style={{ backgroundColor: logoBgColor }}
                         >
                           <img 
                             src={logo.file_url} 
@@ -1357,7 +1421,7 @@ const GymProfile = () => {
                           {/* Logo Thumbnail */}
                           <div 
                             className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-white/40 flex-shrink-0"
-                            style={{ backgroundColor: `${primaryColor}08` }}
+                            style={{ backgroundColor: logoBgColor }}
                           >
                             <img 
                               src={logo.file_url} 
@@ -1466,7 +1530,7 @@ const GymProfile = () => {
                         {/* Logo Display */}
                         <div 
                           className="w-full flex items-center justify-center mb-4 rounded-lg border-2 border-white/40 p-4"
-                          style={{ backgroundColor: `${primaryColor}08` }}
+                          style={{ backgroundColor: logoBgColor }}
                         >
                           <img 
                             src={logo.file_url} 
@@ -1832,127 +1896,19 @@ const GymProfile = () => {
         </div>
       )}
 
-      {/* Campaign Assets Section */}
-      {campaignAssets.length > 0 && (
-        <div className="container mx-auto px-6 pb-12">
-          <BrandCard variant="hero" className="mb-8">
-            <BrandCardHeader>
-              <BrandCardTitle className="flex items-center gap-2 text-2xl">
-                <Package className="w-6 h-6" />
-                Campaign Assets ({campaignAssets.length})
-              </BrandCardTitle>
-            </BrandCardHeader>
-            <BrandCardContent>
-              {/* Group assets by campaign */}
-              {(() => {
-                const groupedByCampaign = campaignAssets.reduce((acc, asset) => {
-                  const campaignName = asset.campaign?.name || 'Unassigned Campaign';
-                  if (!acc[campaignName]) {
-                    acc[campaignName] = [];
-                  }
-                  acc[campaignName].push(asset);
-                  return acc;
-                }, {} as Record<string, GymCampaignAsset[]>);
 
-                return Object.entries(groupedByCampaign).map(([campaignName, assets]) => (
-                  <Collapsible key={campaignName} defaultOpen className="mb-4">
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{campaignName}</span>
-                        <span className="text-sm text-muted-foreground">({assets.length} assets)</span>
-                      </div>
-                      <ChevronUp className="w-4 h-4 transition-transform duration-200" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="pt-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {assets.map((asset) => (
-                          <div
-                            key={asset.id}
-                            className="group relative rounded-lg overflow-hidden border border-border/50 bg-card shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
-                            onClick={() => setDetailAsset(asset)}
-                          >
-                            <div className="aspect-square">
-                              <AssetPreview
-                                asset={asset}
-                                className="object-cover"
-                              />
-                            </div>
-                            <div className="p-2 space-y-1">
-                              <p className="text-xs font-medium truncate" title={asset.filename}>
-                                {asset.filename}
-                              </p>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                                {asset.asset_category}
-                              </span>
-                            </div>
-                            {/* Hover actions */}
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                              <Button
-                                size="icon"
-                                variant="secondary"
-                                className="h-8 w-8"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const link = document.createElement('a');
-                                  link.href = asset.file_url;
-                                  link.download = asset.filename;
-                                  link.click();
-                                }}
-                              >
-                                <Download className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="secondary"
-                                className="h-8 w-8"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigator.clipboard.writeText(asset.file_url);
-                                  toast({ description: "URL copied!" });
-                                }}
-                              >
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Link to={`/campaigns/${asset.campaign?.name || ''}`} onClick={(e) => e.stopPropagation()}>
-                                <Button size="icon" variant="secondary" className="h-8 w-8">
-                                  <ExternalLink className="w-4 h-4" />
-                                </Button>
-                              </Link>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                ));
-              })()}
-            </BrandCardContent>
-          </BrandCard>
-        </div>
-      )}
-
-      {/* Campaign Asset Detail Modal */}
-      <AssetDetailModal
-        asset={detailAsset}
-        onClose={() => setDetailAsset(null)}
-        onEdit={() => setDetailAsset(null)}
-        onShare={() => {
-          if (detailAsset) {
-            setSharingAsset(detailAsset);
-            setDetailAsset(null);
-          }
-        }}
-        onDelete={() => setDetailAsset(null)}
-      />
-
-      {/* Campaign Asset Share Modal */}
-      {sharingAsset && (
-        <AssetShareModal
-          asset={sharingAsset}
-          open={!!sharingAsset}
-          onOpenChange={(open) => !open && setSharingAsset(null)}
+      {/* Contact & Location Section */}
+      <div className="container mx-auto px-6 pb-8">
+        <GymContactInfo
+          gymId={gym.id}
+          address={gym.address}
+          phone={gym.phone}
+          email={gym.email}
+          website={gym.website}
+          primaryColor={primaryColor}
+          isAdmin={!!isAdmin}
         />
-      )}
+      </div>
 
       {/* Asset Renamer Modal */}
       {gym && (

@@ -364,6 +364,31 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
               </Button>
             </div>
 
+            {/* Quick Download Main Logo */}
+            {mainLogo && (
+              <Button
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = mainLogo.file_url;
+                  link.download = mainLogo.filename;
+                  link.target = '_blank';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                variant="outline"
+                size="sm"
+                className="w-full text-xs text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+                  border: 'none'
+                }}
+              >
+                <Download className="w-3 h-3 mr-1" />
+                Download Logo
+              </Button>
+            )}
+
             <Link to={`/gym/${gym.code}`} className="block w-full">
               <Button className="w-full text-sm py-2 text-white shadow-lg hover:shadow-xl transition-smooth"
                       style={{

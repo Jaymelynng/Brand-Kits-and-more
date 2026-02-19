@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGyms } from "@/hooks/useGyms";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,6 +6,7 @@ import { GymNavigation } from "@/components/GymNavigation";
 import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
 import { AdminToolkit } from "@/components/AdminToolkit";
+import { GymSearchBar } from "@/components/GymSearchBar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronUp } from "lucide-react";
@@ -18,8 +19,15 @@ const Index = () => {
   const [isAdminToolkitOpen, setIsAdminToolkitOpen] = useState(false);
   const [selectedGyms, setSelectedGyms] = useState<Set<string>>(new Set());
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const filteredGyms = useMemo(() => {
+    if (!searchQuery.trim()) return gyms;
+    const q = searchQuery.toLowerCase();
+    return gyms.filter(g => g.name.toLowerCase().includes(q) || g.code.toLowerCase().includes(q));
+  }, [gyms, searchQuery]);
 
   const handleAdminClick = () => {
     if (!user) {
@@ -195,9 +203,16 @@ const Index = () => {
         {/* Main Content */}
         <div className="pt-2 pb-16">
           <div className="max-w-7xl mx-auto px-6">
+            {/* Search Bar */}
+            <GymSearchBar 
+              onSearch={setSearchQuery} 
+              resultCount={filteredGyms.length} 
+              totalCount={gyms.length} 
+            />
+
             {/* Gym Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-              {gyms.map((gym) => (
+              {filteredGyms.map((gym) => (
                 <GymCard 
                   key={gym.id} 
                   gym={gym} 
@@ -205,6 +220,11 @@ const Index = () => {
                   showAllLogos={false}
                 />
               ))}
+              {filteredGyms.length === 0 && searchQuery && (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-lg font-medium text-muted-foreground">No gyms match "{searchQuery}"</p>
+                </div>
+              )}
             </div>
 
             {/* Footer */}
