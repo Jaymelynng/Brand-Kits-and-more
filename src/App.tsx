@@ -6,10 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import GymProfile from "./pages/GymProfile";
 import Auth from "./pages/Auth";
-import BulkUpload from "./pages/BulkUpload";
-import Campaigns from "./pages/Campaigns";
-import CampaignDetail from "./pages/CampaignDetail";
-import AssetLibrary from "./pages/AssetLibrary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,10 +20,6 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/gym/:gymCode" element={<GymProfile />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/bulk-upload" element={<BulkUpload />} />
-          <Route path="/campaigns" element={<Campaigns />} />
-          <Route path="/campaigns/:campaignName" element={<CampaignDetail />} />
-          <Route path="/assets" element={<AssetLibrary />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

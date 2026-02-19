@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { DiamondSelector } from "./DiamondSelector";
 import { SecretAdminButton } from "./SecretAdminButton";
-import { LogOut, Folder } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { GymWithColors } from "@/hooks/useGyms";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -51,7 +51,7 @@ export const GymNavigation = ({
           🏆 Gym Brand Kit Database
         </h1>
         <p className="text-xs" style={{ color: 'hsl(var(--brand-navy) / 0.7)' }}>
-          Select gyms to copy their info or view campaigns
+          Select gyms to copy their brand info
         </p>
       </div>
 
@@ -102,21 +102,6 @@ export const GymNavigation = ({
 
           {/* Navigation Group */}
           <div className="flex items-center gap-3">
-            <Button
-              size="sm"
-              onClick={() => navigate('/campaigns')}
-              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
-              style={{ 
-                borderColor: '#1e3a5f',
-                color: 'white',
-                background: 'linear-gradient(135deg, #2d4a6f, #1e3a5f)',
-                boxShadow: '0 4px 14px rgba(30,58,95,0.4), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.15)',
-              }}
-            >
-              <Folder className="w-4 h-4 mr-2" />
-              Campaigns
-            </Button>
-            
             {isAdmin && <SecretAdminButton onClick={onAdminClick} />}
             
             {user && (
