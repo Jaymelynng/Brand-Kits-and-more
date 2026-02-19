@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Folder, Archive, Clock, Trash2, Edit, Video, FileImage, FileText, ArrowLeft, Sparkles } from "lucide-react";
+import { Search, Plus, Folder, Archive, Clock, Trash2, Edit, Video, FileImage, FileText, ArrowLeft, Sparkles, Library } from "lucide-react";
 import { toast } from "sonner";
 
 const Campaigns = () => {
@@ -148,6 +148,14 @@ const Campaigns = () => {
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Gyms
+            </Button>
+            <Button 
+              onClick={() => navigate('/assets')} 
+              variant="outline"
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+            >
+              <Library className="h-4 w-4 mr-2" />
+              Asset Library
             </Button>
           </div>
         </div>
