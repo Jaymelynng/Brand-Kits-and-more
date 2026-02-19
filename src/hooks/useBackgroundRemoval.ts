@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { removeBackground } from '@imgly/background-removal';
 
 interface BackgroundRemovalState {
   isProcessing: boolean;
@@ -18,6 +17,7 @@ export const useBackgroundRemoval = () => {
     setState({ isProcessing: true, progress: 0, statusMessage: 'Downloading AI model...' });
 
     try {
+      const { removeBackground } = await import('@imgly/background-removal');
       const result = await removeBackground(imageUrl, {
         progress: (key: string, current: number, total: number) => {
           const pct = total > 0 ? Math.round((current / total) * 100) : 0;
