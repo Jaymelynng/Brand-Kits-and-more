@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive } from "lucide-react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser } from "lucide-react";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,7 @@ import { AssetRenamer } from "@/components/AssetRenamer";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HeroVideoBackground } from "@/components/HeroVideoBackground";
 import JSZip from "jszip";
+import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
 
 const GymProfile = () => {
   const { gymCode } = useParams<{ gymCode: string }>();
@@ -59,6 +60,8 @@ const GymProfile = () => {
   const updateElementTypeMutation = useUpdateElementType();
   const updateColorMutation = useUpdateGymColor();
   const addColorMutation = useAddGymColor();
+  const { removeBg, isProcessing: isRemovingBg, progress: bgRemovalProgress, statusMessage: bgRemovalStatus } = useBackgroundRemoval();
+  const [removingBgLogoId, setRemovingBgLogoId] = useState<string | null>(null);
 
   // Scroll to top on page load and back to top functionality
   useEffect(() => {
@@ -382,7 +385,41 @@ const GymProfile = () => {
     });
   };
 
-  // Element upload handlers
+  const handleRemoveBackground = async (logo: { id: string; file_url: string; filename: string }) => {
+    if (!gym) return;
+    if (!user || !isAdmin) {
+      toast({ title: "Admin Access Required", description: "You need admin privileges", variant: "destructive" });
+      return;
+    }
+
+    setRemovingBgLogoId(logo.id);
+    toast({ description: `${bgRemovalStatus || 'Processing...'} This may take a moment on first use.`, duration: 10000 });
+
+    const result = await removeBg(logo.file_url);
+    if (!result) {
+      setRemovingBgLogoId(null);
+      toast({ variant: "destructive", description: "Background removal failed. Try again." });
+      return;
+    }
+
+    const cleanName = logo.filename.replace(/\.[^/.]+$/, '') + '-nobg.png';
+    const file = new File([result], cleanName, { type: 'image/png' });
+
+    uploadLogoMutation.mutate(
+      { gymId: gym.id, file },
+      {
+        onSuccess: () => {
+          setRemovingBgLogoId(null);
+          toast({ description: `✨ Background removed! Saved as ${cleanName}` });
+        },
+        onError: () => {
+          setRemovingBgLogoId(null);
+          toast({ variant: "destructive", description: "Failed to upload the processed logo." });
+        },
+      }
+    );
+  };
+
   const handleElementDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOverElement(true);
@@ -1263,6 +1300,23 @@ const GymProfile = () => {
                                   <Button
                                     onClick={(e) => {
                                       e.stopPropagation();
+                                      handleRemoveBackground(logo);
+                                    }}
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600 hover:text-purple-700 hover:scale-105 transition-all"
+                                    disabled={removingBgLogoId === logo.id}
+                                  >
+                                    {removingBgLogoId === logo.id ? (
+                                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{bgRemovalStatus || 'Processing...'}</>
+                                    ) : (
+                                      <><Eraser className="w-4 h-4 mr-2" />Remove BG</>
+                                    )}
+                                  </Button>
+
+                                  <Button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
                                       handleDeleteLogo(logo.id, logo.filename);
                                     }}
                                     size="sm"
@@ -1381,6 +1435,20 @@ const GymProfile = () => {
                           )}
                           
                           <Button
+                            onClick={() => handleRemoveBackground(logo)}
+                            size="sm"
+                            variant="outline"
+                            className="w-full bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600 hover:text-purple-700"
+                            disabled={removingBgLogoId === logo.id}
+                          >
+                            {removingBgLogoId === logo.id ? (
+                              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{bgRemovalStatus || 'Processing...'}</>
+                            ) : (
+                              <><Eraser className="w-4 h-4 mr-2" />Remove BG</>
+                            )}
+                          </Button>
+
+                          <Button
                             onClick={() => handleDeleteLogo(logo.id, logo.filename)}
                             size="sm"
                             variant="outline"
@@ -1478,6 +1546,17 @@ const GymProfile = () => {
                             )}
                             
                             <Button
+                              onClick={() => handleRemoveBackground(logo)}
+                              size="sm"
+                              variant="outline"
+                              className="bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600"
+                              disabled={removingBgLogoId === logo.id}
+                              title="Remove Background"
+                            >
+                              {removingBgLogoId === logo.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eraser className="w-4 h-4" />}
+                            </Button>
+
+                            <Button
                               onClick={() => handleDeleteLogo(logo.id, logo.filename)}
                               size="sm"
                               variant="outline"
@@ -1572,6 +1651,17 @@ const GymProfile = () => {
                             </Button>
                           )}
                           
+                          <Button
+                            onClick={() => handleRemoveBackground(logo)}
+                            size="sm"
+                            variant="outline"
+                            className="bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600"
+                            disabled={removingBgLogoId === logo.id}
+                            title="Remove Background"
+                          >
+                            {removingBgLogoId === logo.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eraser className="w-4 h-4" />}
+                          </Button>
+
                           <Button
                             onClick={() => handleDeleteLogo(logo.id, logo.filename)}
                             size="sm"
