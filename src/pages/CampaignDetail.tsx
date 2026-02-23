@@ -475,8 +475,9 @@ const CampaignDetail = () => {
           }
         }
         
-        // Download campaign assets
-        for (const asset of gymAssets.campaignAssets) {
+        // Download campaign assets assigned to this gym
+        const gymCampaignAssets = campaignAssets?.filter(a => a.gym_id === gymAssets.gym_id) || [];
+        for (const asset of gymCampaignAssets) {
           const response = await fetch(asset.file_url);
           const blob = await response.blob();
           gymFolder?.file(asset.filename, blob);

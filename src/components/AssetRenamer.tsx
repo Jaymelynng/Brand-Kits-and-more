@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,8 +43,7 @@ export function AssetRenamer({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
 
-  // Initialize rename list when dialog opens
-  useState(() => {
+  useEffect(() => {
     if (open && assets.length > 0) {
       setRenameList(assets.map(asset => ({
         id: asset.id,
@@ -54,7 +53,7 @@ export function AssetRenamer({
         status: 'pending' as const,
       })));
     }
-  });
+  }, [open, assets]);
 
   const analyzeWithAI = async () => {
     setIsAnalyzing(true);

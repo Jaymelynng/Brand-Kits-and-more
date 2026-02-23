@@ -1703,7 +1703,7 @@ const GymProfile = () => {
                     <SelectContent>
                       <SelectItem value="carousel">
                         <div className="flex items-center gap-2">
-                          <Carousel className="w-4 h-4" />
+                          <LayoutGrid className="w-4 h-4" />
                           Carousel
                         </div>
                       </SelectItem>
@@ -1731,10 +1731,54 @@ const GymProfile = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {elementViewMode === 'grid' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {elementViewMode === 'list' ? (
+                <div className="space-y-4">
                   {gym.elements.map((element) => (
                     <Card key={element.id} className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-white/40 flex-shrink-0 bg-white/50">
+                            {element.svg_data.startsWith('http') ? (
+                              <img src={element.svg_data} alt={element.element_type} className="max-w-full max-h-full object-contain" />
+                            ) : (
+                              <div className="w-full h-full p-2" dangerouslySetInnerHTML={{ __html: element.svg_data }} />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="text-sm font-bold text-foreground capitalize">{element.element_type}</div>
+                              <div className="text-white text-xs px-2 py-0.5 rounded-full font-bold capitalize" style={{ backgroundColor: primaryColor }}>{element.element_type}</div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            {isUrl(element.svg_data) && (
+                              <Button onClick={() => copyElementUrl(element.svg_data)} size="sm" variant="outline" className="bg-white/80 border-white/40 hover:bg-white/90">
+                                <LinkIcon className="w-4 h-4" />
+                              </Button>
+                            )}
+                            <Button onClick={() => copyElementSvgCode(element.svg_data)} size="sm" variant="outline" className="bg-white/80 border-white/40 hover:bg-white/90">
+                              <Code className="w-4 h-4" />
+                            </Button>
+                            <Button onClick={() => handleDeleteElement(element.id, element.element_type)} size="sm" variant="outline" className="bg-white/80 border-white/40 hover:bg-white/90 text-red-600">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className={
+                  elementViewMode === 'masonry'
+                    ? "columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6"
+                    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                }>
+                  {gym.elements.map((element) => (
+                    <Card key={element.id} className={cn(
+                      "relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300",
+                      elementViewMode === 'masonry' && "break-inside-avoid"
+                    )}>
                       <CardContent className="p-6">
                         <div 
                           className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold capitalize"

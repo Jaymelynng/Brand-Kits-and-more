@@ -60,10 +60,10 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         brand: {
-          warm: "hsl(var(--brand-warm))",
-          cool: "hsl(var(--brand-cool))",
-          soft: "hsl(var(--brand-soft))",
-          neutral: "hsl(var(--brand-neutral))",
+          warm: "hsl(var(--brand-rose-gold))",
+          cool: "hsl(var(--brand-blue-gray))",
+          soft: "hsl(var(--brand-rose-gold-dark))",
+          neutral: "hsl(var(--brand-text-primary))",
         },
         // Dynamic gym colors
         "gym-primary": {

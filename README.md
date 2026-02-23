@@ -1,73 +1,204 @@
-# Welcome to your Lovable project
+# Gym Brand Kit Database
 
-## Project info
+A comprehensive gym brand asset management application for managing brand colors, logos, elements, and marketing campaign assets across multiple gym locations.
 
-**URL**: https://lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38
+**Project URL**: https://lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+### Dashboard (`/`)
+- Grid view of all gym brand cards with colors, logos, and quick actions
+- Diamond selector navigation bar for selecting/deselecting gyms
+- Search bar to filter gyms by name or code
+- Copy all/selected gym colors to clipboard (with or without `#`)
+- Admin toolkit (side sheet) for adding gyms, toggling edit mode, and granting admin access
+- Back-to-top floating button
 
-**Use Lovable**
+### Gym Profile (`/gym/:gymCode`)
+- Full brand hub for a single gym with hero section, color palette, and logo gallery
+- Four logo view modes: carousel (3D coverflow), grid, list, masonry
+- Upload logos via drag-and-drop or file picker
+- Client-side AI background removal (`@imgly/background-removal`)
+- Download all assets as ZIP (`jszip`)
+- Dark/light logo preview toggle
+- Brand elements section (banners, shapes, backgrounds, icons)
+- Element upload with type categorization
+- Contact & location editing (address, phone, email, website)
+- Asset renamer with AI-suggested filenames via Supabase edge function
+- Batch selection and smart rename workflow
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38) and start prompting.
+### Campaigns (`/campaigns`)
+- Campaign management hub for marketing campaigns
+- Create, update, delete campaigns with status (active, upcoming, archived)
+- Thumbnail upload for campaign cards
+- Navigate to individual campaign detail views
 
-Changes made via Lovable will be committed automatically to this repo.
+### Campaign Detail (`/campaigns/:campaignName`)
+- Full campaign asset management with sidebar filters
+- Upload assets (images, videos, PDFs, DOCX, XLSX) with auto gym-code detection
+- Bulk select, bulk delete, bulk copy links (plain, markdown, HTML, video embed)
+- Download selected/all as ZIP with gym-organized folder structure
+- Asset detail modal with classification (asset type, channel tags)
+- Bulk gym assignment dialog
+- Grouping by gym, file type, or flat view
+- Legacy gym logos/elements section via campaign tags
 
-**Use your preferred IDE**
+### Asset Library (`/assets`)
+- Cross-campaign asset search and browsing
+- Filter by asset type, channel, campaign, and gym
+- Grid and list view modes
+- Asset detail, edit, and share modals with QR code generation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Bulk Upload (`/bulk-upload`)
+- Upload multiple assets with automatic filename parsing
+- Filename convention: `GYMCODE-assettype-descriptor-v1.ext`
+- Auto-detection of gym codes and routing to correct tables
+- Preview panel showing parsed results grouped by gym
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Authentication (`/auth`)
+- 4-digit PIN-based admin login
+- PIN verified via Supabase edge function (`verify-pin`) using bcrypt
+- Magic link session creation for authenticated access
+- Admin role checked via `user_roles` table
 
-Follow these steps:
+## Tech Stack
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui (Radix primitives), custom CSS variables
+- **State**: TanStack React Query for server state
+- **Backend**: Supabase (PostgreSQL, Storage, Edge Functions, Auth)
+- **Libraries**: JSZip, QRCode, react-dropzone, embla-carousel, @imgly/background-removal, recharts
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Database Schema (Supabase)
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Tables
+| Table | Purpose |
+|---|---|
+| `gyms` | Gym records (name, code, contact info, hero video URL) |
+| `gym_colors` | Brand colors per gym (hex, order index) |
+| `gym_logos` | Logo files per gym (URL, filename, main logo flag) |
+| `gym_elements` | Brand elements per gym (SVG/image, type, color, variant) |
+| `campaigns` | Marketing campaigns (name, status, thumbnail) |
+| `campaign_tags` | Links gym logos/elements to campaigns |
+| `campaign_assets` | Uploaded campaign files (URL, type, size, gym assignment) |
+| `asset_types` | Asset type classifications |
+| `asset_channels` | Distribution channels (email, social, print, etc.) |
+| `asset_channel_tags` | Links campaign assets to channels |
+| `user_roles` | User role assignments (admin/user) |
+| `user_profiles` | Basic user profile data |
+| `admin_pins` | Hashed PINs for admin authentication |
+| `flyer_templates` | Template definitions for flyer generation |
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Views
+| View | Purpose |
+|---|---|
+| `gym_icon_urls` | Computed icon URLs per gym |
+
+### Functions
+| Function | Purpose |
+|---|---|
+| `has_role` | Check if a user has a specific role |
+| `make_me_admin` | Grant admin role to the calling user |
+
+### Edge Functions
+| Function | Purpose |
+|---|---|
+| `verify-pin` | Verify 4-digit PIN and create auth session |
+| `analyze-image` | AI image analysis for smart filename suggestions |
+
+## Project Structure
+
+```
+src/
+  App.tsx              # Router and providers
+  main.tsx             # Entry point
+  index.css            # Global styles and CSS variables
+  lib/
+    utils.ts           # cn() utility
+    assetNaming.ts     # Filename parsing and generation
+  hooks/
+    useGyms.ts         # Gym CRUD + logo/element/color mutations
+    useAuth.ts         # Auth state and admin check
+    useCampaigns.ts    # Campaign CRUD + tagging
+    useCampaignAssets.ts # Campaign asset queries
+    useAllAssets.ts    # Cross-campaign asset search
+    useAssetTypes.ts   # Asset type management
+    useAssetChannels.ts # Channel tag management
+    useBackgroundRemoval.ts # Client-side BG removal
+    use-toast.ts       # Custom toast hook (Radix-based)
+    use-mobile.tsx     # Mobile breakpoint detection
+  pages/
+    Index.tsx          # Main dashboard
+    GymProfile.tsx     # Individual gym brand hub
+    Auth.tsx           # PIN login
+    Campaigns.tsx      # Campaign listing
+    CampaignDetail.tsx # Campaign asset management
+    AssetLibrary.tsx   # Cross-campaign asset browser
+    BulkUpload.tsx     # Bulk asset upload tool
+    NotFound.tsx       # 404 page
+  components/
+    GymCard.tsx        # Dashboard gym card
+    GymNavigation.tsx  # Top navigation with diamond selectors
+    GymSearchBar.tsx   # Search input for gym filtering
+    GymContactInfo.tsx # Editable contact info section
+    AdminToolkit.tsx   # Admin side panel
+    AddGymModal.tsx    # New gym creation dialog
+    DiamondSelector.tsx # Animated diamond selection toggle
+    SecretAdminButton.tsx # Admin toolkit trigger
+    AssetRenamer.tsx   # AI-powered batch rename dialog
+    AssetPreview.tsx   # File type-aware asset preview
+    AssetDetailModal.tsx # Full asset detail with classification
+    AssetEditModal.tsx # Asset edit/delete dialog
+    AssetShareModal.tsx # Share with QR code
+    AssetSidebar.tsx   # Campaign detail sidebar filters
+    AssetStatusCards.tsx # File type count cards
+    AssetFilterBar.tsx # Search, group, and select controls
+    AssetTypeSelector.tsx # Asset type dropdown
+    BulkGymAssignmentDialog.tsx # Bulk gym assignment
+    CampaignAssetUpload.tsx # Campaign file upload dialog
+    ChannelTagToggle.tsx # Channel tag badges
+    ChannelCheckboxes.tsx # Channel checkbox group
+    HeroVideoBackground.tsx # Video hero section
+    FlyerGenerator.tsx # Canvas-based flyer generation
+    FlyerTemplateBuilder.tsx # Flyer template zone editor
+    shared/
+      BrandCard.tsx    # Styled card with variants
+      ColorSwatch.tsx  # Color display with copy/edit/delete
+      GymColorProvider.tsx # Dynamic CSS variable injection
+  integrations/supabase/
+    client.ts          # Supabase client instance
+    types.ts           # Auto-generated database types
+supabase/
+  functions/
+    verify-pin/        # PIN verification edge function
+    analyze-image/     # AI image analysis edge function
+  migrations/          # Database migration files
 ```
 
-**Edit a file directly in GitHub**
+## Development
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+# Install dependencies
+npm install
 
-**Use GitHub Codespaces**
+# Start development server
+npm run dev
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Build for production
+npm run build
 
-## What technologies are used for this project?
+# Lint
+npm run lint
+```
 
-This project is built with:
+## Environment Variables
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+| Variable | Description |
+|---|---|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/public key |
+| `VITE_SUPABASE_PROJECT_ID` | Supabase project ID |
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Open [Lovable](https://lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38) and click Share > Publish, or connect a custom domain via Project > Settings > Domains.
