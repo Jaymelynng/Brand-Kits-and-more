@@ -362,7 +362,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                     radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.8), transparent),
                     radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.6), transparent),
                     radial-gradient(1px 1px at 40px 12px, rgba(255,255,255,0.9), transparent),
-                    linear-gradient(135deg, hsl(var(--brand-rose-gold)) 0%, hsl(var(--brand-rose-gold-mid)) 50%, hsl(var(--brand-rose-gold-dark)) 100%)
+                    linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)
                   `,
                   border: 'none'
                 }}
@@ -379,7 +379,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                   background: `
                     radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.8), transparent),
                     radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.6), transparent),
-                    linear-gradient(135deg, hsl(var(--brand-blue-gray)) 0%, hsl(var(--brand-blue-gray-mid)) 50%, hsl(var(--brand-blue-gray-dark)) 100%)
+                    linear-gradient(135deg, ${secondaryColor} 0%, ${primaryColor} 100%)
                   `,
                   border: 'none'
                 }}
