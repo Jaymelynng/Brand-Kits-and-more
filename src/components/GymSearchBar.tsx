@@ -20,7 +20,7 @@ export const GymSearchBar = ({ onSearch, resultCount, totalCount }: GymSearchBar
   const isFiltered = query.length > 0;
 
   return (
-    <div className="relative max-w-md mx-auto mb-4">
+    <div className="relative max-w-md mx-auto">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
