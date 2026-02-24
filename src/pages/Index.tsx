@@ -7,9 +7,10 @@ import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
 import { AdminToolkit } from "@/components/AdminToolkit";
 import { GymSearchBar } from "@/components/GymSearchBar";
+import { GymTableView } from "@/components/GymTableView";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronUp, Shield } from "lucide-react";
+import { ChevronUp, Shield, LayoutGrid, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
@@ -21,6 +22,7 @@ const Index = () => {
   const [selectedGyms, setSelectedGyms] = useState<Set<string>>(new Set());
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -204,29 +206,75 @@ const Index = () => {
         {/* Main Content */}
         <div className="pt-2 pb-16">
           <div className="max-w-7xl mx-auto px-6">
-            {/* Search Bar */}
-            <GymSearchBar 
-              onSearch={setSearchQuery} 
-              resultCount={filteredGyms.length} 
-              totalCount={gyms.length} 
-            />
-
-            {/* Gym Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-              {filteredGyms.map((gym) => (
-                <GymCard 
-                  key={gym.id} 
-                  gym={gym} 
-                  editMode={editMode}
-                  showAllLogos={false}
+            {/* Search Bar + View Toggle */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1">
+                <GymSearchBar 
+                  onSearch={setSearchQuery} 
+                  resultCount={filteredGyms.length} 
+                  totalCount={gyms.length} 
                 />
-              ))}
-              {filteredGyms.length === 0 && searchQuery && (
-                <div className="col-span-full text-center py-12">
-                  <p className="text-lg font-medium text-muted-foreground">No gyms match "{searchQuery}"</p>
-                </div>
-              )}
+              </div>
+              <div className="flex rounded-lg border overflow-hidden shadow-sm flex-shrink-0" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.3)' }}>
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className="px-3 py-2 flex items-center gap-1.5 text-xs font-medium transition-colors"
+                  style={{
+                    background: viewMode === 'cards' ? 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-mid)))' : 'white',
+                    color: viewMode === 'cards' ? 'white' : 'hsl(var(--brand-navy))',
+                  }}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  Cards
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className="px-3 py-2 flex items-center gap-1.5 text-xs font-medium transition-colors"
+                  style={{
+                    background: viewMode === 'table' ? 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-mid)))' : 'white',
+                    color: viewMode === 'table' ? 'white' : 'hsl(var(--brand-navy))',
+                  }}
+                >
+                  <List className="w-3.5 h-3.5" />
+                  Table
+                </button>
+              </div>
             </div>
+
+            {/* Gym Content */}
+            {viewMode === 'cards' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+                {filteredGyms.map((gym) => (
+                  <GymCard 
+                    key={gym.id} 
+                    gym={gym} 
+                    editMode={editMode}
+                    showAllLogos={false}
+                  />
+                ))}
+                {filteredGyms.length === 0 && searchQuery && (
+                  <div className="col-span-full text-center py-12">
+                    <p className="text-lg font-medium text-muted-foreground">No gyms match "{searchQuery}"</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <GymTableView
+                  gyms={filteredGyms}
+                  selectedGyms={selectedGyms}
+                  onToggleGymSelection={toggleGymSelection}
+                  onSelectAllGyms={selectAllGyms}
+                  onDeselectAllGyms={deselectAllGyms}
+                  onCopySelected={handleCopySelected}
+                />
+                {filteredGyms.length === 0 && searchQuery && (
+                  <div className="text-center py-12">
+                    <p className="text-lg font-medium text-muted-foreground">No gyms match "{searchQuery}"</p>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Footer */}
             <div className="mt-16 text-center">
