@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Folder, Archive, Clock, Trash2, Edit, Video, FileImage, FileText, ArrowLeft, Sparkles, Library } from "lucide-react";
+import { Search, Plus, Folder, Archive, Clock, Trash2, Edit, Video, FileImage, FileText, ArrowLeft, Sparkles, Library, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 const Campaigns = () => {
@@ -162,6 +162,75 @@ const Campaigns = () => {
       </div>
 
       <div className="container mx-auto px-6 py-8">
+        {/* ── How this works explainer ── */}
+        <div
+          className="mb-8 rounded-2xl p-5 border"
+          style={{
+            background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.07), hsl(var(--brand-blue-gray) / 0.06))',
+            borderColor: 'hsl(var(--brand-rose-gold) / 0.2)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8)',
+          }}
+        >
+          <h2 className="text-base font-semibold mb-3 text-foreground">
+            📖 How this works — Campaign vs. Asset
+          </h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {/* Campaign */}
+            <div className="flex gap-3">
+              <div
+                className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}
+              >
+                <Folder className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Campaign = the Folder / Topic</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  A Campaign is the <strong>project name</strong> that groups related files together.
+                  Think of it like a folder on your desktop.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 italic">
+                  Examples: "Summer 2025 Promo", "Gift Card Campaign", "Back to School"
+                </p>
+              </div>
+            </div>
+            {/* Asset */}
+            <div className="flex gap-3">
+              <div
+                className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}
+              >
+                <FileImage className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Asset = a File inside the Folder</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  An Asset is any <strong>individual file</strong> — a video, image, PDF, or poster —
+                  that belongs to a campaign and can be tagged to one or more gyms.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 italic">
+                  Examples: a promo video for CRR, a poster for AUS, an email graphic for all gyms
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* Relationship arrow */}
+          <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground bg-white/60 rounded-lg px-3 py-2 border border-white">
+            <Folder className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+            <span className="font-medium">Summer 2025 Promo</span>
+            <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+            <div className="flex gap-2 flex-wrap">
+              <span className="flex items-center gap-1"><Video className="h-3 w-3" /> promo-video-CRR.mp4</span>
+              <span className="flex items-center gap-1"><FileImage className="h-3 w-3" /> summer-poster-AUS.png</span>
+              <span className="flex items-center gap-1"><FileText className="h-3 w-3" /> email-blast-all-gyms.pdf</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            <strong>To get started:</strong> create a Campaign (folder) first, then open it and upload your files (assets) inside.
+            You can assign each file to a specific gym, or leave it unassigned as a shared resource.
+          </p>
+        </div>
+
         {/* Search and Filters */}
         <div 
           className="flex flex-col sm:flex-row gap-4 mb-8 p-4 rounded-xl"
