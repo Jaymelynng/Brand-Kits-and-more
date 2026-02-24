@@ -9,7 +9,7 @@ import { AdminToolkit } from "@/components/AdminToolkit";
 import { GymSearchBar } from "@/components/GymSearchBar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronUp, Shield } from "lucide-react";
+import { ChevronUp, Shield, Folder } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
@@ -234,6 +234,19 @@ const Index = () => {
                 Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
               </p>
               
+              {/* Campaigns Link */}
+              <div className="mt-6">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => navigate('/campaigns')}
+                >
+                  <Folder className="w-3 h-3 mr-1" />
+                  Campaigns & Asset Library
+                </Button>
+              </div>
+
               {/* Admin Access Button - always visible, handles login redirect */}
               {!isAdmin && (
                 <Button

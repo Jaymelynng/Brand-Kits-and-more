@@ -37,6 +37,9 @@ This is a **Gym Brand Kit Database** — a private internal tool for managing an
 | Remove background from logos | AI-powered background removal — click Erase BG |
 | Rename assets | Batch-rename logos with AI suggestions |
 | Gym profiles | Each gym has its own detailed page with full asset library |
+| **Campaigns Hub** | Organize marketing assets (videos, PDFs, graphics) by campaign |
+| **Asset Library** | Search all campaign assets across all gyms and campaigns |
+| **Bulk Upload** | Drop many files at once; auto-routed by filename to the right gym |
 | Admin tools | Admins can add gyms, edit colors, delete logos, and more |
 | PIN-based login | Secure access via a 4-digit PIN (no email/password) |
 | Search | Filter gyms by name or code |
@@ -295,6 +298,41 @@ The most complex page in the app. Each gym has its own profile URL (e.g., `/gym/
 - `logoBgMode` — Light or dark background behind logos in the display
 - `isEditingColors` — Whether color editing is enabled
 - `showUpload / showElementUpload` — Whether upload panels are visible
+
+### `src/pages/Campaigns.tsx` — Campaigns Hub (route: `/campaigns`)
+
+Lists all marketing campaigns. Features:
+- Search campaigns by name or description
+- Filter by status (Active, Upcoming, Archived)
+- Thumbnail cards for each campaign — click to open the campaign detail
+- Admin: Create new campaigns with name, description, status, and optional thumbnail image
+- Admin: Delete campaigns (hover over card to reveal delete button)
+- Links to Asset Library and back to the main gym dashboard
+
+### `src/pages/CampaignDetail.tsx` — Campaign Detail (route: `/campaigns/:campaignName`)
+
+The most complex campaign page. Contains all assets for a single campaign.
+
+**Sections:**
+1. **Header** — Campaign name, status badge, download-all-as-ZIP button, upload assets button
+2. **Asset Sidebar** — Filter panel: by file type (All, Videos, Images, Documents, Other) and by gym
+3. **Asset Status Cards** — Quick-click summary cards showing counts of all/videos/images/documents
+4. **Asset Filter Bar** — Search by filename, group by gym or file type, select-all for batch operations
+5. **Asset Grid** — Thumbnail grid of all uploaded files with preview and action buttons
+6. **Modals** — Asset detail (full-screen preview + metadata), edit (rename, reassign gym), share (URL + QR code + email)
+7. **Bulk operations** — Select multiple assets to download as ZIP, assign to gym, or delete
+
+### `src/pages/AssetLibrary.tsx` — Asset Library (route: `/assets`)
+
+A global search across ALL campaign assets, regardless of which campaign they belong to.
+
+**Filters:** Search by filename, asset type, channel, campaign, gym — all can be combined.
+**Views:** Grid (thumbnail) or List
+**Actions:** Click any asset to open the detail modal with edit/share/delete options
+
+### `src/pages/BulkUpload.tsx` — Bulk Asset Upload (route: `/bulk-upload`, admin only)
+
+A drag-and-drop upload tool for adding multiple files to the gym logos/elements system at once. Files are automatically routed to the right gym and table based on filename parsing (e.g., `CRR-logo-horizontal-v1.png` → CRR gym, `gym_logos` table).
 
 ### `src/pages/Auth.tsx` — PIN Login (route: `/auth`)
 
@@ -610,8 +648,17 @@ The `validateFilename()` function returns `true` if a name follows this pattern.
 ### The `.lovable/plan.md` File
 This file described a pending change: removing a "Contact & Location" section from the gym profile. **This work is now complete** — the `GymContactInfo` component mentioned in the plan no longer exists in the codebase. The plan.md entry can be considered done and its plan.md file has been updated accordingly.
 
-### Campaign Features Are Incomplete
-The database has tables for campaigns, campaign assets, flyer templates, and asset channels (documented in the [Database Schema](#4-database-schema-supabase) section), but these features are not yet wired up in the UI. They are planned features for a future release.
+### Two Asset Storage Systems Exist Side by Side
+
+The app has two separate asset systems:
+1. **Gym-direct assets** (`gym_logos` + `gym_elements` tables, `gym-logos` storage bucket) — images attached directly to a gym. Used on the dashboard and gym profile pages.
+2. **Campaign assets** (`campaign_assets` table, `campaign-assets` storage bucket) — files uploaded into a campaign, optionally linked to a gym. Used on the Campaigns and Asset Library pages.
+
+Both systems are fully functional. The key distinction: gym-direct assets are brand assets (logos, brand elements). Campaign assets are marketing deliverables (posters, videos, PDFs, email graphics, etc.).
+
+### Old Campaign Tag System is Partially Unused
+
+`useCampaigns.ts` contains `useTagAsset`, `useUntagAsset`, and `useAssetCampaigns` which reference an older `campaign_tags` table (linking campaigns to gym_logos/gym_elements). This approach was replaced by the `campaign_assets` table. The old functions remain in the codebase but are not used by any current UI.
 
 ### Background Removal Performance
 The `@imgly/background-removal` library downloads a WebAssembly AI model (~50–100MB) on first use. This makes the first background removal slow. Subsequent uses in the same browser session reuse the cached model.
