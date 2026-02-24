@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
+// Use synchronous bcrypt - async version uses Workers which aren't available in edge runtime
+import { compareSync } from "https://deno.land/x/bcrypt@v0.4.1/src/main.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -59,7 +60,7 @@ Deno.serve(async (req) => {
     // Check PIN against all stored hashes
     let matchedUser = null;
     for (const adminPin of adminPins) {
-      const isMatch = await bcrypt.compare(pin, adminPin.pin_hash);
+      const isMatch = compareSync(pin, adminPin.pin_hash);
       if (isMatch) {
         matchedUser = adminPin;
         break;
