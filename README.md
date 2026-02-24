@@ -27,33 +27,8 @@ A comprehensive gym brand asset management application for managing brand colors
 - Asset renamer with AI-suggested filenames via Supabase edge function
 - Batch selection and smart rename workflow
 
-### Campaigns (`/campaigns`)
-- Campaign management hub for marketing campaigns
-- Create, update, delete campaigns with status (active, upcoming, archived)
-- Thumbnail upload for campaign cards
-- Navigate to individual campaign detail views
-
-### Campaign Detail (`/campaigns/:campaignName`)
-- Full campaign asset management with sidebar filters
-- Upload assets (images, videos, PDFs, DOCX, XLSX) with auto gym-code detection
-- Bulk select, bulk delete, bulk copy links (plain, markdown, HTML, video embed)
-- Download selected/all as ZIP with gym-organized folder structure
-- Asset detail modal with classification (asset type, channel tags)
-- Bulk gym assignment dialog
-- Grouping by gym, file type, or flat view
-- Legacy gym logos/elements section via campaign tags
-
-### Asset Library (`/assets`)
-- Cross-campaign asset search and browsing
-- Filter by asset type, channel, campaign, and gym
-- Grid and list view modes
-- Asset detail, edit, and share modals with QR code generation
-
-### Bulk Upload (`/bulk-upload`)
-- Upload multiple assets with automatic filename parsing
-- Filename convention: `GYMCODE-assettype-descriptor-v1.ext`
-- Auto-detection of gym codes and routing to correct tables
-- Preview panel showing parsed results grouped by gym
+### Campaigns & Asset Management (not yet active)
+The codebase contains pages for campaign management, asset library, and bulk upload (`src/pages/Campaigns.tsx`, `CampaignDetail.tsx`, `AssetLibrary.tsx`, `BulkUpload.tsx`) along with supporting components and hooks. These were previously developed but disconnected from the router because the implementation needs to be rebuilt. The database tables (`campaigns`, `campaign_assets`, `campaign_tags`, `asset_types`, `asset_channels`, `asset_channel_tags`) are in place and ready.
 
 ### Authentication (`/auth`)
 - 4-digit PIN-based admin login
