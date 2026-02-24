@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor } from "@/hooks/useGyms";
 import { useAuth } from "@/hooks/useAuth";
-import { GymContactInfo } from "@/components/GymContactInfo";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -1984,18 +1984,6 @@ const GymProfile = () => {
       )}
 
 
-      {/* Contact & Location Section */}
-      <div className="container mx-auto px-6 pb-8">
-        <GymContactInfo
-          gymId={gym.id}
-          address={gym.address}
-          phone={gym.phone}
-          email={gym.email}
-          website={gym.website}
-          primaryColor={primaryColor}
-          isAdmin={!!isAdmin}
-        />
-      </div>
 
       {/* Asset Renamer Modal */}
       {gym && (
