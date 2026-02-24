@@ -421,6 +421,56 @@ export const useDeleteGymColor = () => {
   });
 };
 
+export const useDeleteGym = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (gymId: string) => {
+      const { data: logos } = await supabase
+        .from('gym_logos')
+        .select('file_url')
+        .eq('gym_id', gymId);
+
+      if (logos && logos.length > 0) {
+        const fileNames = logos
+          .map(l => l.file_url.split('/').pop())
+          .filter(Boolean) as string[];
+        if (fileNames.length > 0) {
+          await supabase.storage.from('gym-logos').remove(fileNames);
+        }
+      }
+
+      await supabase.from('gym_elements').delete().eq('gym_id', gymId);
+      await supabase.from('gym_logos').delete().eq('gym_id', gymId);
+      await supabase.from('gym_colors').delete().eq('gym_id', gymId);
+
+      const { error } = await supabase.from('gyms').delete().eq('id', gymId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
+export const useUpdateGym = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ gymId, updates }: { gymId: string; updates: { name?: string; code?: string; hero_video_url?: string | null } }) => {
+      const { error } = await supabase
+        .from('gyms')
+        .update(updates)
+        .eq('id', gymId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
 export const useUpdateElementType = () => {
   const queryClient = useQueryClient();
 

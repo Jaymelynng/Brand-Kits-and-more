@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGym, useDeleteGym } from "@/hooks/useGyms";
 import { useAuth } from "@/hooks/useAuth";
 import { GymContactInfo } from "@/components/GymContactInfo";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser } from "lucide-react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser, Edit3, Video, Save } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -60,8 +62,15 @@ const GymProfile = () => {
   const updateElementTypeMutation = useUpdateElementType();
   const updateColorMutation = useUpdateGymColor();
   const addColorMutation = useAddGymColor();
+  const updateGymMutation = useUpdateGym();
+  const deleteGymMutation = useDeleteGym();
   const { removeBg, isProcessing: isRemovingBg, progress: bgRemovalProgress, statusMessage: bgRemovalStatus } = useBackgroundRemoval();
   const [removingBgLogoId, setRemovingBgLogoId] = useState<string | null>(null);
+  const [isEditingGym, setIsEditingGym] = useState(false);
+  const [editGymName, setEditGymName] = useState('');
+  const [editGymCode, setEditGymCode] = useState('');
+  const [editHeroVideo, setEditHeroVideo] = useState('');
+  const [showDeleteGymDialog, setShowDeleteGymDialog] = useState(false);
 
   // Scroll to top on page load and back to top functionality
   useEffect(() => {
@@ -689,7 +698,7 @@ const GymProfile = () => {
       <div className="relative overflow-hidden">
         <div className="relative container mx-auto px-6 py-8">
           {/* Navigation */}
-          <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center justify-between mb-8">
             <Link to="/">
               <Button 
                 variant="outline" 
@@ -700,7 +709,116 @@ const GymProfile = () => {
                 Dashboard
               </Button>
             </Link>
+            {isAdmin && (
+              <div className="flex items-center gap-2">
+                {!isEditingGym ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/80 backdrop-blur-sm border-white/20 hover:bg-white/90"
+                    onClick={() => {
+                      setEditGymName(gym.name);
+                      setEditGymCode(gym.code);
+                      setEditHeroVideo(gym.hero_video_url || '');
+                      setIsEditingGym(true);
+                    }}
+                  >
+                    <Edit3 className="w-4 h-4 mr-2" />
+                    Edit Gym Info
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/80 backdrop-blur-sm border-white/20 hover:bg-white/90"
+                      onClick={() => setIsEditingGym(false)}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="text-white"
+                      style={{ backgroundColor: primaryColor }}
+                      onClick={() => {
+                        updateGymMutation.mutate(
+                          {
+                            gymId: gym.id,
+                            updates: {
+                              name: editGymName.trim(),
+                              code: editGymCode.trim().toUpperCase(),
+                              hero_video_url: editHeroVideo.trim() || null,
+                            },
+                          },
+                          {
+                            onSuccess: () => {
+                              toast({ description: 'Gym info updated!' });
+                              setIsEditingGym(false);
+                              if (editGymCode.trim().toUpperCase() !== gym.code) {
+                                navigate(`/gym/${editGymCode.trim().toUpperCase()}`);
+                              }
+                            },
+                            onError: (err: any) => {
+                              toast({ variant: 'destructive', description: err.message || 'Failed to update' });
+                            },
+                          }
+                        );
+                      }}
+                      disabled={updateGymMutation.isPending}
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      {updateGymMutation.isPending ? 'Saving...' : 'Save'}
+                    </Button>
+                  </>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-red-50 border-red-200 text-red-600 hover:bg-red-100 hover:text-red-700"
+                  onClick={() => setShowDeleteGymDialog(true)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
+
+          {/* Gym Edit Form */}
+          {isEditingGym && isAdmin && (
+            <div className="mb-6 p-4 rounded-xl bg-white/80 backdrop-blur-sm border border-white/30 shadow-lg space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Gym Name</label>
+                  <Input
+                    value={editGymName}
+                    onChange={(e) => setEditGymName(e.target.value)}
+                    className="bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Gym Code</label>
+                  <Input
+                    value={editGymCode}
+                    onChange={(e) => setEditGymCode(e.target.value.toUpperCase())}
+                    maxLength={5}
+                    className="bg-white uppercase font-mono"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <Video className="w-3 h-3" /> Hero Video URL (optional)
+                </label>
+                <Input
+                  value={editHeroVideo}
+                  onChange={(e) => setEditHeroVideo(e.target.value)}
+                  placeholder="https://example.com/video.mp4"
+                  className="bg-white"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Hero Video or Compact Hero Header */}
           {gym.hero_video_url ? (
@@ -2070,6 +2188,37 @@ const GymProfile = () => {
           <ChevronUp className="w-6 h-6" />
         </Button>
       )}
+
+      {/* Delete Gym Confirmation */}
+      <AlertDialog open={showDeleteGymDialog} onOpenChange={setShowDeleteGymDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {gym.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>{gym.name} ({gym.code})</strong> and ALL of its logos, colors, brand elements, and contact info. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                deleteGymMutation.mutate(gym.id, {
+                  onSuccess: () => {
+                    toast({ description: `${gym.name} deleted.` });
+                    navigate('/');
+                  },
+                  onError: (err: any) => {
+                    toast({ variant: 'destructive', description: err.message || 'Failed to delete gym' });
+                  },
+                });
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Forever
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
     </GymColorProvider>
   );
