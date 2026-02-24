@@ -356,36 +356,30 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 onClick={() => copyGymColors(true)}
                 variant="outline"
                 size="sm"
-                className="text-xs text-white"
+                className="text-xs text-white font-semibold"
                 style={{
-                  background: `
-                    radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.8), transparent),
-                    radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.6), transparent),
-                    radial-gradient(1px 1px at 40px 12px, rgba(255,255,255,0.9), transparent),
-                    linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)
-                  `,
-                  border: 'none'
+                  background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
+                  border: 'none',
+                  boxShadow: `0 4px 8px ${primaryColor}66, 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)`
                 }}
               >
                 <Copy className="w-3 h-3 mr-1" />
-                Copy All
+                Copy #HEX
               </Button>
               <Button
                 onClick={() => copyGymColors(false)}
                 variant="outline"
                 size="sm"
-                className="text-xs text-white"
+                className="text-xs font-semibold"
                 style={{
-                  background: `
-                    radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.8), transparent),
-                    radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.6), transparent),
-                    linear-gradient(135deg, ${secondaryColor} 0%, ${primaryColor} 100%)
-                  `,
-                  border: 'none'
+                  background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
+                  border: `2px solid ${primaryColor}`,
+                  color: primaryColor,
+                  boxShadow: `0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.05)`
                 }}
               >
                 <Copy className="w-3 h-3 mr-1" />
-                No #
+                Copy HEX
               </Button>
             </div>
 
@@ -403,10 +397,11 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 }}
                 variant="outline"
                 size="sm"
-                className="w-full text-xs text-white"
+                className="w-full text-xs text-white font-semibold"
                 style={{
-                  background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-                  border: 'none'
+                  background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
+                  border: 'none',
+                  boxShadow: `0 4px 8px ${secondaryColor}55, 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)`
                 }}
               >
                 <Download className="w-3 h-3 mr-1" />
@@ -415,15 +410,10 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             )}
 
             <Link to={`/gym/${gym.code}`} className="block w-full">
-              <Button className="w-full text-sm py-2 text-white shadow-lg hover:shadow-xl transition-smooth"
+              <Button className="w-full text-sm py-2 text-white font-bold transition-smooth"
                       style={{
-                        background: `
-                          radial-gradient(1px 1px at 8px 8px, rgba(255,255,255,0.9), transparent),
-                          radial-gradient(1px 1px at 24px 15px, rgba(255,255,255,0.7), transparent),
-                          radial-gradient(1px 1px at 40px 12px, rgba(255,255,255,0.85), transparent),
-                          radial-gradient(1px 1px at 60px 20px, rgba(255,255,255,0.6), transparent),
-                          linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)
-                        `
+                        background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 90%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 75%, black))`,
+                        boxShadow: `0 6px 14px ${primaryColor}55, 0 3px 6px rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.25), inset 0 -2px 0 rgba(0,0,0,0.15)`
                       }}>
                 <Eye className="w-4 h-4 mr-2" />
                 View {gym.code} Profile
