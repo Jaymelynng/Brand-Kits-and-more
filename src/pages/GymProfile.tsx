@@ -671,10 +671,10 @@ const GymProfile = () => {
         style={{
           background: `
             linear-gradient(165deg, 
-              color-mix(in srgb, ${primaryColor} 18%, #f0f0f4) 0%, 
-              color-mix(in srgb, ${primaryColor} 12%, #eeeef2) 40%, 
-              color-mix(in srgb, ${secondaryColor} 10%, #f0f0f4) 70%, 
-              color-mix(in srgb, ${primaryColor} 15%, #eeeef2) 100%)
+              color-mix(in srgb, ${primaryColor} 25%, #e8e8ee) 0%, 
+              color-mix(in srgb, ${primaryColor} 18%, #e8e8ee) 40%, 
+              color-mix(in srgb, ${secondaryColor} 15%, #e8e8ee) 70%, 
+              color-mix(in srgb, ${primaryColor} 22%, #e8e8ee) 100%)
           `,
         }}
       >
