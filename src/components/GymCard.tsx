@@ -202,68 +202,39 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <BrandCard 
-        className="bg-white rounded-xl transition-all duration-300 transform hover:-translate-y-1 group border-2 flex flex-col h-full min-h-[480px]"
+        className="bg-white rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full"
         style={{
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
-            : 'transparent',
-          boxShadow: '0 4px 12px hsl(var(--brand-rose-gold) / 0.12), 0 12px 30px hsl(var(--brand-rose-gold) / 0.18), 0 20px 50px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = '0 8px 20px hsl(var(--brand-rose-gold) / 0.2), 0 20px 45px hsl(var(--brand-rose-gold) / 0.28), 0 30px 60px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8)';
-          if (!editMode) {
-            e.currentTarget.style.borderColor = 'hsl(var(--brand-blue-gray))';
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = '0 4px 12px hsl(var(--brand-rose-gold) / 0.12), 0 12px 30px hsl(var(--brand-rose-gold) / 0.18), 0 20px 50px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)';
-          if (!editMode) {
-            e.currentTarget.style.borderColor = 'transparent';
-          }
+            : 'hsl(var(--border))',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06)',
         }}
         id={`gym-${gym.code}`}
       >
-        <div className="flex items-center justify-between pb-3 px-6 border-b"
+        <div className="flex items-center justify-between py-2.5 px-4 border-b border-border/40"
              style={{
-               background: `
-                 radial-gradient(1px 1px at 15px 10px, rgba(255,255,255,0.6), transparent),
-                 radial-gradient(1px 1px at 35px 20px, rgba(255,255,255,0.4), transparent),
-                 radial-gradient(1px 1px at 55px 15px, rgba(255,255,255,0.7), transparent),
-                 linear-gradient(135deg, rgba(196, 164, 164, 0.12) 0%, rgba(182, 148, 148, 0.12) 50%, rgba(168, 132, 132, 0.12) 100%)
-               `,
-               borderColor: 'hsl(var(--brand-rose-gold) / 0.2)'
+               background: 'linear-gradient(135deg, rgba(196, 164, 164, 0.08) 0%, rgba(182, 148, 148, 0.08) 100%)',
              }}>
-          {/* Gym Name on Left */}
-          <h3 className="text-lg font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
+          <h3 className="text-base font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
             {gym.name}
           </h3>
-          
-          {/* Gym Code Badge on Right */}
-          <span className="inline-block px-4 py-2 rounded-full text-sm font-bold tracking-wider text-white shadow-lg flex-shrink-0"
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wider text-white shadow-md flex-shrink-0"
                 style={{
-                  background: `
-                    radial-gradient(1.5px 1.5px at 8px 8px, rgba(255,255,255,1), transparent),
-                    radial-gradient(1px 1px at 20px 5px, rgba(255,255,255,0.95), transparent),
-                    radial-gradient(1.5px 1.5px at 32px 10px, rgba(255,255,255,0.9), transparent),
-                    radial-gradient(1px 1px at 44px 6px, rgba(255,255,255,0.85), transparent),
-                    radial-gradient(1.5px 1.5px at 56px 12px, rgba(255,255,255,0.95), transparent),
-                    radial-gradient(1px 1px at 12px 14px, rgba(255,255,255,0.8), transparent),
-                    linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)
-                  `
+                  background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)`,
                 }}>
             {gym.code}
           </span>
         </div>
 
-        <BrandCardContent>
-          {/* Main Logo Display */}
-          <div className="mb-4">
+        <BrandCardContent className="px-4 pb-4 pt-3">
+          {/* Main Logo Display — compact */}
+          <div className="mb-3">
             <div 
               className={cn(
-                "w-full h-40 rounded-xl flex items-center justify-center cursor-pointer transition-smooth",
+                "w-full h-24 rounded-lg flex items-center justify-center cursor-pointer transition-all",
                 isDragOver 
-                  ? "border-2 border-dashed border-gym-primary/60 bg-gym-primary/20" 
-                  : mainLogo ? "" : "border-2 border-dashed border-gym-primary/30 hover:border-gym-primary/50 bg-gradient-primary"
+                  ? "border-2 border-dashed border-gym-primary/60 bg-gym-primary/10" 
+                  : mainLogo ? "bg-muted/30" : "border border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-muted/20"
               )}
               onClick={triggerFileUpload}
               onDragOver={handleDragOver}
@@ -271,30 +242,16 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
               onDrop={handleDrop}
             >
               {mainLogo ? (
-                <div 
-                  className="relative group rounded-xl p-3 transition-all duration-300 hover:-translate-y-[2px]"
-                  style={{
-                    background: `linear-gradient(135deg, #fafafa, #f0f0f0)`,
-                    boxShadow: `0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08), 0 12px 40px ${primaryColor}22, inset 0 1px 0 rgba(255,255,255,0.9)`,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = `0 4px 12px rgba(0,0,0,0.14), 0 12px 32px rgba(0,0,0,0.12), 0 16px 48px ${primaryColor}33`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = `0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08), 0 12px 40px ${primaryColor}22, inset 0 1px 0 rgba(255,255,255,0.9)`;
-                  }}
-                >
-                  <img 
-                    src={mainLogo.file_url} 
-                    alt="Main logo" 
-                    className="max-h-36 max-w-full object-contain"
-                  />
-                </div>
+                <img 
+                  src={mainLogo.file_url} 
+                  alt="Main logo" 
+                  className="max-h-20 max-w-[80%] object-contain"
+                />
               ) : (
                 <div className="text-center">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gym-primary" />
-                  <div className="text-gym-primary font-medium text-sm">
-                    {isDragOver ? "Drop files here" : "Click or drag to add logo"}
+                  <Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                  <div className="text-muted-foreground font-medium text-[10px]">
+                    {isDragOver ? "Drop here" : "Add logo"}
                   </div>
                 </div>
               )}
@@ -317,9 +274,9 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="flex-1 flex flex-col mb-3">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-foreground">🎨 Brand Colors</h4>
+          <div className="flex-1 flex flex-col mb-2">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs font-semibold text-foreground">🎨 Brand Colors</h4>
               {editMode && (
                 <Button
                   variant="outline"
