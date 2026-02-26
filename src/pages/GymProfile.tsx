@@ -686,7 +686,12 @@ const GymProfile = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/80 backdrop-blur-sm border-white/20 hover:bg-white/90"
+                className="backdrop-blur-sm hover:opacity-90 font-semibold"
+                style={{ 
+                  backgroundColor: `${primaryColor}15`,
+                  borderColor: `${primaryColor}30`,
+                  color: primaryColor 
+                }}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Dashboard
