@@ -793,7 +793,7 @@ const GymProfile = () => {
               )}
 
               {/* Brand Assets Stats */}
-              <BrandCard variant="hero">
+              <BrandCard variant="hero" style={{ borderColor: `${primaryColor}25` }}>
                 <BrandCardHeader className="pb-4">
                   <BrandCardTitle className="text-xl">📊 Brand Assets</BrandCardTitle>
                 </BrandCardHeader>
