@@ -284,6 +284,18 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             )}
           </div>
 
+          {/* Profile Button — directly under logo */}
+          <Link to={`/gym/${gym.code}`} className="block w-full mb-2">
+            <Button className="w-full h-11 text-sm text-white font-bold"
+                    style={{
+                      background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 90%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 75%, black))`,
+                      boxShadow: `0 3px 6px ${primaryColor}44, inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)`
+                    }}>
+              <Eye className="w-4 h-4 mr-1.5" />
+              Profile
+            </Button>
+          </Link>
+
           {/* Brand Colors */}
           <div className="flex-1 flex flex-col mb-1.5">
             <div className="flex items-center justify-between mb-2">
