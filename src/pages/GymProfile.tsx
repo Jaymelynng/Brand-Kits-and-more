@@ -1303,7 +1303,7 @@ const GymProfile = () => {
                                     }}
                                     size="sm"
                                     variant="outline"
-                                    className="w-full bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600 hover:text-purple-700 hover:scale-105 transition-all"
+                                    className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
                                     disabled={removingBgLogoId === logo.id}
                                   >
                                     {removingBgLogoId === logo.id ? (
