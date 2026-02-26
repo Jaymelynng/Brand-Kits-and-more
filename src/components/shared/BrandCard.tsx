@@ -10,15 +10,15 @@ interface BrandCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const BrandCard = ({ children, className, variant = 'default', ...props }: BrandCardProps) => {
   const variants = {
-    default: "bg-card/80 backdrop-blur-sm border-gym-primary/30 shadow-elegant",
-    hero: "bg-gradient-to-br from-gym-primary/15 via-card/90 to-gym-secondary/15 backdrop-blur-sm border-gym-primary/35 shadow-2xl",
-    compact: "bg-card/85 backdrop-blur-sm border-gym-primary/25 shadow-md hover:shadow-elegant"
+    default: "bg-white border-2 border-gym-primary/30 shadow-elegant",
+    hero: "bg-white border-2 border-gym-primary/35 shadow-2xl",
+    compact: "bg-white border-2 border-gym-primary/25 shadow-md hover:shadow-elegant"
   };
 
   return (
     <div 
       className={cn(
-        "rounded-2xl border transition-smooth",
+        "rounded-2xl transition-smooth",
         variants[variant],
         className
       )}
