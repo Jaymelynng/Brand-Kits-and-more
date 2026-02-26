@@ -1879,8 +1879,8 @@ const GymProfile = () => {
                 className={cn(
                   "border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer",
                   isDragOverElement 
-                    ? "border-white/60 shadow-2xl" 
-                    : "border-white/30 hover:border-white/50 hover:shadow-lg"
+                    ? "border-gym-primary/60 shadow-2xl" 
+                    : "border-gym-primary/35 hover:border-gym-primary/55 hover:shadow-lg"
                 )}
                 style={{
                   backgroundColor: isDragOverElement ? `${primaryColor}20` : `${primaryColor}10`,
