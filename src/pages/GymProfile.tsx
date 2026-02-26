@@ -1116,9 +1116,9 @@ const GymProfile = () => {
             </CardHeader>
             <CardContent>
               {viewMode === 'carousel' ? (
-                <div style={{ perspective: "3000px" }} className="w-full overflow-hidden px-12 py-8">
+                <div style={{ perspective: "3000px" }} className="w-full overflow-hidden py-8">
                   <Carousel 
-                    className="w-full" 
+                    className="w-full max-w-5xl mx-auto px-16" 
                     opts={{ align: "center", loop: true }}
                     plugins={[
                       Autoplay({
@@ -1178,11 +1178,11 @@ const GymProfile = () => {
                       updateSlides();
                     }}
                   >
-                    <CarouselContent className="-ml-4">
+                    <CarouselContent>
                       {gym.logos.map((logo, index) => (
                         <CarouselItem 
                           key={logo.id} 
-                          className="pl-4 md:basis-1/2 lg:basis-1/3"
+                          className="md:basis-1/2 lg:basis-1/3"
                           style={{
                             transformStyle: "preserve-3d",
                           }}
@@ -1234,7 +1234,7 @@ const GymProfile = () => {
                                 
                                 {/* Logo Display with 3D effect */}
                                 <div 
-                                  className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
+                                  className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
                                   style={{ 
                                     backgroundColor: logoBgColor,
                                   }}
