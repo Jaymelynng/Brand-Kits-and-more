@@ -59,14 +59,14 @@ export const ColorSwatch = ({
     const light = isLightColor(color);
     return (
       <div className={cn(
-        "flex flex-col items-center gap-1.5 p-2 rounded-lg border bg-card/50 relative",
+        "flex flex-col items-center gap-2 p-2 rounded-lg border bg-card/50 relative",
         "border-border/60",
         className
       )}>
         {/* Color swatch — compact strip */}
         <div 
           className={cn(
-            "rounded-md w-14 h-14 mx-auto cursor-pointer transition-all hover:scale-[1.03]",
+            "rounded-md w-[72px] h-[72px] mx-auto cursor-pointer transition-all hover:scale-[1.03]",
             editMode && "hover:ring-2 hover:ring-gym-primary"
           )}
           style={{ 
