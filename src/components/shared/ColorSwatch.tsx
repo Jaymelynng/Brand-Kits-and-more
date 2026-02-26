@@ -20,6 +20,7 @@ export const ColorSwatch = ({
   color, 
   label, 
   size = 'md', 
+  layout = 'row',
   showControls = false, 
   onEdit, 
   onDelete,
@@ -45,6 +46,41 @@ export const ColorSwatch = ({
     });
   };
 
+  // Tile layout for 4-column grid
+  if (layout === 'tile') {
+    return (
+      <div className={cn("relative flex flex-col items-center group", className)}>
+        <div 
+          className={cn(
+            "w-full aspect-square rounded-xl shadow-md border-2 border-white/30 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg",
+            editMode && "hover:ring-2 hover:ring-gym-primary",
+            copied && "ring-2 ring-green-400"
+          )}
+          style={{ backgroundColor: color }}
+          onClick={editMode ? onEdit : () => copyColor(color)}
+          title={editMode ? "Click to edit color" : "Click to copy with #"}
+        />
+        <button
+          className="mt-1.5 font-mono text-[10px] font-bold text-foreground/70 hover:text-foreground cursor-pointer bg-transparent border-0 p-0 select-all transition-colors"
+          onClick={(e) => { e.stopPropagation(); copyColor(color, false); }}
+          title="Click to copy without #"
+        >
+          {color}
+        </button>
+        {editMode && onDelete && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-white flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+            title="Remove color"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Row layout (original)
   return (
     <div className={cn("flex items-center gap-2 relative", className)}>
       <div 
