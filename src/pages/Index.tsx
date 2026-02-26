@@ -203,7 +203,7 @@ const Index = () => {
 
         {/* Main Content */}
         <div className="pt-2 pb-16">
-          <div className="mx-auto w-full max-w-[1280px] px-4 sm:px-5 lg:px-6">
+          <div className="w-full px-4 sm:px-5 lg:px-6">
             {/* Search Bar */}
             <GymSearchBar 
               onSearch={setSearchQuery} 
@@ -212,7 +212,7 @@ const Index = () => {
             />
 
             {/* Gym Grid */}
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-4 lg:gap-5 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5 items-stretch">
               {filteredGyms.map((gym) => (
                 <GymCard 
                   key={gym.id} 
