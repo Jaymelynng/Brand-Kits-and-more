@@ -1690,13 +1690,13 @@ const GymProfile = () => {
                     onClick={() => setShowElementUpload(!showElementUpload)}
                     variant="outline"
                     size="sm"
-                    className="bg-white/80 border-white/40 hover:bg-white/90"
+                    className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     {showElementUpload ? "Hide Upload" : "Add Elements"}
                   </Button>
                   <Select value={elementViewMode} onValueChange={(value: any) => setElementViewMode(value)}>
-                    <SelectTrigger className="w-[140px] bg-white/80 border-white/40">
+                    <SelectTrigger className="w-[140px] bg-background/85 border-gym-primary/35">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
