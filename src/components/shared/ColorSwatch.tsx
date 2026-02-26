@@ -66,7 +66,7 @@ export const ColorSwatch = ({
         {/* Color swatch — compact strip */}
         <div 
           className={cn(
-            "rounded-md w-full aspect-square cursor-pointer transition-all hover:scale-[1.03]",
+            "rounded-md w-12 h-12 mx-auto cursor-pointer transition-all hover:scale-[1.03]",
             editMode && "hover:ring-2 hover:ring-gym-primary"
           )}
           style={{ 
