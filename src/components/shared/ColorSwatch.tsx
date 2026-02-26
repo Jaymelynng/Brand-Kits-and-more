@@ -82,7 +82,7 @@ export const ColorSwatch = ({
             width: SWATCH, height: SWATCH,
             backgroundColor: color,
             boxShadow: `0 3px 8px ${color}55, 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)`,
-            border: light ? '1.5px solid rgba(0,0,0,0.18)' : '1.5px solid rgba(255,255,255,0.3)'
+            border: light ? '2px solid rgba(0,0,0,0.28)' : '1.5px solid rgba(255,255,255,0.3)'
           }}
           onClick={editMode ? onEdit : () => copyColor(color)}
           title={editMode ? "Click to edit color" : "Click to copy color"}
