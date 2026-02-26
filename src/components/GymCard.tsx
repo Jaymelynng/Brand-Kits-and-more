@@ -326,78 +326,71 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
+          {/* Action Buttons — compact 2x2 grid */}
+          <div className="grid grid-cols-2 gap-1.5">
+            <Button
+              onClick={() => copyGymColors(true)}
+              variant="outline"
+              size="sm"
+              className="h-7 text-[10px] text-white font-semibold"
+              style={{
+                background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
+                border: 'none',
+                boxShadow: `0 3px 6px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)`
+              }}
+            >
+              <Copy className="w-2.5 h-2.5 mr-1" />
+              Copy #
+            </Button>
+            <Button
+              onClick={() => copyGymColors(false)}
+              variant="outline"
+              size="sm"
+              className="h-7 text-[10px] font-semibold"
+              style={{
+                background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
+                border: `1.5px solid ${primaryColor}`,
+                color: primaryColor,
+                boxShadow: `0 3px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)`
+              }}
+            >
+              <Copy className="w-2.5 h-2.5 mr-1" />
+              Copy HEX
+            </Button>
+            {mainLogo && (
               <Button
-                onClick={() => copyGymColors(true)}
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = mainLogo.file_url;
+                  link.download = mainLogo.filename;
+                  link.target = '_blank';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
                 variant="outline"
                 size="sm"
-                className="h-8 text-[11px] text-white font-semibold"
+                className="h-7 text-[10px] text-white font-semibold"
                 style={{
-                  background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
+                  background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
                   border: 'none',
-                  boxShadow: `0 4px 8px ${primaryColor}66, 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)`
+                  boxShadow: `0 3px 6px ${secondaryColor}44, inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)`
                 }}
               >
-                <Copy className="w-3 h-3 mr-1" />
-                Copy #HEX
+                <Download className="w-2.5 h-2.5 mr-1" />
+                Logo
               </Button>
-              <Button
-                onClick={() => copyGymColors(false)}
-                variant="outline"
-                size="sm"
-                className="h-8 text-[11px] font-semibold"
-                style={{
-                  background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
-                  border: `2px solid ${primaryColor}`,
-                  color: primaryColor,
-                  boxShadow: `0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.05)`
-                }}
-              >
-                <Copy className="w-3 h-3 mr-1" />
-                Copy HEX
+            )}
+            <Link to={`/gym/${gym.code}`} className={cn("block w-full", !mainLogo && "col-span-2")}>
+              <Button className="w-full h-7 text-[10px] text-white font-bold"
+                      style={{
+                        background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 90%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 75%, black))`,
+                        boxShadow: `0 3px 6px ${primaryColor}44, inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)`
+                      }}>
+                <Eye className="w-2.5 h-2.5 mr-1" />
+                Profile
               </Button>
-            </div>
-
-            <div className={cn("grid gap-2", mainLogo ? "grid-cols-2" : "grid-cols-1")}>
-              {/* Quick Download Main Logo */}
-              {mainLogo && (
-                <Button
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = mainLogo.file_url;
-                    link.download = mainLogo.filename;
-                    link.target = '_blank';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-[11px] text-white font-semibold"
-                  style={{
-                    background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
-                    border: 'none',
-                    boxShadow: `0 4px 8px ${secondaryColor}55, 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)`
-                  }}
-                >
-                  <Download className="w-3 h-3 mr-1" />
-                  Download Logo
-                </Button>
-              )}
-
-              <Link to={`/gym/${gym.code}`} className="block w-full">
-                <Button className="w-full h-9 text-xs text-white font-bold transition-smooth"
-                        style={{
-                          background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 90%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 75%, black))`,
-                          boxShadow: `0 6px 14px ${primaryColor}55, 0 3px 6px rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.25), inset 0 -2px 0 rgba(0,0,0,0.15)`
-                        }}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  View {gym.code} Profile
-                </Button>
-              </Link>
-            </div>
+            </Link>
           </div>
 
           {/* Logo Gallery */}
