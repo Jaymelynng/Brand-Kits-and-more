@@ -45,14 +45,18 @@ export const ColorSwatch = ({
   };
 
   return (
-    <div className={cn("flex items-center gap-3 relative", className)}>
+    <div className={cn("flex items-center gap-2 relative", className)}>
       <div 
         className={cn(
-          "rounded-xl shadow-md border-2 border-white/30 flex-shrink-0 cursor-pointer transition-smooth hover:scale-105",
+          "rounded-xl flex-shrink-0 cursor-pointer transition-smooth hover:scale-105",
           sizes[size],
           editMode && "cursor-pointer hover:ring-2 hover:ring-gym-primary"
         )}
-        style={{ backgroundColor: color }}
+        style={{ 
+          backgroundColor: color,
+          boxShadow: `0 3px 8px ${color}55, 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.15)`,
+          border: '2px solid rgba(255,255,255,0.4)'
+        }}
         onClick={editMode ? onEdit : () => copyColor(color)}
         title={editMode ? "Click to edit color" : "Click to copy color"}
       />
