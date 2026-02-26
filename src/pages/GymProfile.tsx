@@ -1016,7 +1016,7 @@ const GymProfile = () => {
 
         {/* Logo Gallery */}
         {gym.logos.length > 0 && (
-          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
+          <Card className="lg:col-span-4 bg-white shadow-xl border-2" style={{ borderColor: `${primaryColor}40` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
