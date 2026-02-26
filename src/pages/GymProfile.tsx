@@ -1381,7 +1381,7 @@ const GymProfile = () => {
                         
                         {/* Logo Display */}
                         <div 
-                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
+                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
                           style={{ backgroundColor: logoBgColor }}
                         >
                           <img 
