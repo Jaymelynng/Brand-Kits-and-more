@@ -766,43 +766,40 @@ const GymProfile = () => {
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
             {/* Left Column: Logo + Brand Assets Stats */}
-            <div className="flex flex-col gap-6">
-              {/* Main Logo Showcase */}
-              {mainLogo && (
-                <div className="flex flex-col items-center">
-                  <div 
-                    className="flex items-center justify-center w-full h-48 mb-6 rounded-2xl border-2 shadow-xl"
-                    style={{
-                      background: 'linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%)',
-                      borderColor: `${primaryColor}30`,
-                      boxShadow: `0 8px 32px -8px ${primaryColor}40, 0 4px 16px -4px rgba(0,0,0,0.1)`,
-                    }}
-                  >
-                    <img 
-                      src={mainLogo.file_url} 
-                      alt={`${gym.name} main logo`}
-                      className="max-h-40 max-w-72 object-contain drop-shadow-lg"
-                    />
+            <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
+              <BrandCardContent className="p-6">
+                {/* Main Logo Showcase */}
+                {mainLogo && (
+                  <div className="flex flex-col items-center mb-6">
+                    <div 
+                      className="flex items-center justify-center w-full rounded-2xl border-2 shadow-inner mb-4"
+                      style={{
+                        height: 'clamp(200px, 18vw, 300px)',
+                        background: 'linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%)',
+                        borderColor: `${primaryColor}25`,
+                      }}
+                    >
+                      <img 
+                        src={mainLogo.file_url} 
+                        alt={`${gym.name} main logo`}
+                        className="object-contain drop-shadow-lg p-6"
+                        style={{ maxHeight: 'clamp(160px, 15vw, 260px)', maxWidth: '85%' }}
+                      />
+                    </div>
+                    <Button
+                      onClick={() => downloadLogo(mainLogo.file_url, mainLogo.filename)}
+                      className="text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      <Download className="w-5 h-5 mr-2" />
+                      Download Main Logo
+                    </Button>
                   </div>
-                  <Button
-                    onClick={() => downloadLogo(mainLogo.file_url, mainLogo.filename)}
-                    className="text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                    style={{ 
-                      backgroundColor: primaryColor,
-                    }}
-                  >
-                    <Download className="w-5 h-5 mr-2" />
-                    Download Main Logo
-                  </Button>
-                </div>
-              )}
+                )}
 
-              {/* Brand Assets Stats */}
-              <BrandCard variant="hero" style={{ borderColor: `${primaryColor}25` }}>
-                <BrandCardHeader className="pb-4">
-                  <BrandCardTitle className="text-xl">📊 Brand Assets</BrandCardTitle>
-                </BrandCardHeader>
-                <BrandCardContent className="pt-0">
+                {/* Brand Assets Stats */}
+                <div className="border-t-2 pt-5" style={{ borderColor: `${primaryColor}15` }}>
+                  <div className="text-lg font-semibold text-foreground mb-3">📊 Brand Assets</div>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="text-center p-4 rounded-xl bg-gym-primary/10">
                       <div className="text-3xl font-bold mb-1 text-gym-primary">
@@ -823,9 +820,9 @@ const GymProfile = () => {
                       <div className="text-sm font-medium text-muted-foreground">Brand Elements</div>
                     </div>
                   </div>
-                </BrandCardContent>
-              </BrandCard>
-            </div>
+                </div>
+              </BrandCardContent>
+            </BrandCard>
 
             {/* Right Column: Brand Colors */}
             <div>
