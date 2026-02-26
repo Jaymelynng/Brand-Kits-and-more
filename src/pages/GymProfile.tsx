@@ -1333,13 +1333,13 @@ const GymProfile = () => {
                       ))}
                     </CarouselContent>
                     <CarouselPrevious 
-                      className="left-4 bg-white/90 border-white/40 text-foreground hover:bg-white shadow-lg"
+                      className="left-4 bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
                       style={{ 
-                        boxShadow: `0 4px 12px ${primaryColor}40`
+                        boxShadow: `0 4px 12px ${primaryColor}50`
                       }}
                     />
                     <CarouselNext 
-                      className="right-4 bg-white/90 border-white/40 text-foreground hover:bg-white shadow-lg"
+                      className="right-4 bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
                       style={{ 
                         boxShadow: `0 4px 12px ${primaryColor}40`
                       }}
