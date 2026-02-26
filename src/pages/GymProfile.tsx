@@ -670,10 +670,11 @@ const GymProfile = () => {
         className="min-h-screen"
         style={{
           background: `
-            linear-gradient(165deg, ${primaryColor}18 0%, ${secondaryColor}12 30%, ${primaryColor}08 60%, ${secondaryColor}15 100%),
-            radial-gradient(ellipse at top left, ${primaryColor}20, transparent 50%),
-            radial-gradient(ellipse at bottom right, ${secondaryColor}20, transparent 50%),
-            hsl(var(--background))
+            linear-gradient(165deg, 
+              color-mix(in srgb, ${primaryColor} 25%, #e8e8ee) 0%, 
+              color-mix(in srgb, ${primaryColor} 18%, #e8e8ee) 40%, 
+              color-mix(in srgb, ${secondaryColor} 15%, #e8e8ee) 70%, 
+              color-mix(in srgb, ${primaryColor} 22%, #e8e8ee) 100%)
           `,
         }}
       >
@@ -686,10 +687,9 @@ const GymProfile = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="backdrop-blur-sm hover:opacity-90 font-semibold"
+                className="backdrop-blur-sm font-semibold bg-white/90 hover:bg-white border shadow-md"
                 style={{ 
-                  backgroundColor: `${primaryColor}15`,
-                  borderColor: `${primaryColor}30`,
+                  borderColor: `${primaryColor}50`,
                   color: primaryColor 
                 }}
               >
@@ -938,7 +938,7 @@ const GymProfile = () => {
       <div className="container mx-auto px-6 pb-12">
         {/* Upload Interface - Always visible for admins when no logos exist */}
         {(gym.logos.length === 0 || showUpload) && isAdmin && (
-          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl mb-8 animate-fade-in" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
+          <Card className="lg:col-span-4 bg-white shadow-xl mb-8 animate-fade-in border-2" style={{ borderColor: `${primaryColor}40` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -1020,7 +1020,7 @@ const GymProfile = () => {
 
         {/* Logo Gallery */}
         {gym.logos.length > 0 && (
-          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
+          <Card className="lg:col-span-4 bg-white shadow-xl border-2" style={{ borderColor: `${primaryColor}40` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
@@ -1193,18 +1193,16 @@ const GymProfile = () => {
                              <Card 
                               data-card
                               className={cn(
-                                "relative backdrop-blur-sm shadow-2xl transition-all duration-700",
+                                "relative bg-white shadow-2xl transition-all duration-700 border-2",
                                 selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                               )}
                               style={{
                                 transformStyle: "preserve-3d",
                                 transform: "rotateY(0deg)",
-                                backgroundColor: `${primaryColor}08`,
-                                borderColor: `${primaryColor}20`,
+                                borderColor: `${primaryColor}35`,
                                 boxShadow: `
-                                  0 20px 60px -10px ${primaryColor}30,
-                                  0 10px 30px -5px ${primaryColor}40,
-                                  inset 0 1px 0 rgba(255,255,255,0.6)
+                                  0 20px 60px -10px ${primaryColor}40,
+                                  0 10px 30px -5px ${primaryColor}50
                                 `,
                               }}
                             >
@@ -1352,9 +1350,10 @@ const GymProfile = () => {
                     <Card 
                       key={logo.id} 
                       className={cn(
-                        "relative bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative bg-white border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
+                      style={{ borderColor: `${primaryColor}35` }}
                     >
                       <CardContent className="p-6">
                         {/* Selection Checkbox */}
@@ -1467,9 +1466,10 @@ const GymProfile = () => {
                     <Card 
                       key={logo.id} 
                       className={cn(
-                        "relative bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative bg-white border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
+                      style={{ borderColor: `${primaryColor}35` }}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
@@ -1575,9 +1575,10 @@ const GymProfile = () => {
                     <Card 
                       key={logo.id} 
                       className={cn(
-                        "relative break-inside-avoid bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative break-inside-avoid bg-white border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
+                      style={{ borderColor: `${primaryColor}35` }}
                     >
                       <CardContent className="p-4">
                         {/* Selection Checkbox */}
@@ -1681,7 +1682,7 @@ const GymProfile = () => {
 
         {/* Brand Elements Section */}
         {gym.elements && gym.elements.length > 0 ? (
-          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
+          <Card className="bg-white shadow-xl mb-8 border-2" style={{ borderColor: `${primaryColor}40` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📦 Brand Elements ({gym.elements.length} files)</CardTitle>
@@ -1733,7 +1734,7 @@ const GymProfile = () => {
               {elementViewMode === 'grid' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {gym.elements.map((element) => (
-                    <Card key={element.id} className="relative bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Card key={element.id} className="relative bg-white border-2 shadow-lg hover:shadow-xl transition-all duration-300" style={{ borderColor: `${primaryColor}35` }}>
                       <CardContent className="p-6">
                         <div 
                           className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold capitalize"
@@ -1820,7 +1821,7 @@ const GymProfile = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
+          <Card className="bg-white shadow-xl mb-8 border-2" style={{ borderColor: `${primaryColor}40` }}>
             <CardHeader>
               <CardTitle className="text-2xl">📦 Brand Elements</CardTitle>
             </CardHeader>
@@ -1844,7 +1845,7 @@ const GymProfile = () => {
 
         {/* Element Upload Interface */}
         {showElementUpload && (
-          <Card className="backdrop-blur-sm shadow-xl mb-8 animate-fade-in" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
+          <Card className="bg-white shadow-xl mb-8 animate-fade-in border-2" style={{ borderColor: `${primaryColor}40` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📤 Upload Brand Elements</CardTitle>
