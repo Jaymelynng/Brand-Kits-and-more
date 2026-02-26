@@ -57,7 +57,8 @@ export const ColorSwatch = ({
 
   if (layout === 'cell') {
     const light = isLightColor(color);
-    const SWATCH = 88;
+    const SWATCH = 'clamp(76px, 8vw, 92px)';
+    const CONTROL_ROW = 'clamp(62px, 6.5vw, 74px)';
     return (
       <div className={cn(
         "flex flex-col items-center gap-1 p-2 rounded-lg border bg-card/50 relative",
@@ -94,11 +95,11 @@ export const ColorSwatch = ({
 
         {/* Copy buttons */}
         {showControls && (
-          <div className="grid grid-cols-2 gap-1 mx-auto" style={{ width: SWATCH }}>
+          <div className="grid grid-cols-2 gap-1 mx-auto" style={{ width: CONTROL_ROW }}>
             <button
               onClick={() => copyColor(color, true)}
               className={cn(
-                "h-7 px-0 text-[11px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
+                "h-6 px-0 text-[10px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
                 copied === 'hash' ? "text-white" : "text-foreground"
               )}
               style={{
@@ -115,7 +116,7 @@ export const ColorSwatch = ({
             <button
               onClick={() => copyColor(color, false)}
               className={cn(
-                "h-7 px-0 text-[11px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
+                "h-6 px-0 text-[10px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
                 copied === 'hex' ? "text-white" : "text-foreground"
               )}
               style={{
