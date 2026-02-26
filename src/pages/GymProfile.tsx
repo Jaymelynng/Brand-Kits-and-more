@@ -670,7 +670,11 @@ const GymProfile = () => {
         className="min-h-screen"
         style={{
           background: `
-            linear-gradient(165deg, ${primaryColor}30 0%, ${primaryColor}20 40%, ${secondaryColor}18 70%, ${primaryColor}28 100%)
+            linear-gradient(165deg, 
+              color-mix(in srgb, ${primaryColor} 18%, #f0f0f4) 0%, 
+              color-mix(in srgb, ${primaryColor} 12%, #eeeef2) 40%, 
+              color-mix(in srgb, ${secondaryColor} 10%, #f0f0f4) 70%, 
+              color-mix(in srgb, ${primaryColor} 15%, #eeeef2) 100%)
           `,
         }}
       >
