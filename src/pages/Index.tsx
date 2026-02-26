@@ -212,7 +212,7 @@ const Index = () => {
             />
 
             {/* Gym Grid */}
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(360px,1fr))] justify-items-center gap-4 lg:gap-5 items-stretch">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] justify-items-center gap-4 lg:gap-5 items-stretch">
               {filteredGyms.map((gym) => (
                 <GymCard 
                   key={gym.id} 
