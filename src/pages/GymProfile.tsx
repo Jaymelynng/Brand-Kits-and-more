@@ -1289,7 +1289,7 @@ const GymProfile = () => {
                                       }}
                                       size="sm"
                                       variant="outline"
-                                      className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-yellow-700 hover:text-yellow-800 hover:scale-105 transition-all"
+                                      className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
                                     >
                                       <Star className="w-4 h-4 mr-2" />
                                       Set as Main
