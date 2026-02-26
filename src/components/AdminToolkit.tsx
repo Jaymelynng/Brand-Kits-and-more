@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/sheet";
 import { PlusCircle, Edit3, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
