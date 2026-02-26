@@ -92,11 +92,11 @@ export const ColorSwatch = ({
 
         {/* Copy buttons */}
         {showControls && (
-          <div className="flex gap-0.5 w-full">
+          <div className="grid grid-cols-2 gap-0.5 w-12 mx-auto">
             <button
               onClick={() => copyColor(color, true)}
               className={cn(
-                "flex-1 py-0.5 text-[9px] font-bold rounded transition-all duration-150 active:translate-y-[1px]",
+                "h-4 px-0 text-[8px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none",
                 copied === 'hash' ? "text-white" : "text-foreground"
               )}
               style={{
@@ -113,7 +113,7 @@ export const ColorSwatch = ({
             <button
               onClick={() => copyColor(color, false)}
               className={cn(
-                "flex-1 py-0.5 text-[9px] font-bold rounded transition-all duration-150 active:translate-y-[1px]",
+                "h-4 px-0 text-[8px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none",
                 copied === 'hex' ? "text-white" : "text-foreground"
               )}
               style={{
