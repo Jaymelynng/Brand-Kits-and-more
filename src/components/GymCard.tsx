@@ -204,7 +204,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
         <BrandCard 
         className="rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-[clamp(460px,36vw,620px)] mx-auto"
         style={{
-          background: 'linear-gradient(170deg, #e8e4e2 0%, #ddd8d5 40%, #d5cfcc 100%)',
+          background: '#737373',
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
             : 'rgba(0,0,0,0.12)',
