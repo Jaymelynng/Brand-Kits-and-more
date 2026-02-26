@@ -1569,7 +1569,7 @@ const GymProfile = () => {
                     <Card 
                       key={logo.id} 
                       className={cn(
-                        "relative break-inside-avoid bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative break-inside-avoid bg-white border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
                     >
