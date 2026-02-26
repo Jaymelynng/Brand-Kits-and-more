@@ -1189,18 +1189,16 @@ const GymProfile = () => {
                              <Card 
                               data-card
                               className={cn(
-                                "relative backdrop-blur-sm shadow-2xl transition-all duration-700",
+                                "relative bg-white shadow-2xl transition-all duration-700 border-2",
                                 selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                               )}
                               style={{
                                 transformStyle: "preserve-3d",
                                 transform: "rotateY(0deg)",
-                                backgroundColor: `${primaryColor}08`,
-                                borderColor: `${primaryColor}20`,
+                                borderColor: `${primaryColor}35`,
                                 boxShadow: `
-                                  0 20px 60px -10px ${primaryColor}30,
-                                  0 10px 30px -5px ${primaryColor}40,
-                                  inset 0 1px 0 rgba(255,255,255,0.6)
+                                  0 20px 60px -10px ${primaryColor}40,
+                                  0 10px 30px -5px ${primaryColor}50
                                 `,
                               }}
                             >
