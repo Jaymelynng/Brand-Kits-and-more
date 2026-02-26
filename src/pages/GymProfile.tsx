@@ -816,8 +816,8 @@ const GymProfile = () => {
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
                     </div>
-                    <div className="text-center p-4 rounded-xl bg-accent/10">
-                      <div className="text-3xl font-bold mb-1 text-accent">
+                    <div className="text-center p-4 rounded-xl" style={{ backgroundColor: `${primaryColor}18` }}>
+                      <div className="text-3xl font-bold mb-1" style={{ color: primaryColor }}>
                         {gym.elements?.length || 0}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">Brand Elements</div>
