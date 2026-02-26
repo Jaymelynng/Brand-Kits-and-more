@@ -59,14 +59,14 @@ export const ColorSwatch = ({
     const light = isLightColor(color);
     return (
       <div className={cn(
-        "flex flex-col items-center gap-1 p-1.5 rounded-lg border bg-card/50 relative",
+        "flex flex-col items-center gap-1.5 p-2 rounded-lg border bg-card/50 relative",
         "border-border/60",
         className
       )}>
         {/* Color swatch — compact strip */}
         <div 
           className={cn(
-            "rounded-md w-12 h-12 mx-auto cursor-pointer transition-all hover:scale-[1.03]",
+            "rounded-md w-14 h-14 mx-auto cursor-pointer transition-all hover:scale-[1.03]",
             editMode && "hover:ring-2 hover:ring-gym-primary"
           )}
           style={{ 
@@ -92,11 +92,11 @@ export const ColorSwatch = ({
 
         {/* Copy buttons */}
         {showControls && (
-          <div className="grid grid-cols-2 gap-0.5 w-12 mx-auto">
+          <div className="grid grid-cols-2 gap-0.5 w-14 mx-auto">
             <button
               onClick={() => copyColor(color, true)}
               className={cn(
-                "h-4 px-0 text-[8px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none",
+                "h-5 px-0 text-[9px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none",
                 copied === 'hash' ? "text-white" : "text-foreground"
               )}
               style={{
@@ -113,7 +113,7 @@ export const ColorSwatch = ({
             <button
               onClick={() => copyColor(color, false)}
               className={cn(
-                "h-4 px-0 text-[8px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none",
+                "h-5 px-0 text-[9px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none",
                 copied === 'hex' ? "text-white" : "text-foreground"
               )}
               style={{
