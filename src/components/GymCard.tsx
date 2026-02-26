@@ -202,24 +202,12 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <BrandCard 
-        className="bg-white rounded-xl transition-all duration-300 transform hover:-translate-y-1 group border-2 flex flex-col h-full min-h-[480px]"
+        className="bg-white rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full"
         style={{
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
-            : 'transparent',
-          boxShadow: '0 4px 12px hsl(var(--brand-rose-gold) / 0.12), 0 12px 30px hsl(var(--brand-rose-gold) / 0.18), 0 20px 50px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = '0 8px 20px hsl(var(--brand-rose-gold) / 0.2), 0 20px 45px hsl(var(--brand-rose-gold) / 0.28), 0 30px 60px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8)';
-          if (!editMode) {
-            e.currentTarget.style.borderColor = 'hsl(var(--brand-blue-gray))';
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = '0 4px 12px hsl(var(--brand-rose-gold) / 0.12), 0 12px 30px hsl(var(--brand-rose-gold) / 0.18), 0 20px 50px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)';
-          if (!editMode) {
-            e.currentTarget.style.borderColor = 'transparent';
-          }
+            : 'hsl(var(--border))',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06)',
         }}
         id={`gym-${gym.code}`}
       >

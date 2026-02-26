@@ -46,55 +46,65 @@ export const ColorSwatch = ({
     });
   };
 
+  // Helper to detect light colors
+  const isLightColor = (hex: string) => {
+    const c = hex.replace('#', '');
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 200;
+  };
+
   if (layout === 'cell') {
+    const light = isLightColor(color);
     return (
-      <div className={cn("flex flex-col items-center gap-1.5 p-2 rounded-xl border border-border/50 bg-card/30 hover:bg-card/50 transition-all relative", className)}>
-        {/* Color swatch */}
+      <div className={cn(
+        "flex flex-col items-center gap-1 p-1.5 rounded-lg border bg-card/50 relative",
+        "border-border/60",
+        className
+      )}>
+        {/* Color swatch — compact strip */}
         <div 
           className={cn(
-            "rounded-lg flex-shrink-0 cursor-pointer transition-all hover:scale-105 w-full h-12",
-            editMode && "cursor-pointer hover:ring-2 hover:ring-gym-primary"
+            "rounded-md w-full h-8 cursor-pointer transition-all hover:scale-[1.03]",
+            editMode && "hover:ring-2 hover:ring-gym-primary"
           )}
           style={{ 
             backgroundColor: color,
-            boxShadow: `0 3px 8px ${color}55, 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.15)`,
-            border: color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#fff' || color.toLowerCase() === '#fefefe'
-              ? '2px solid rgba(0,0,0,0.15)'
-              : '2px solid rgba(255,255,255,0.4)'
+            boxShadow: `0 2px 6px ${color}44, inset 0 1px 0 rgba(255,255,255,0.25)`,
+            border: light ? '1.5px solid rgba(0,0,0,0.18)' : '1.5px solid rgba(255,255,255,0.3)'
           }}
           onClick={editMode ? onEdit : () => copyColor(color)}
           title={editMode ? "Click to edit color" : "Click to copy color"}
         />
         
         {/* Hex code */}
-        <div className="font-mono text-xs font-bold text-foreground select-all leading-tight">
+        <div className="font-mono text-[10px] font-bold text-foreground select-all leading-none">
           {color}
         </div>
         
         {/* Label */}
         {label && (
-          <div className="text-[10px] text-muted-foreground font-medium leading-tight text-center">
+          <div className="text-[9px] text-muted-foreground font-medium leading-none text-center">
             {label}
           </div>
         )}
 
         {/* Copy buttons */}
         {showControls && (
-          <div className="flex gap-1 w-full">
+          <div className="flex gap-0.5 w-full">
             <button
               onClick={() => copyColor(color, true)}
               className={cn(
-                "flex-1 px-1.5 py-1 text-[10px] font-bold rounded-md transition-all duration-150 active:translate-y-[1px]",
+                "flex-1 py-0.5 text-[9px] font-bold rounded transition-all duration-150 active:translate-y-[1px]",
                 copied === 'hash' ? "text-white" : "text-foreground"
               )}
               style={{
                 background: copied === 'hash' 
                   ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
-                  : 'linear-gradient(to bottom, #ffffff, #e0e0e0)',
-                border: copied === 'hash' ? 'none' : '1px solid rgba(0,0,0,0.15)',
-                boxShadow: copied === 'hash'
-                  ? `0 2px 4px ${color}55`
-                  : '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
+                  : 'linear-gradient(to bottom, #f5f5f5, #ddd)',
+                border: '1px solid rgba(0,0,0,0.12)',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
               }}
               title="Copy with #"
             >
@@ -103,17 +113,15 @@ export const ColorSwatch = ({
             <button
               onClick={() => copyColor(color, false)}
               className={cn(
-                "flex-1 px-1.5 py-1 text-[10px] font-bold rounded-md transition-all duration-150 active:translate-y-[1px]",
+                "flex-1 py-0.5 text-[9px] font-bold rounded transition-all duration-150 active:translate-y-[1px]",
                 copied === 'hex' ? "text-white" : "text-foreground"
               )}
               style={{
                 background: copied === 'hex' 
                   ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
-                  : 'linear-gradient(to bottom, #ffffff, #e0e0e0)',
-                border: copied === 'hex' ? 'none' : '1px solid rgba(0,0,0,0.15)',
-                boxShadow: copied === 'hex'
-                  ? `0 2px 4px ${color}55`
-                  : '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
+                  : 'linear-gradient(to bottom, #f5f5f5, #ddd)',
+                border: '1px solid rgba(0,0,0,0.12)',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
               }}
               title="Copy without #"
             >
@@ -128,10 +136,10 @@ export const ColorSwatch = ({
             variant="outline"
             size="sm"
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="absolute -top-1.5 -right-1.5 px-1 py-0.5 h-5 w-5 text-xs text-destructive hover:bg-destructive/10 border-destructive/30 rounded-full"
+            className="absolute -top-1 -right-1 p-0 h-4 w-4 text-destructive hover:bg-destructive/10 border-destructive/30 rounded-full"
             title="Remove color"
           >
-            <X className="w-3 h-3" />
+            <X className="w-2.5 h-2.5" />
           </Button>
         )}
       </div>
