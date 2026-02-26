@@ -1193,7 +1193,7 @@ const GymProfile = () => {
                              <Card 
                               data-card
                               className={cn(
-                                "relative bg-white/70 backdrop-blur-sm border-white/30 shadow-2xl transition-all duration-700",
+                                "relative backdrop-blur-sm shadow-2xl transition-all duration-700",
                                 selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                               )}
                               style={{
