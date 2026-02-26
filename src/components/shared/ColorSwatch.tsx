@@ -67,8 +67,9 @@ export const ColorSwatch = ({
           className
         )}
         style={{
-          background: 'linear-gradient(to bottom, #f9f9fb, #f0f0f3)',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.08), 0 6px 14px rgba(0,0,0,0.13), 0 12px 28px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.75)',
+          background: 'linear-gradient(to bottom, #f0f0f3, #e2e2e8)',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.18), 0 16px 36px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -2px 4px rgba(0,0,0,0.06)',
+          border: '1px solid rgba(0,0,0,0.12)',
         }}
       >
         {/* Color swatch */}
@@ -81,7 +82,7 @@ export const ColorSwatch = ({
             width: SWATCH, height: SWATCH,
             backgroundColor: color,
             boxShadow: `0 3px 8px ${color}55, 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)`,
-            border: light ? '1.5px solid rgba(0,0,0,0.18)' : '1.5px solid rgba(255,255,255,0.3)'
+            border: light ? '2px solid rgba(0,0,0,0.28)' : '1.5px solid rgba(255,255,255,0.3)'
           }}
           onClick={editMode ? onEdit : () => copyColor(color)}
           title={editMode ? "Click to edit color" : "Click to copy color"}
