@@ -5,6 +5,7 @@ interface BrandCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   className?: string;
   variant?: 'default' | 'hero' | 'compact';
+  style?: React.CSSProperties;
 }
 
 export const BrandCard = ({ children, className, variant = 'default', ...props }: BrandCardProps) => {
