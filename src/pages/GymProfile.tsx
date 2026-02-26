@@ -1644,7 +1644,7 @@ const GymProfile = () => {
                               onClick={() => setMainLogo(logo.id)}
                               size="sm"
                               variant="outline"
-                              className="bg-white/80 border-white/40 hover:bg-white/90 text-yellow-700"
+                              className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
                             >
                               <Star className="w-4 h-4" />
                             </Button>
