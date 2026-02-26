@@ -29,7 +29,6 @@ export const AdminToolkit = ({
 }: AdminToolkitProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [grantingAdmin, setGrantingAdmin] = useState(false);
 
   const handleGrantAdmin = async () => {
     toast({
