@@ -1451,7 +1451,7 @@ const GymProfile = () => {
                             onClick={() => handleDeleteLogo(logo.id, logo.filename)}
                             size="sm"
                             variant="outline"
-                            className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-red-600 hover:text-red-700"
+                            className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive hover:text-destructive"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
