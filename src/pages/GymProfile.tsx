@@ -1733,7 +1733,7 @@ const GymProfile = () => {
               {elementViewMode === 'grid' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {gym.elements.map((element) => (
-                    <Card key={element.id} className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Card key={element.id} className="relative bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
                       <CardContent className="p-6">
                         <div 
                           className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold capitalize"
