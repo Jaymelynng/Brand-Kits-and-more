@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
-      external: ["onnxruntime-web", "onnxruntime-web/webgpu"],
+      external: [/^onnxruntime-web(\/.*)?$/],
     },
   },
 }));
