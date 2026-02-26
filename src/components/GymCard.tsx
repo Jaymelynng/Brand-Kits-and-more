@@ -202,7 +202,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
         <BrandCard 
-        className="bg-white rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-[340px] mx-auto"
+        className="bg-white rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-[clamp(340px,24vw,420px)] mx-auto"
         style={{
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
@@ -239,7 +239,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                     : "border border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-muted/20"
               )}
               style={{
-                height: 'clamp(148px, 13vw, 172px)',
+                height: 'clamp(148px, 11vw, 190px)',
                 ...(mainLogo ? {
                   background: 'linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%)',
                   boxShadow: `0 1px 2px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.12), 0 0 32px ${primaryColor}35, inset 0 1px 0 rgba(255,255,255,0.95)`
@@ -254,7 +254,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 <img 
                   src={mainLogo.file_url} 
                   alt="Main logo" 
-                  className="max-h-[120px] max-w-[85%] object-contain transition-transform duration-300 group-hover:-translate-y-1"
+                  className="max-h-[clamp(120px,8.8vw,150px)] max-w-[85%] object-contain transition-transform duration-300 group-hover:-translate-y-1"
                   style={{ filter: `drop-shadow(0 3px 4px rgba(0,0,0,0.25)) drop-shadow(0 12px 18px ${primaryColor}40)` }}
                 />
               ) : (
@@ -327,7 +327,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Action Buttons — fixed compact width, Profile on its own row */}
-          <div className="w-[184px] mx-auto space-y-1.5">
+          <div className="w-[clamp(184px,56%,236px)] mx-auto space-y-1.5">
             <div className="grid grid-cols-2 gap-1.5">
               <Button
                 onClick={() => copyGymColors(true)}

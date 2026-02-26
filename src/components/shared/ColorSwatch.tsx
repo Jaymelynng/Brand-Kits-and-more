@@ -57,8 +57,8 @@ export const ColorSwatch = ({
 
   if (layout === 'cell') {
     const light = isLightColor(color);
-    const SWATCH = 'clamp(76px, 8vw, 92px)';
-    const CONTROL_ROW = 'clamp(62px, 6.5vw, 74px)';
+    const SWATCH = 'clamp(88px, 6.4vw, 108px)';
+    const CONTROL_ROW = 'clamp(72px, 5.2vw, 88px)';
     return (
       <div className={cn(
         "flex flex-col items-center gap-1 p-2 rounded-lg border bg-card/50 relative",
