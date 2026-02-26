@@ -670,19 +670,11 @@ const GymProfile = () => {
         className="min-h-screen"
         style={{
           background: `
-            radial-gradient(1px 1px at 20px 30px, ${primaryColor}80, transparent),
-            radial-gradient(1px 1px at 40px 70px, ${secondaryColor}60, transparent),
-            radial-gradient(1px 1px at 90px 40px, ${primaryColor}70, transparent),
-            radial-gradient(1px 1px at 130px 80px, ${secondaryColor}50, transparent),
-            radial-gradient(1px 1px at 160px 30px, ${primaryColor}60, transparent),
-            radial-gradient(1px 1px at 200px 60px, ${secondaryColor}70, transparent),
-            radial-gradient(1px 1px at 240px 20px, ${primaryColor}50, transparent),
-            radial-gradient(1px 1px at 280px 90px, ${secondaryColor}80, transparent),
-            radial-gradient(1px 1px at 320px 50px, ${primaryColor}40, transparent),
-            radial-gradient(1px 1px at 360px 10px, ${secondaryColor}60, transparent),
-            linear-gradient(135deg, ${primaryColor}15 0%, ${secondaryColor}10 50%, transparent 100%)
+            linear-gradient(165deg, ${primaryColor}18 0%, ${secondaryColor}12 30%, ${primaryColor}08 60%, ${secondaryColor}15 100%),
+            radial-gradient(ellipse at top left, ${primaryColor}20, transparent 50%),
+            radial-gradient(ellipse at bottom right, ${secondaryColor}20, transparent 50%),
+            hsl(var(--background))
           `,
-          animation: 'sparkle 4s ease-in-out infinite'
         }}
       >
       {/* Hero Section */}
