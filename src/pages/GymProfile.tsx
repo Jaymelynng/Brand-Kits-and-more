@@ -1059,7 +1059,7 @@ const GymProfile = () => {
                     onClick={() => setShowUpload(!showUpload)}
                     variant="outline"
                     size="sm"
-                    className="text-white border-white/30 hover:bg-white/20 font-semibold shadow-lg"
+                    className="text-foreground border-gym-primary/35 hover:bg-gym-primary/12 font-semibold shadow-lg"
                     style={{ 
                       backgroundColor: showUpload ? `${primaryColor}40` : `${primaryColor}20`,
                       borderColor: `${primaryColor}40`
