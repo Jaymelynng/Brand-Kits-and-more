@@ -1078,10 +1078,10 @@ const GymProfile = () => {
                     )}
                   </Button>
                   <Select value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
-                    <SelectTrigger className="w-48 bg-white/80 border-white/30">
+                    <SelectTrigger className="w-48 bg-background/85 border-gym-primary/35 text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white/95 backdrop-blur-sm">
+                    <SelectContent className="bg-background/95 border-gym-primary/30 backdrop-blur-sm">
                       <SelectItem value="carousel">
                         <div className="flex items-center gap-2">
                           <LayoutGrid className="w-4 h-4" />
