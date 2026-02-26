@@ -317,7 +317,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="flex-1 flex flex-col mb-3 min-h-[280px]">
+          <div className="flex-1 flex flex-col mb-3">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-foreground">🎨 Brand Colors</h4>
               {editMode && (
@@ -343,18 +343,17 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 </Button>
               )}
             </div>
-            <div className="space-y-1.5">
+            <div className="grid grid-cols-2 gap-2">
               {gym.colors.map((color, index) => (
                 <ColorSwatch
                   key={color.id}
                   color={color.color_hex}
-                  label={`Primary Color ${index + 1}`}
-                  size="md"
+                  label={`Color ${index + 1}`}
+                  layout="cell"
                   showControls={true}
                   editMode={editMode}
                   onEdit={() => editColor(color.id, color.color_hex)}
                   onDelete={() => deleteColorMutation.mutate(color.id)}
-                  className="p-2 rounded-xl bg-card/30 border border-border/50 hover:bg-card/50 transition-smooth"
                 />
               ))}
             </div>

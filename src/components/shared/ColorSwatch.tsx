@@ -8,6 +8,7 @@ interface ColorSwatchProps {
   color: string;
   label?: string;
   size?: 'sm' | 'md' | 'lg';
+  layout?: 'row' | 'cell';
   showControls?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -19,6 +20,7 @@ export const ColorSwatch = ({
   color, 
   label, 
   size = 'md', 
+  layout = 'row',
   showControls = false, 
   onEdit, 
   onDelete,
@@ -30,7 +32,7 @@ export const ColorSwatch = ({
 
   const sizes = {
     sm: 'w-10 h-10',
-    md: 'w-16 h-16', 
+    md: 'w-14 h-14', 
     lg: 'w-20 h-20'
   };
 
@@ -44,6 +46,99 @@ export const ColorSwatch = ({
     });
   };
 
+  if (layout === 'cell') {
+    return (
+      <div className={cn("flex flex-col items-center gap-1.5 p-2 rounded-xl border border-border/50 bg-card/30 hover:bg-card/50 transition-all relative", className)}>
+        {/* Color swatch */}
+        <div 
+          className={cn(
+            "rounded-lg flex-shrink-0 cursor-pointer transition-all hover:scale-105 w-full h-12",
+            editMode && "cursor-pointer hover:ring-2 hover:ring-gym-primary"
+          )}
+          style={{ 
+            backgroundColor: color,
+            boxShadow: `0 3px 8px ${color}55, 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.15)`,
+            border: color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#fff' || color.toLowerCase() === '#fefefe'
+              ? '2px solid rgba(0,0,0,0.15)'
+              : '2px solid rgba(255,255,255,0.4)'
+          }}
+          onClick={editMode ? onEdit : () => copyColor(color)}
+          title={editMode ? "Click to edit color" : "Click to copy color"}
+        />
+        
+        {/* Hex code */}
+        <div className="font-mono text-xs font-bold text-foreground select-all leading-tight">
+          {color}
+        </div>
+        
+        {/* Label */}
+        {label && (
+          <div className="text-[10px] text-muted-foreground font-medium leading-tight text-center">
+            {label}
+          </div>
+        )}
+
+        {/* Copy buttons */}
+        {showControls && (
+          <div className="flex gap-1 w-full">
+            <button
+              onClick={() => copyColor(color, true)}
+              className={cn(
+                "flex-1 px-1.5 py-1 text-[10px] font-bold rounded-md transition-all duration-150 active:translate-y-[1px]",
+                copied === 'hash' ? "text-white" : "text-foreground"
+              )}
+              style={{
+                background: copied === 'hash' 
+                  ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
+                  : 'linear-gradient(to bottom, #ffffff, #e0e0e0)',
+                border: copied === 'hash' ? 'none' : '1px solid rgba(0,0,0,0.15)',
+                boxShadow: copied === 'hash'
+                  ? `0 2px 4px ${color}55`
+                  : '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
+              }}
+              title="Copy with #"
+            >
+              #
+            </button>
+            <button
+              onClick={() => copyColor(color, false)}
+              className={cn(
+                "flex-1 px-1.5 py-1 text-[10px] font-bold rounded-md transition-all duration-150 active:translate-y-[1px]",
+                copied === 'hex' ? "text-white" : "text-foreground"
+              )}
+              style={{
+                background: copied === 'hex' 
+                  ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
+                  : 'linear-gradient(to bottom, #ffffff, #e0e0e0)',
+                border: copied === 'hex' ? 'none' : '1px solid rgba(0,0,0,0.15)',
+                boxShadow: copied === 'hex'
+                  ? `0 2px 4px ${color}55`
+                  : '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
+              }}
+              title="Copy without #"
+            >
+              HEX
+            </button>
+          </div>
+        )}
+
+        {/* Delete button in edit mode */}
+        {editMode && onDelete && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="absolute -top-1.5 -right-1.5 px-1 py-0.5 h-5 w-5 text-xs text-destructive hover:bg-destructive/10 border-destructive/30 rounded-full"
+            title="Remove color"
+          >
+            <X className="w-3 h-3" />
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  // Original row layout
   return (
     <div className={cn("flex items-center gap-2 relative", className)}>
       <div 
