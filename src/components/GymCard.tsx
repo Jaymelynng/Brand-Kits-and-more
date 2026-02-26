@@ -216,7 +216,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
              style={{
                background: 'linear-gradient(135deg, rgba(196, 164, 164, 0.08) 0%, rgba(182, 148, 148, 0.08) 100%)',
              }}>
-          <h3 className="text-base font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
+          <h3 className="text-base font-bold" style={{ color: '#ffffff' }}>
             {gym.name}
           </h3>
           <span className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wider text-white shadow-md flex-shrink-0"
