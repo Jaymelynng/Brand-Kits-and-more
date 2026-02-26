@@ -111,9 +111,9 @@ export const ColorSwatch = ({
               style={{
                 background: copied === 'hash' 
                   ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
-                  : 'linear-gradient(to bottom, #f5f5f5, #ddd)',
-                border: '1px solid rgba(0,0,0,0.12)',
-                boxShadow: '0 3px 6px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(0,0,0,0.1)',
+                  : 'linear-gradient(to bottom, #e8e8ec, #c8c8cf)',
+                border: '1px solid rgba(0,0,0,0.22)',
+                boxShadow: '0 3px 6px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -1px 0 rgba(0,0,0,0.12)',
               }}
               title="Copy with #"
             >
