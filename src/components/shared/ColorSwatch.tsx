@@ -55,7 +55,9 @@ export const ColorSwatch = ({
         style={{ 
           backgroundColor: color,
           boxShadow: `0 3px 8px ${color}55, 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.15)`,
-          border: '2px solid rgba(255,255,255,0.4)'
+          border: color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#fff' || color.toLowerCase() === '#fefefe'
+            ? '2px solid rgba(0,0,0,0.15)'
+            : '2px solid rgba(255,255,255,0.4)'
         }}
         onClick={editMode ? onEdit : () => copyColor(color)}
         title={editMode ? "Click to edit color" : "Click to copy color"}
