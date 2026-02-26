@@ -33,29 +33,10 @@ export const AdminToolkit = ({
   const [grantingAdmin, setGrantingAdmin] = useState(false);
 
   const handleGrantAdmin = async () => {
-    setGrantingAdmin(true);
-    try {
-      const { error } = await supabase.rpc('make_me_admin');
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Admin Access Granted!",
-        description: "Please refresh the page to apply changes.",
-      });
-      
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    } catch (error: any) {
-      toast({
-        title: "Failed to Grant Admin",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setGrantingAdmin(false);
-    }
+    toast({
+      title: "Admin Access",
+      description: "Admin privileges are managed via PIN authentication. Please contact the system administrator.",
+    });
   };
 
   return (

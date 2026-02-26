@@ -527,7 +527,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      make_me_admin: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
