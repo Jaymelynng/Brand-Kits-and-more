@@ -326,37 +326,40 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             </div>
           </div>
 
-          {/* Action Buttons — compact 2x2 grid */}
-          <div className="grid grid-cols-2 gap-1.5">
-            <Button
-              onClick={() => copyGymColors(true)}
-              variant="outline"
-              size="sm"
-              className="h-7 text-[10px] text-white font-semibold"
-              style={{
-                background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
-                border: 'none',
-                boxShadow: `0 3px 6px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)`
-              }}
-            >
-              <Copy className="w-2.5 h-2.5 mr-1" />
-              Copy #
-            </Button>
-            <Button
-              onClick={() => copyGymColors(false)}
-              variant="outline"
-              size="sm"
-              className="h-7 text-[10px] font-semibold"
-              style={{
-                background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
-                border: `1.5px solid ${primaryColor}`,
-                color: primaryColor,
-                boxShadow: `0 3px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)`
-              }}
-            >
-              <Copy className="w-2.5 h-2.5 mr-1" />
-              Copy HEX
-            </Button>
+          {/* Action Buttons — fixed compact width, Profile on its own row */}
+          <div className="w-[184px] mx-auto space-y-1.5">
+            <div className="grid grid-cols-2 gap-1.5">
+              <Button
+                onClick={() => copyGymColors(true)}
+                variant="outline"
+                size="sm"
+                className="h-7 text-[10px] text-white font-semibold"
+                style={{
+                  background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
+                  border: 'none',
+                  boxShadow: `0 3px 6px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)`
+                }}
+              >
+                <Copy className="w-2.5 h-2.5 mr-1" />
+                Copy #
+              </Button>
+              <Button
+                onClick={() => copyGymColors(false)}
+                variant="outline"
+                size="sm"
+                className="h-7 text-[10px] font-semibold"
+                style={{
+                  background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
+                  border: `1.5px solid ${primaryColor}`,
+                  color: primaryColor,
+                  boxShadow: `0 3px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)`
+                }}
+              >
+                <Copy className="w-2.5 h-2.5 mr-1" />
+                Copy HEX
+              </Button>
+            </div>
+
             {mainLogo && (
               <Button
                 onClick={() => {
@@ -370,7 +373,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 }}
                 variant="outline"
                 size="sm"
-                className="h-7 text-[10px] text-white font-semibold"
+                className="w-full h-7 text-[10px] text-white font-semibold"
                 style={{
                   background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
                   border: 'none',
@@ -381,7 +384,8 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 Logo
               </Button>
             )}
-            <Link to={`/gym/${gym.code}`} className={cn("block w-full", !mainLogo && "col-span-2")}>
+
+            <Link to={`/gym/${gym.code}`} className="block w-full">
               <Button className="w-full h-7 text-[10px] text-white font-bold"
                       style={{
                         background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 90%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 75%, black))`,
