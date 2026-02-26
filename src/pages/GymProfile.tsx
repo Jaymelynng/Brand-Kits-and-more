@@ -1743,7 +1743,7 @@ const GymProfile = () => {
                         </div>
                         
                         <div 
-                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner bg-white/50"
+                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner bg-background/80"
                         >
                           {element.svg_data.startsWith('http') ? (
                             <img 
