@@ -260,7 +260,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           <div className="mb-4">
             <div 
               className={cn(
-                "w-full h-32 rounded-xl flex items-center justify-center cursor-pointer transition-smooth",
+                "w-full h-40 rounded-xl flex items-center justify-center cursor-pointer transition-smooth",
                 isDragOver 
                   ? "border-2 border-dashed border-gym-primary/60 bg-gym-primary/20" 
                   : mainLogo ? "" : "border-2 border-dashed border-gym-primary/30 hover:border-gym-primary/50 bg-gradient-primary"
@@ -275,7 +275,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                   <img 
                     src={mainLogo.file_url} 
                     alt="Main logo" 
-                    className="max-h-28 max-w-full object-contain drop-shadow-lg"
+                    className="max-h-36 max-w-full object-contain drop-shadow-lg"
                   />
                   <div className="absolute inset-0 bg-gym-primary/10 opacity-0 group-hover:opacity-100 transition-smooth rounded-lg" />
                 </div>
