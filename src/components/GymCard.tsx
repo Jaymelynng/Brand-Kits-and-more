@@ -211,33 +211,16 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
         }}
         id={`gym-${gym.code}`}
       >
-        <div className="flex items-center justify-between pb-3 px-6 border-b"
+        <div className="flex items-center justify-between py-2.5 px-4 border-b border-border/40"
              style={{
-               background: `
-                 radial-gradient(1px 1px at 15px 10px, rgba(255,255,255,0.6), transparent),
-                 radial-gradient(1px 1px at 35px 20px, rgba(255,255,255,0.4), transparent),
-                 radial-gradient(1px 1px at 55px 15px, rgba(255,255,255,0.7), transparent),
-                 linear-gradient(135deg, rgba(196, 164, 164, 0.12) 0%, rgba(182, 148, 148, 0.12) 50%, rgba(168, 132, 132, 0.12) 100%)
-               `,
-               borderColor: 'hsl(var(--brand-rose-gold) / 0.2)'
+               background: 'linear-gradient(135deg, rgba(196, 164, 164, 0.08) 0%, rgba(182, 148, 148, 0.08) 100%)',
              }}>
-          {/* Gym Name on Left */}
-          <h3 className="text-lg font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
+          <h3 className="text-base font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
             {gym.name}
           </h3>
-          
-          {/* Gym Code Badge on Right */}
-          <span className="inline-block px-4 py-2 rounded-full text-sm font-bold tracking-wider text-white shadow-lg flex-shrink-0"
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wider text-white shadow-md flex-shrink-0"
                 style={{
-                  background: `
-                    radial-gradient(1.5px 1.5px at 8px 8px, rgba(255,255,255,1), transparent),
-                    radial-gradient(1px 1px at 20px 5px, rgba(255,255,255,0.95), transparent),
-                    radial-gradient(1.5px 1.5px at 32px 10px, rgba(255,255,255,0.9), transparent),
-                    radial-gradient(1px 1px at 44px 6px, rgba(255,255,255,0.85), transparent),
-                    radial-gradient(1.5px 1.5px at 56px 12px, rgba(255,255,255,0.95), transparent),
-                    radial-gradient(1px 1px at 12px 14px, rgba(255,255,255,0.8), transparent),
-                    linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)
-                  `
+                  background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)`,
                 }}>
             {gym.code}
           </span>
