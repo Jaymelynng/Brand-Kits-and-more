@@ -1234,7 +1234,7 @@ const GymProfile = () => {
                                 
                                 {/* Logo Display with 3D effect */}
                                 <div 
-                                  className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
+                                  className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
                                   style={{ 
                                     backgroundColor: logoBgColor,
                                   }}
