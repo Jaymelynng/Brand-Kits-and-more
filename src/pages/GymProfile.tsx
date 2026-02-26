@@ -1796,7 +1796,7 @@ const GymProfile = () => {
                             onClick={() => copyElementSvgCode(element.svg_data)}
                             size="sm"
                             variant="outline"
-                            className="w-full bg-white/80 border-white/40 hover:bg-white/90"
+                            className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
                           >
                             <Code className="w-4 h-4 mr-2" />
                             Copy SVG Code
