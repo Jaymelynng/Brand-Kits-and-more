@@ -1484,7 +1484,7 @@ const GymProfile = () => {
                           
                           {/* Logo Thumbnail */}
                           <div 
-                            className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-white/40 flex-shrink-0"
+                            className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-gym-primary/35 flex-shrink-0"
                             style={{ backgroundColor: logoBgColor }}
                           >
                             <img 
