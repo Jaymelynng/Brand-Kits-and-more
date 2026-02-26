@@ -116,7 +116,7 @@ export const ColorSwatch = ({
             <button
               onClick={() => copyColor(color, false)}
               className={cn(
-                "h-7 px-0 text-[11px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
+                "h-6 px-0 text-[10px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
                 copied === 'hex' ? "text-white" : "text-foreground"
               )}
               style={{
