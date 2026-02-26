@@ -306,7 +306,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="flex-1 flex flex-col mb-3 min-h-[160px]">
+          <div className="flex-1 flex flex-col mb-3 min-h-[280px]">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-semibold text-foreground">🎨 Brand Colors</h4>
               {editMode && (
@@ -332,37 +332,20 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 </Button>
               )}
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              {gym.colors.map((color) => (
+            <div className="space-y-1.5">
+              {gym.colors.map((color, index) => (
                 <ColorSwatch
                   key={color.id}
                   color={color.color_hex}
-                  layout="tile"
+                  label={`Primary Color ${index + 1}`}
+                  size="md"
+                  showControls={true}
                   editMode={editMode}
                   onEdit={() => editColor(color.id, color.color_hex)}
                   onDelete={() => deleteColorMutation.mutate(color.id)}
+                  className="p-2 rounded-xl bg-card/30 border border-border/50 hover:bg-card/50 transition-smooth"
                 />
               ))}
-              {editMode && (
-                <div
-                  className="w-full aspect-square rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center cursor-pointer hover:border-muted-foreground/60 hover:bg-muted/30 transition-all"
-                  onClick={() => {
-                    const input = document.createElement('input');
-                    input.type = 'color';
-                    input.value = '#A4B4C4';
-                    input.style.display = 'none';
-                    input.onchange = () => {
-                      addColorMutation.mutate({ gymId: gym.id, colorHex: input.value });
-                      document.body.removeChild(input);
-                    };
-                    document.body.appendChild(input);
-                    input.click();
-                  }}
-                  title="Add a new color"
-                >
-                  <Plus className="w-5 h-5 text-muted-foreground/50" />
-                </div>
-              )}
             </div>
           </div>
 
