@@ -271,13 +271,24 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
               onDrop={handleDrop}
             >
               {mainLogo ? (
-                <div className="relative group">
+                <div 
+                  className="relative group rounded-xl p-3 transition-all duration-300 hover:-translate-y-[2px]"
+                  style={{
+                    background: `linear-gradient(135deg, #fafafa, #f0f0f0)`,
+                    boxShadow: `0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08), 0 12px 40px ${primaryColor}22, inset 0 1px 0 rgba(255,255,255,0.9)`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = `0 4px 12px rgba(0,0,0,0.14), 0 12px 32px rgba(0,0,0,0.12), 0 16px 48px ${primaryColor}33`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = `0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08), 0 12px 40px ${primaryColor}22, inset 0 1px 0 rgba(255,255,255,0.9)`;
+                  }}
+                >
                   <img 
                     src={mainLogo.file_url} 
                     alt="Main logo" 
-                    className="max-h-36 max-w-full object-contain drop-shadow-lg"
+                    className="max-h-36 max-w-full object-contain"
                   />
-                  <div className="absolute inset-0 bg-gym-primary/10 opacity-0 group-hover:opacity-100 transition-smooth rounded-lg" />
                 </div>
               ) : (
                 <div className="text-center">
