@@ -683,10 +683,9 @@ const GymProfile = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="backdrop-blur-sm hover:opacity-90 font-semibold"
+                className="backdrop-blur-sm font-semibold bg-white/90 hover:bg-white border shadow-md"
                 style={{ 
-                  backgroundColor: `${primaryColor}15`,
-                  borderColor: `${primaryColor}30`,
+                  borderColor: `${primaryColor}50`,
                   color: primaryColor 
                 }}
               >
