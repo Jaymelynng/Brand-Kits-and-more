@@ -231,17 +231,20 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           <div className="mb-3">
             <div 
               className={cn(
-                "w-full h-28 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300",
+                "w-full rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300",
                 isDragOver 
                   ? "border-2 border-dashed border-gym-primary/60 bg-gym-primary/10" 
                   : mainLogo
-                    ? "bg-card border border-border/80 shadow-lg hover:shadow-xl"
+                    ? "bg-card border border-border/80"
                     : "border border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-muted/20"
               )}
-              style={mainLogo ? {
-                background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%)',
-                boxShadow: `inset 0 1px 0 hsl(var(--background) / 0.95), 0 3px 8px hsl(var(--foreground) / 0.08), 0 10px 22px hsl(var(--foreground) / 0.1), 0 0 24px ${primaryColor}40`
-              } : undefined}
+              style={{
+                height: 148,
+                ...(mainLogo ? {
+                  background: 'linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%)',
+                  boxShadow: `0 1px 2px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.12), 0 0 32px ${primaryColor}35, inset 0 1px 0 rgba(255,255,255,0.95)`
+                } : {})
+              }}
               onClick={triggerFileUpload}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -251,8 +254,8 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 <img 
                   src={mainLogo.file_url} 
                   alt="Main logo" 
-                  className="max-h-24 max-w-[84%] object-contain transition-transform duration-300 group-hover:-translate-y-0.5"
-                  style={{ filter: `drop-shadow(0 2px 2px rgba(0,0,0,0.2)) drop-shadow(0 10px 14px ${primaryColor}33)` }}
+                  className="max-h-[120px] max-w-[85%] object-contain transition-transform duration-300 group-hover:-translate-y-1"
+                  style={{ filter: `drop-shadow(0 3px 4px rgba(0,0,0,0.25)) drop-shadow(0 12px 18px ${primaryColor}40)` }}
                 />
               ) : (
                 <div className="text-center">
