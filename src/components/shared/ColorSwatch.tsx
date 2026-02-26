@@ -95,7 +95,7 @@ export const ColorSwatch = ({
 
         {/* Copy buttons */}
         {showControls && (
-          <div className="grid grid-cols-2 gap-1 mx-auto" style={{ width: SWATCH }}>
+          <div className="grid grid-cols-2 gap-1 mx-auto" style={{ width: CONTROL_ROW }}>
             <button
               onClick={() => copyColor(color, true)}
               className={cn(
