@@ -670,19 +670,11 @@ const GymProfile = () => {
         className="min-h-screen"
         style={{
           background: `
-            radial-gradient(1px 1px at 20px 30px, ${primaryColor}80, transparent),
-            radial-gradient(1px 1px at 40px 70px, ${secondaryColor}60, transparent),
-            radial-gradient(1px 1px at 90px 40px, ${primaryColor}70, transparent),
-            radial-gradient(1px 1px at 130px 80px, ${secondaryColor}50, transparent),
-            radial-gradient(1px 1px at 160px 30px, ${primaryColor}60, transparent),
-            radial-gradient(1px 1px at 200px 60px, ${secondaryColor}70, transparent),
-            radial-gradient(1px 1px at 240px 20px, ${primaryColor}50, transparent),
-            radial-gradient(1px 1px at 280px 90px, ${secondaryColor}80, transparent),
-            radial-gradient(1px 1px at 320px 50px, ${primaryColor}40, transparent),
-            radial-gradient(1px 1px at 360px 10px, ${secondaryColor}60, transparent),
-            linear-gradient(135deg, ${primaryColor}15 0%, ${secondaryColor}10 50%, transparent 100%)
+            linear-gradient(165deg, ${primaryColor}18 0%, ${secondaryColor}12 30%, ${primaryColor}08 60%, ${secondaryColor}15 100%),
+            radial-gradient(ellipse at top left, ${primaryColor}20, transparent 50%),
+            radial-gradient(ellipse at bottom right, ${secondaryColor}20, transparent 50%),
+            hsl(var(--background))
           `,
-          animation: 'sparkle 4s ease-in-out infinite'
         }}
       >
       {/* Hero Section */}
@@ -694,7 +686,12 @@ const GymProfile = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="bg-white/80 backdrop-blur-sm border-white/20 hover:bg-white/90"
+                className="backdrop-blur-sm hover:opacity-90 font-semibold"
+                style={{ 
+                  backgroundColor: `${primaryColor}15`,
+                  borderColor: `${primaryColor}30`,
+                  color: primaryColor 
+                }}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Dashboard
@@ -796,7 +793,7 @@ const GymProfile = () => {
               )}
 
               {/* Brand Assets Stats */}
-              <BrandCard variant="hero">
+              <BrandCard variant="hero" style={{ borderColor: `${primaryColor}25` }}>
                 <BrandCardHeader className="pb-4">
                   <BrandCardTitle className="text-xl">📊 Brand Assets</BrandCardTitle>
                 </BrandCardHeader>
@@ -827,7 +824,7 @@ const GymProfile = () => {
 
             {/* Right Column: Brand Colors */}
             <div>
-              <BrandCard variant="hero" className="h-full">
+              <BrandCard variant="hero" className="h-full" style={{ borderColor: `${primaryColor}25` }}>
                 <BrandCardHeader className="pb-4">
                   <BrandCardTitle className="flex items-center justify-between text-xl">
                     🎨 Brand Colors
@@ -941,7 +938,7 @@ const GymProfile = () => {
       <div className="container mx-auto px-6 pb-12">
         {/* Upload Interface - Always visible for admins when no logos exist */}
         {(gym.logos.length === 0 || showUpload) && isAdmin && (
-          <Card className="lg:col-span-4 bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8 animate-fade-in">
+          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl mb-8 animate-fade-in" style={{ backgroundColor: `${primaryColor}06`, borderColor: `${primaryColor}20` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -1023,7 +1020,7 @@ const GymProfile = () => {
 
         {/* Logo Gallery */}
         {gym.logos.length > 0 && (
-          <Card className="lg:col-span-4 bg-white/50 backdrop-blur-sm border-white/20 shadow-xl">
+          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl" style={{ backgroundColor: `${primaryColor}06`, borderColor: `${primaryColor}20` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
@@ -1196,14 +1193,16 @@ const GymProfile = () => {
                              <Card 
                               data-card
                               className={cn(
-                                "relative bg-white/70 backdrop-blur-sm border-white/30 shadow-2xl transition-all duration-700",
+                                "relative backdrop-blur-sm shadow-2xl transition-all duration-700",
                                 selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                               )}
                               style={{
                                 transformStyle: "preserve-3d",
                                 transform: "rotateY(0deg)",
+                                backgroundColor: `${primaryColor}08`,
+                                borderColor: `${primaryColor}20`,
                                 boxShadow: `
-                                  0 20px 60px -10px rgba(0,0,0,0.3),
+                                  0 20px 60px -10px ${primaryColor}30,
                                   0 10px 30px -5px ${primaryColor}40,
                                   inset 0 1px 0 rgba(255,255,255,0.6)
                                 `,
@@ -1353,7 +1352,7 @@ const GymProfile = () => {
                     <Card 
                       key={logo.id} 
                       className={cn(
-                        "relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
                     >
@@ -1468,7 +1467,7 @@ const GymProfile = () => {
                     <Card 
                       key={logo.id} 
                       className={cn(
-                        "relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
                     >
@@ -1682,7 +1681,7 @@ const GymProfile = () => {
 
         {/* Brand Elements Section */}
         {gym.elements && gym.elements.length > 0 ? (
-          <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8">
+          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}06`, borderColor: `${primaryColor}20` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📦 Brand Elements ({gym.elements.length} files)</CardTitle>
@@ -1821,7 +1820,7 @@ const GymProfile = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8">
+          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}06`, borderColor: `${primaryColor}20` }}>
             <CardHeader>
               <CardTitle className="text-2xl">📦 Brand Elements</CardTitle>
             </CardHeader>
