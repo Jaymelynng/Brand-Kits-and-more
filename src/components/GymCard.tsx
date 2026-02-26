@@ -202,12 +202,13 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
         <BrandCard 
-        className="bg-white rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-[clamp(460px,36vw,620px)] mx-auto"
+        className="rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-[clamp(460px,36vw,620px)] mx-auto"
         style={{
+          background: 'linear-gradient(170deg, #e8e4e2 0%, #ddd8d5 40%, #d5cfcc 100%)',
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
-            : 'hsl(var(--border))',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06)',
+            : 'rgba(0,0,0,0.12)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6)',
         }}
         id={`gym-${gym.code}`}
       >
