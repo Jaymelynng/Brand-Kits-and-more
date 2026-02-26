@@ -938,7 +938,7 @@ const GymProfile = () => {
       <div className="container mx-auto px-6 pb-12">
         {/* Upload Interface - Always visible for admins when no logos exist */}
         {(gym.logos.length === 0 || showUpload) && isAdmin && (
-          <Card className="lg:col-span-4 bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8 animate-fade-in">
+          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl mb-8 animate-fade-in" style={{ backgroundColor: `${primaryColor}06`, borderColor: `${primaryColor}20` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
