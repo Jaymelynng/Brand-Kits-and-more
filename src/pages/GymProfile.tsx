@@ -1814,7 +1814,7 @@ const GymProfile = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
+          <Card className="bg-white shadow-xl mb-8 border-2" style={{ borderColor: `${primaryColor}40` }}>
             <CardHeader>
               <CardTitle className="text-2xl">📦 Brand Elements</CardTitle>
             </CardHeader>
