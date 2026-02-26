@@ -671,10 +671,10 @@ const GymProfile = () => {
         style={{
           background: `
             linear-gradient(165deg, 
-              color-mix(in srgb, ${primaryColor} 25%, #e8e8ee) 0%, 
-              color-mix(in srgb, ${primaryColor} 18%, #e8e8ee) 40%, 
-              color-mix(in srgb, ${secondaryColor} 15%, #e8e8ee) 70%, 
-              color-mix(in srgb, ${primaryColor} 22%, #e8e8ee) 100%)
+              color-mix(in srgb, ${primaryColor} 45%, #d4d4d8) 0%, 
+              color-mix(in srgb, ${primaryColor} 35%, #d4d4d8) 40%, 
+              color-mix(in srgb, ${secondaryColor} 30%, #d4d4d8) 70%, 
+              color-mix(in srgb, ${primaryColor} 40%, #d4d4d8) 100%)
           `,
         }}
       >
@@ -771,7 +771,12 @@ const GymProfile = () => {
               {mainLogo && (
                 <div className="flex flex-col items-center">
                   <div 
-                    className="flex items-center justify-center w-full h-48 mb-6"
+                    className="flex items-center justify-center w-full h-48 mb-6 rounded-2xl border-2 shadow-xl"
+                    style={{
+                      background: 'linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%)',
+                      borderColor: `${primaryColor}30`,
+                      boxShadow: `0 8px 32px -8px ${primaryColor}40, 0 4px 16px -4px rgba(0,0,0,0.1)`,
+                    }}
                   >
                     <img 
                       src={mainLogo.file_url} 
@@ -811,8 +816,8 @@ const GymProfile = () => {
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
                     </div>
-                    <div className="text-center p-4 rounded-xl bg-accent/10">
-                      <div className="text-3xl font-bold mb-1 text-accent">
+                    <div className="text-center p-4 rounded-xl" style={{ backgroundColor: `${primaryColor}18` }}>
+                      <div className="text-3xl font-bold mb-1" style={{ color: primaryColor }}>
                         {gym.elements?.length || 0}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">Brand Elements</div>
@@ -1020,7 +1025,7 @@ const GymProfile = () => {
 
         {/* Logo Gallery */}
         {gym.logos.length > 0 && (
-          <Card className="lg:col-span-4 bg-white shadow-xl border-2" style={{ borderColor: `${primaryColor}40` }}>
+          <Card className="lg:col-span-4 bg-white shadow-2xl border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
@@ -1682,7 +1687,7 @@ const GymProfile = () => {
 
         {/* Brand Elements Section */}
         {gym.elements && gym.elements.length > 0 ? (
-          <Card className="bg-white shadow-xl mb-8 border-2" style={{ borderColor: `${primaryColor}40` }}>
+          <Card className="bg-white shadow-2xl mb-8 border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📦 Brand Elements ({gym.elements.length} files)</CardTitle>
@@ -1821,7 +1826,7 @@ const GymProfile = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card className="bg-white shadow-xl mb-8 border-2" style={{ borderColor: `${primaryColor}40` }}>
+          <Card className="bg-white shadow-2xl mb-8 border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
               <CardTitle className="text-2xl">📦 Brand Elements</CardTitle>
             </CardHeader>
@@ -1845,7 +1850,7 @@ const GymProfile = () => {
 
         {/* Element Upload Interface */}
         {showElementUpload && (
-          <Card className="bg-white shadow-xl mb-8 animate-fade-in border-2" style={{ borderColor: `${primaryColor}40` }}>
+          <Card className="bg-white shadow-2xl mb-8 animate-fade-in border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📤 Upload Brand Elements</CardTitle>
