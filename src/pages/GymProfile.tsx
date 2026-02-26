@@ -1604,7 +1604,7 @@ const GymProfile = () => {
                         
                         {/* Logo Display */}
                         <div 
-                          className="w-full flex items-center justify-center mb-4 rounded-lg border-2 border-white/40 p-4"
+                          className="w-full flex items-center justify-center mb-4 rounded-lg border-2 border-gym-primary/35 p-4"
                           style={{ backgroundColor: logoBgColor }}
                         >
                           <img 
