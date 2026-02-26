@@ -231,7 +231,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           <div className="mb-3">
             <div 
               className={cn(
-                "w-full h-24 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300",
+                "w-full h-28 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300",
                 isDragOver 
                   ? "border-2 border-dashed border-gym-primary/60 bg-gym-primary/10" 
                   : mainLogo
@@ -251,7 +251,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 <img 
                   src={mainLogo.file_url} 
                   alt="Main logo" 
-                  className="max-h-20 max-w-[80%] object-contain transition-transform duration-300 group-hover:-translate-y-0.5"
+                  className="max-h-24 max-w-[84%] object-contain transition-transform duration-300 group-hover:-translate-y-0.5"
                   style={{ filter: `drop-shadow(0 2px 2px rgba(0,0,0,0.2)) drop-shadow(0 10px 14px ${primaryColor}33)` }}
                 />
               ) : (
@@ -330,7 +330,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 onClick={() => copyGymColors(true)}
                 variant="outline"
                 size="sm"
-                className="text-xs text-white font-semibold"
+                className="h-8 text-[11px] text-white font-semibold"
                 style={{
                   background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
                   border: 'none',
@@ -344,7 +344,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 onClick={() => copyGymColors(false)}
                 variant="outline"
                 size="sm"
-                className="text-xs font-semibold"
+                className="h-8 text-[11px] font-semibold"
                 style={{
                   background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
                   border: `2px solid ${primaryColor}`,
@@ -357,42 +357,44 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
               </Button>
             </div>
 
-            {/* Quick Download Main Logo */}
-            {mainLogo && (
-              <Button
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = mainLogo.file_url;
-                  link.download = mainLogo.filename;
-                  link.target = '_blank';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }}
-                variant="outline"
-                size="sm"
-                className="w-full text-xs text-white font-semibold"
-                style={{
-                  background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
-                  border: 'none',
-                  boxShadow: `0 4px 8px ${secondaryColor}55, 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)`
-                }}
-              >
-                <Download className="w-3 h-3 mr-1" />
-                Download Logo
-              </Button>
-            )}
+            <div className={cn("grid gap-2", mainLogo ? "grid-cols-2" : "grid-cols-1")}>
+              {/* Quick Download Main Logo */}
+              {mainLogo && (
+                <Button
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = mainLogo.file_url;
+                    link.download = mainLogo.filename;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-[11px] text-white font-semibold"
+                  style={{
+                    background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
+                    border: 'none',
+                    boxShadow: `0 4px 8px ${secondaryColor}55, 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)`
+                  }}
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  Download Logo
+                </Button>
+              )}
 
-            <Link to={`/gym/${gym.code}`} className="block w-full">
-              <Button className="w-full text-sm py-2 text-white font-bold transition-smooth"
-                      style={{
-                        background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 90%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 75%, black))`,
-                        boxShadow: `0 6px 14px ${primaryColor}55, 0 3px 6px rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.25), inset 0 -2px 0 rgba(0,0,0,0.15)`
-                      }}>
-                <Eye className="w-4 h-4 mr-2" />
-                View {gym.code} Profile
-              </Button>
-            </Link>
+              <Link to={`/gym/${gym.code}`} className="block w-full">
+                <Button className="w-full h-9 text-xs text-white font-bold transition-smooth"
+                        style={{
+                          background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 90%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 75%, black))`,
+                          boxShadow: `0 6px 14px ${primaryColor}55, 0 3px 6px rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.25), inset 0 -2px 0 rgba(0,0,0,0.15)`
+                        }}>
+                  <Eye className="w-4 h-4 mr-2" />
+                  View {gym.code} Profile
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Logo Gallery */}
