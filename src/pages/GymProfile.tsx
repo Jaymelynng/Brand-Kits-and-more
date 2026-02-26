@@ -938,7 +938,7 @@ const GymProfile = () => {
       <div className="container mx-auto px-6 pb-12">
         {/* Upload Interface - Always visible for admins when no logos exist */}
         {(gym.logos.length === 0 || showUpload) && isAdmin && (
-          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl mb-8 animate-fade-in" style={{ backgroundColor: `${primaryColor}06`, borderColor: `${primaryColor}20` }}>
+          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl mb-8 animate-fade-in" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -968,8 +968,8 @@ const GymProfile = () => {
                 className={cn(
                   "border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer",
                   isDragOver 
-                    ? "border-white/60 shadow-2xl" 
-                    : "border-white/30 hover:border-white/50 hover:shadow-lg"
+                    ? "border-gym-primary/60 shadow-2xl" 
+                    : "border-gym-primary/35 hover:border-gym-primary/55 hover:shadow-lg"
                 )}
                 style={{
                   backgroundColor: isDragOver ? `${primaryColor}20` : `${primaryColor}10`,
@@ -1020,7 +1020,7 @@ const GymProfile = () => {
 
         {/* Logo Gallery */}
         {gym.logos.length > 0 && (
-          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl" style={{ backgroundColor: `${primaryColor}06`, borderColor: `${primaryColor}20` }}>
+          <Card className="lg:col-span-4 backdrop-blur-sm shadow-xl" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
@@ -1059,7 +1059,7 @@ const GymProfile = () => {
                     onClick={() => setShowUpload(!showUpload)}
                     variant="outline"
                     size="sm"
-                    className="text-white border-white/30 hover:bg-white/20 font-semibold shadow-lg"
+                    className="text-foreground border-gym-primary/35 hover:bg-gym-primary/12 font-semibold shadow-lg"
                     style={{ 
                       backgroundColor: showUpload ? `${primaryColor}40` : `${primaryColor}20`,
                       borderColor: `${primaryColor}40`
@@ -1078,10 +1078,10 @@ const GymProfile = () => {
                     )}
                   </Button>
                   <Select value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
-                    <SelectTrigger className="w-48 bg-white/80 border-white/30">
+                    <SelectTrigger className="w-48 bg-background/85 border-gym-primary/35 text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white/95 backdrop-blur-sm">
+                    <SelectContent className="bg-background/95 border-gym-primary/30 backdrop-blur-sm">
                       <SelectItem value="carousel">
                         <div className="flex items-center gap-2">
                           <LayoutGrid className="w-4 h-4" />
@@ -1233,7 +1233,7 @@ const GymProfile = () => {
                                 
                                 {/* Logo Display with 3D effect */}
                                 <div 
-                                  className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
+                                  className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
                                   style={{ 
                                     backgroundColor: logoBgColor,
                                   }}
@@ -1273,8 +1273,8 @@ const GymProfile = () => {
                                     size="sm"
                                     variant="outline"
                                     className={cn(
-                                      "w-full bg-white/80 border-white/40 hover:bg-white/90 hover:scale-105 transition-all",
-                                      copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
+                                      "w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 hover:scale-105 transition-all",
+                                      copiedStates[logo.file_url] && "bg-gym-primary/20 border-gym-primary/50 text-foreground"
                                     )}
                                   >
                                     <Copy className="w-4 h-4 mr-2" />
@@ -1289,7 +1289,7 @@ const GymProfile = () => {
                                       }}
                                       size="sm"
                                       variant="outline"
-                                      className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-yellow-700 hover:text-yellow-800 hover:scale-105 transition-all"
+                                      className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
                                     >
                                       <Star className="w-4 h-4 mr-2" />
                                       Set as Main
@@ -1303,7 +1303,7 @@ const GymProfile = () => {
                                     }}
                                     size="sm"
                                     variant="outline"
-                                    className="w-full bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600 hover:text-purple-700 hover:scale-105 transition-all"
+                                    className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
                                     disabled={removingBgLogoId === logo.id}
                                   >
                                     {removingBgLogoId === logo.id ? (
@@ -1320,7 +1320,7 @@ const GymProfile = () => {
                                     }}
                                     size="sm"
                                     variant="outline"
-                                    className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-red-600 hover:text-red-700 hover:scale-105 transition-all"
+                                    className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive hover:text-destructive hover:scale-105 transition-all"
                                   >
                                     <Trash2 className="w-4 h-4 mr-2" />
                                     Delete
@@ -1333,13 +1333,13 @@ const GymProfile = () => {
                       ))}
                     </CarouselContent>
                     <CarouselPrevious 
-                      className="left-4 bg-white/90 border-white/40 text-foreground hover:bg-white shadow-lg"
+                      className="left-4 bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
                       style={{ 
-                        boxShadow: `0 4px 12px ${primaryColor}40`
+                        boxShadow: `0 4px 12px ${primaryColor}50`
                       }}
                     />
                     <CarouselNext 
-                      className="right-4 bg-white/90 border-white/40 text-foreground hover:bg-white shadow-lg"
+                      className="right-4 bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
                       style={{ 
                         boxShadow: `0 4px 12px ${primaryColor}40`
                       }}
@@ -1352,7 +1352,7 @@ const GymProfile = () => {
                     <Card 
                       key={logo.id} 
                       className={cn(
-                        "relative backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
                     >
@@ -1381,7 +1381,7 @@ const GymProfile = () => {
                         
                         {/* Logo Display */}
                         <div 
-                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner"
+                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
                           style={{ backgroundColor: logoBgColor }}
                         >
                           <img 
@@ -1413,8 +1413,8 @@ const GymProfile = () => {
                             size="sm"
                             variant="outline"
                             className={cn(
-                              "w-full bg-white/80 border-white/40 hover:bg-white/90",
-                              copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
+                              "w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12",
+                              copiedStates[logo.file_url] && "bg-gym-primary/20 border-gym-primary/50 text-foreground"
                             )}
                           >
                             <Copy className="w-4 h-4 mr-2" />
@@ -1426,7 +1426,7 @@ const GymProfile = () => {
                               onClick={() => setMainLogo(logo.id)}
                               size="sm"
                               variant="outline"
-                              className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-yellow-700 hover:text-yellow-800"
+                              className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
                             >
                               <Star className="w-4 h-4 mr-2" />
                               Set as Main
@@ -1437,7 +1437,7 @@ const GymProfile = () => {
                             onClick={() => handleRemoveBackground(logo)}
                             size="sm"
                             variant="outline"
-                            className="w-full bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600 hover:text-purple-700"
+                            className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
                             disabled={removingBgLogoId === logo.id}
                           >
                             {removingBgLogoId === logo.id ? (
@@ -1451,7 +1451,7 @@ const GymProfile = () => {
                             onClick={() => handleDeleteLogo(logo.id, logo.filename)}
                             size="sm"
                             variant="outline"
-                            className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-red-600 hover:text-red-700"
+                            className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive hover:text-destructive"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
@@ -1467,7 +1467,7 @@ const GymProfile = () => {
                     <Card 
                       key={logo.id} 
                       className={cn(
-                        "relative backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
                     >
@@ -1484,7 +1484,7 @@ const GymProfile = () => {
                           
                           {/* Logo Thumbnail */}
                           <div 
-                            className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-white/40 flex-shrink-0"
+                            className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-gym-primary/35 flex-shrink-0"
                             style={{ backgroundColor: logoBgColor }}
                           >
                             <img 
@@ -1528,7 +1528,7 @@ const GymProfile = () => {
                               onClick={() => copyUrl(logo.file_url)}
                               size="sm"
                               variant="outline"
-                              className="bg-white/80 border-white/40 hover:bg-white/90"
+                              className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
                             >
                               <Copy className="w-4 h-4" />
                             </Button>
@@ -1538,7 +1538,7 @@ const GymProfile = () => {
                                 onClick={() => setMainLogo(logo.id)}
                                 size="sm"
                                 variant="outline"
-                                className="bg-white/80 border-white/40 hover:bg-white/90 text-yellow-700"
+                                className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
                               >
                                 <Star className="w-4 h-4" />
                               </Button>
@@ -1548,7 +1548,7 @@ const GymProfile = () => {
                               onClick={() => handleRemoveBackground(logo)}
                               size="sm"
                               variant="outline"
-                              className="bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600"
+                              className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
                               disabled={removingBgLogoId === logo.id}
                               title="Remove Background"
                             >
@@ -1559,7 +1559,7 @@ const GymProfile = () => {
                               onClick={() => handleDeleteLogo(logo.id, logo.filename)}
                               size="sm"
                               variant="outline"
-                              className="bg-white/80 border-white/40 hover:bg-white/90 text-red-600"
+                              className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -1575,7 +1575,7 @@ const GymProfile = () => {
                     <Card 
                       key={logo.id} 
                       className={cn(
-                        "relative break-inside-avoid bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative break-inside-avoid bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
                     >
@@ -1604,7 +1604,7 @@ const GymProfile = () => {
                         
                         {/* Logo Display */}
                         <div 
-                          className="w-full flex items-center justify-center mb-4 rounded-lg border-2 border-white/40 p-4"
+                          className="w-full flex items-center justify-center mb-4 rounded-lg border-2 border-gym-primary/35 p-4"
                           style={{ backgroundColor: logoBgColor }}
                         >
                           <img 
@@ -1634,7 +1634,7 @@ const GymProfile = () => {
                             onClick={() => copyUrl(logo.file_url)}
                             size="sm"
                             variant="outline"
-                            className="bg-white/80 border-white/40 hover:bg-white/90"
+                            className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
                           >
                             <Copy className="w-4 h-4" />
                           </Button>
@@ -1644,7 +1644,7 @@ const GymProfile = () => {
                               onClick={() => setMainLogo(logo.id)}
                               size="sm"
                               variant="outline"
-                              className="bg-white/80 border-white/40 hover:bg-white/90 text-yellow-700"
+                              className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
                             >
                               <Star className="w-4 h-4" />
                             </Button>
@@ -1654,7 +1654,7 @@ const GymProfile = () => {
                             onClick={() => handleRemoveBackground(logo)}
                             size="sm"
                             variant="outline"
-                            className="bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600"
+                            className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
                             disabled={removingBgLogoId === logo.id}
                             title="Remove Background"
                           >
@@ -1665,7 +1665,7 @@ const GymProfile = () => {
                             onClick={() => handleDeleteLogo(logo.id, logo.filename)}
                             size="sm"
                             variant="outline"
-                            className="bg-white/80 border-white/40 hover:bg-white/90 text-red-600"
+                            className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -1681,7 +1681,7 @@ const GymProfile = () => {
 
         {/* Brand Elements Section */}
         {gym.elements && gym.elements.length > 0 ? (
-          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}06`, borderColor: `${primaryColor}20` }}>
+          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📦 Brand Elements ({gym.elements.length} files)</CardTitle>
@@ -1690,13 +1690,13 @@ const GymProfile = () => {
                     onClick={() => setShowElementUpload(!showElementUpload)}
                     variant="outline"
                     size="sm"
-                    className="bg-white/80 border-white/40 hover:bg-white/90"
+                    className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     {showElementUpload ? "Hide Upload" : "Add Elements"}
                   </Button>
                   <Select value={elementViewMode} onValueChange={(value: any) => setElementViewMode(value)}>
-                    <SelectTrigger className="w-[140px] bg-white/80 border-white/40">
+                    <SelectTrigger className="w-[140px] bg-background/85 border-gym-primary/35">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1733,7 +1733,7 @@ const GymProfile = () => {
               {elementViewMode === 'grid' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {gym.elements.map((element) => (
-                    <Card key={element.id} className="relative bg-white/70 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Card key={element.id} className="relative bg-background/88 border border-gym-primary/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
                       <CardContent className="p-6">
                         <div 
                           className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold capitalize"
@@ -1743,7 +1743,7 @@ const GymProfile = () => {
                         </div>
                         
                         <div 
-                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-white/40 shadow-inner bg-white/50"
+                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner bg-background/80"
                         >
                           {element.svg_data.startsWith('http') ? (
                             <img 
@@ -1785,7 +1785,7 @@ const GymProfile = () => {
                               onClick={() => copyElementUrl(element.svg_data)}
                               size="sm"
                               variant="outline"
-                              className="w-full bg-white/80 border-white/40 hover:bg-white/90"
+                              className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
                             >
                               <LinkIcon className="w-4 h-4 mr-2" />
                               Copy URL
@@ -1796,7 +1796,7 @@ const GymProfile = () => {
                             onClick={() => copyElementSvgCode(element.svg_data)}
                             size="sm"
                             variant="outline"
-                            className="w-full bg-white/80 border-white/40 hover:bg-white/90"
+                            className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
                           >
                             <Code className="w-4 h-4 mr-2" />
                             Copy SVG Code
@@ -1806,7 +1806,7 @@ const GymProfile = () => {
                             onClick={() => handleDeleteElement(element.id, element.element_type)}
                             size="sm"
                             variant="outline"
-                            className="w-full bg-white/80 border-white/40 hover:bg-white/90 text-red-600 hover:text-red-700"
+                            className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive hover:text-destructive"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
@@ -1820,7 +1820,7 @@ const GymProfile = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}06`, borderColor: `${primaryColor}20` }}>
+          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
             <CardHeader>
               <CardTitle className="text-2xl">📦 Brand Elements</CardTitle>
             </CardHeader>
@@ -1844,7 +1844,7 @@ const GymProfile = () => {
 
         {/* Element Upload Interface */}
         {showElementUpload && (
-          <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8 animate-fade-in">
+          <Card className="backdrop-blur-sm shadow-xl mb-8 animate-fade-in" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📤 Upload Brand Elements</CardTitle>
@@ -1879,8 +1879,8 @@ const GymProfile = () => {
                 className={cn(
                   "border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer",
                   isDragOverElement 
-                    ? "border-white/60 shadow-2xl" 
-                    : "border-white/30 hover:border-white/50 hover:shadow-lg"
+                    ? "border-gym-primary/60 shadow-2xl" 
+                    : "border-gym-primary/35 hover:border-gym-primary/55 hover:shadow-lg"
                 )}
                 style={{
                   backgroundColor: isDragOverElement ? `${primaryColor}20` : `${primaryColor}10`,
