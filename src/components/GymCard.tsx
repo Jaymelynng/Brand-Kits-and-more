@@ -275,7 +275,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                   <img 
                     src={mainLogo.file_url} 
                     alt="Main logo" 
-                    className="max-h-20 max-w-full object-contain drop-shadow-lg"
+                    className="max-h-28 max-w-full object-contain drop-shadow-lg"
                   />
                   <div className="absolute inset-0 bg-gym-primary/10 opacity-0 group-hover:opacity-100 transition-smooth rounded-lg" />
                 </div>
