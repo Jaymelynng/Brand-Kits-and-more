@@ -1675,7 +1675,7 @@ const GymProfile = () => {
 
         {/* Brand Elements Section */}
         {gym.elements && gym.elements.length > 0 ? (
-          <Card className="backdrop-blur-sm shadow-xl mb-8" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
+          <Card className="bg-white shadow-xl mb-8 border-2" style={{ borderColor: `${primaryColor}40` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📦 Brand Elements ({gym.elements.length} files)</CardTitle>
