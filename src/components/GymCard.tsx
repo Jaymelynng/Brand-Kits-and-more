@@ -228,7 +228,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
 
         <BrandCardContent className="px-3 pb-3 pt-2">
           {/* Main Logo Display — compact */}
-          <div className="mb-3">
+          <div className="mb-2">
             <div 
               className={cn(
                 "w-full rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300",
