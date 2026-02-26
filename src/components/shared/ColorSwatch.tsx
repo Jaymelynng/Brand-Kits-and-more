@@ -57,10 +57,10 @@ export const ColorSwatch = ({
 
   if (layout === 'cell') {
     const light = isLightColor(color);
-    const SWATCH = 88; // px — single source of truth for tile geometry
+    const SWATCH = 88;
     return (
       <div className={cn(
-        "flex flex-col items-center gap-1.5 p-2.5 rounded-lg border bg-card/50 relative",
+        "flex flex-col items-center gap-1 p-2 rounded-lg border bg-card/50 relative",
         "border-border/60",
         className
       )}>

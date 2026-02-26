@@ -202,7 +202,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
         <BrandCard 
-        className="bg-white rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full max-w-[380px] mx-auto w-full"
+        className="bg-white rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full"
         style={{
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
@@ -226,9 +226,9 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </span>
         </div>
 
-        <BrandCardContent className="px-4 pb-4 pt-3">
+        <BrandCardContent className="px-3 pb-3 pt-2">
           {/* Main Logo Display — compact */}
-          <div className="mb-3">
+          <div className="mb-2">
             <div 
               className={cn(
                 "w-full rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300",
@@ -284,9 +284,9 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="flex-1 flex flex-col mb-2">
+          <div className="flex-1 flex flex-col mb-1.5">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xs font-semibold text-foreground">🎨 Brand Colors</h4>
+              <h4 className="text-[11px] font-semibold text-foreground">🎨 Brand Colors</h4>
               {editMode && (
                 <Button
                   variant="outline"
