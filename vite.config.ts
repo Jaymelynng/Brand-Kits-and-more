@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    exclude: ["onnxruntime-web", "onnxruntime-web/webgpu"],
+  },
   build: {
     rollupOptions: {
       external: [/^onnxruntime-web(\/.*)?$/],
