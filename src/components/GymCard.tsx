@@ -327,7 +327,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Action Buttons — fixed compact width, Profile on its own row */}
-          <div className="w-[184px] mx-auto space-y-1.5">
+          <div className="w-[clamp(184px,56%,236px)] mx-auto space-y-1.5">
             <div className="grid grid-cols-2 gap-1.5">
               <Button
                 onClick={() => copyGymColors(true)}
