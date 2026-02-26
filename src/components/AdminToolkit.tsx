@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/sheet";
 import { PlusCircle, Edit3, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -30,32 +29,12 @@ export const AdminToolkit = ({
 }: AdminToolkitProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [grantingAdmin, setGrantingAdmin] = useState(false);
 
   const handleGrantAdmin = async () => {
-    setGrantingAdmin(true);
-    try {
-      const { error } = await supabase.rpc('make_me_admin');
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Admin Access Granted!",
-        description: "Please refresh the page to apply changes.",
-      });
-      
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    } catch (error: any) {
-      toast({
-        title: "Failed to Grant Admin",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setGrantingAdmin(false);
-    }
+    toast({
+      title: "Admin Access",
+      description: "Admin privileges are managed via PIN authentication. Please contact the system administrator.",
+    });
   };
 
   return (
@@ -81,18 +60,17 @@ export const AdminToolkit = ({
               Grant Admin Access
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Grant yourself admin privileges to upload logos and manage gyms
+              Admin privileges are managed via PIN authentication
             </p>
             <Button 
               onClick={handleGrantAdmin}
-              disabled={grantingAdmin}
               className="w-full"
               style={{ 
                 background: 'hsl(var(--brand-rose-gold))',
                 color: 'white'
               }}
             >
-              {grantingAdmin ? "Granting..." : "Grant Admin Access"}
+              Contact Administrator
             </Button>
           </div>
 
