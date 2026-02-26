@@ -284,7 +284,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Brand Colors */}
-          <div className="flex-1 flex flex-col mb-2">
+          <div className="flex-1 flex flex-col mb-1.5">
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-xs font-semibold text-foreground">🎨 Brand Colors</h4>
               {editMode && (
