@@ -1,17 +1,19 @@
 
 
-## Remove Contact & Location Section from Gym Profile
+# Fix Color Swatches to Square Thumbnails
 
-### What's changing
-Remove the "Contact & Location" card that appears on the gym profile page. It currently shows an empty "Click Edit to add contact information" message and isn't needed.
+## Problem
+The color swatch in `layout="cell"` mode is currently `w-full h-8` — a wide, flat rectangle. Your sample clearly shows **square** color thumbnails. The current implementation stretches them horizontally across the full cell width with barely any height.
 
-### Technical Details
+## Fix
 
-**Files to modify:**
+### `src/components/shared/ColorSwatch.tsx` (line 69)
+Change the swatch from `w-full h-8` to `aspect-square w-full rounded-md`. This makes the color block a proper square that fills the cell width and matches its height to that width — exactly like your sample.
 
-1. **`src/pages/GymProfile.tsx`** -- Remove the import of `GymContactInfo` and delete the JSX block that renders the Contact & Location section (around lines 1987-1997).
+That's it. One class change. The rest of the cell layout (hex text, label, buttons below) stays the same.
 
-2. **`src/components/GymContactInfo.tsx`** -- Delete this file entirely since it will no longer be used anywhere.
-
-This is a straightforward removal with no side effects on other features.
-
+### Technical detail
+```text
+Before: "rounded-md w-full h-8 cursor-pointer ..."
+After:  "rounded-md w-full aspect-square cursor-pointer ..."
+```
