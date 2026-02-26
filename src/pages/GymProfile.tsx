@@ -824,7 +824,7 @@ const GymProfile = () => {
 
             {/* Right Column: Brand Colors */}
             <div>
-              <BrandCard variant="hero" className="h-full">
+              <BrandCard variant="hero" className="h-full" style={{ borderColor: `${primaryColor}25` }}>
                 <BrandCardHeader className="pb-4">
                   <BrandCardTitle className="flex items-center justify-between text-xl">
                     🎨 Brand Colors
