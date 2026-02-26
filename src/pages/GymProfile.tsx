@@ -1844,7 +1844,7 @@ const GymProfile = () => {
 
         {/* Element Upload Interface */}
         {showElementUpload && (
-          <Card className="bg-white/50 backdrop-blur-sm border-white/20 shadow-xl mb-8 animate-fade-in">
+          <Card className="backdrop-blur-sm shadow-xl mb-8 animate-fade-in" style={{ backgroundColor: `${primaryColor}14`, borderColor: `${primaryColor}35` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl">📤 Upload Brand Elements</CardTitle>
