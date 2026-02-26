@@ -57,14 +57,19 @@ export const ColorSwatch = ({
 
   if (layout === 'cell') {
     const light = isLightColor(color);
-    const SWATCH = 'clamp(88px, 6.4vw, 108px)';
-    const CONTROL_ROW = 'clamp(72px, 5.2vw, 88px)';
+    const SWATCH = 'clamp(92px, 6.8vw, 112px)';
+    const CONTROL_ROW = SWATCH;
     return (
-      <div className={cn(
-        "flex flex-col items-center gap-1 p-2 rounded-lg border bg-card/50 relative",
-        "border-border/60",
-        className
-      )}>
+      <div
+        className={cn(
+          "flex flex-col items-center gap-1.5 p-2.5 rounded-lg border bg-card/65 relative",
+          "border-border/70",
+          className
+        )}
+        style={{
+          boxShadow: '0 3px 7px rgba(0,0,0,0.12), 0 8px 18px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.55)',
+        }}
+      >
         {/* Color swatch */}
         <div 
           className={cn(
@@ -74,7 +79,7 @@ export const ColorSwatch = ({
           style={{ 
             width: SWATCH, height: SWATCH,
             backgroundColor: color,
-            boxShadow: `0 3px 8px ${color}55, inset 0 1px 0 rgba(255,255,255,0.3)`,
+            boxShadow: `0 3px 8px ${color}55, 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)`,
             border: light ? '1.5px solid rgba(0,0,0,0.18)' : '1.5px solid rgba(255,255,255,0.3)'
           }}
           onClick={editMode ? onEdit : () => copyColor(color)}
@@ -99,7 +104,7 @@ export const ColorSwatch = ({
             <button
               onClick={() => copyColor(color, true)}
               className={cn(
-                "h-6 px-0 text-[10px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
+                "h-7 px-0 text-[11px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
                 copied === 'hash' ? "text-white" : "text-foreground"
               )}
               style={{
@@ -107,7 +112,7 @@ export const ColorSwatch = ({
                   ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
                   : 'linear-gradient(to bottom, #f5f5f5, #ddd)',
                 border: '1px solid rgba(0,0,0,0.12)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6)',
+                boxShadow: '0 3px 6px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(0,0,0,0.1)',
               }}
               title="Copy with #"
             >
@@ -116,7 +121,7 @@ export const ColorSwatch = ({
             <button
               onClick={() => copyColor(color, false)}
               className={cn(
-                "h-6 px-0 text-[10px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
+                "h-7 px-0 text-[11px] font-bold rounded transition-all duration-150 active:translate-y-[1px] leading-none cursor-pointer",
                 copied === 'hex' ? "text-white" : "text-foreground"
               )}
               style={{
@@ -124,7 +129,7 @@ export const ColorSwatch = ({
                   ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
                   : 'linear-gradient(to bottom, #f5f5f5, #ddd)',
                 border: '1px solid rgba(0,0,0,0.12)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6)',
+                boxShadow: '0 3px 6px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(0,0,0,0.1)',
               }}
               title="Copy without #"
             >
