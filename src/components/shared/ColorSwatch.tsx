@@ -45,7 +45,7 @@ export const ColorSwatch = ({
   };
 
   return (
-    <div className={cn("flex items-center gap-3 relative", className)}>
+    <div className={cn("flex items-center gap-2 relative", className)}>
       <div 
         className={cn(
           "rounded-xl shadow-md border-2 border-white/30 flex-shrink-0 cursor-pointer transition-smooth hover:scale-105",
