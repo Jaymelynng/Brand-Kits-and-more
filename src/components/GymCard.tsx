@@ -226,7 +226,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </span>
         </div>
 
-        <BrandCardContent className="px-4 pb-4 pt-3">
+        <BrandCardContent className="px-3 pb-3 pt-2">
           {/* Main Logo Display — compact */}
           <div className="mb-3">
             <div 
