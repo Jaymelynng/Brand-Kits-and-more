@@ -332,7 +332,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 </Button>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {gym.colors.map((color, index) => (
                 <ColorSwatch
                   key={color.id}

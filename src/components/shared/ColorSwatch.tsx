@@ -71,15 +71,20 @@ export const ColorSwatch = ({
       )}
 
       {showControls && (
-        <div className="flex gap-1">
+        <div className="flex gap-1.5">
           <Button
             variant="outline"
             size="sm"
             onClick={() => copyColor(color, true)}
             className={cn(
-              "px-2 py-1 h-7 text-xs transition-smooth",
-              copied === 'hash' && "bg-gym-primary text-gym-primary-foreground"
+              "px-3 py-1 h-8 text-xs font-bold transition-smooth border-0",
+              copied === 'hash' && "!bg-gym-primary !text-white"
             )}
+            style={{
+              background: copied === 'hash' ? undefined : 'linear-gradient(to bottom, #ffffff, #ececec)',
+              border: '1.5px solid rgba(0,0,0,0.18)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.08)',
+            }}
             title="Copy with #"
           >
             #
@@ -89,9 +94,14 @@ export const ColorSwatch = ({
             size="sm"
             onClick={() => copyColor(color, false)}
             className={cn(
-              "px-2 py-1 h-7 text-xs transition-smooth",
-              copied === 'hex' && "bg-gym-primary text-gym-primary-foreground"
+              "px-3 py-1 h-8 text-xs font-bold transition-smooth border-0",
+              copied === 'hex' && "!bg-gym-primary !text-white"
             )}
+            style={{
+              background: copied === 'hex' ? undefined : 'linear-gradient(to bottom, #ffffff, #ececec)',
+              border: '1.5px solid rgba(0,0,0,0.18)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.08)',
+            }}
             title="Copy without #"
           >
             HEX
