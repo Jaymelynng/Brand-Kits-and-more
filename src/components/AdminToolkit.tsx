@@ -60,18 +60,17 @@ export const AdminToolkit = ({
               Grant Admin Access
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Grant yourself admin privileges to upload logos and manage gyms
+              Admin privileges are managed via PIN authentication
             </p>
             <Button 
               onClick={handleGrantAdmin}
-              disabled={grantingAdmin}
               className="w-full"
               style={{ 
                 background: 'hsl(var(--brand-rose-gold))',
                 color: 'white'
               }}
             >
-              {grantingAdmin ? "Granting..." : "Grant Admin Access"}
+              Contact Administrator
             </Button>
           </div>
 
