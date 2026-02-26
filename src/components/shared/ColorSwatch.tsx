@@ -62,12 +62,13 @@ export const ColorSwatch = ({
     return (
       <div
         className={cn(
-          "flex flex-col items-center gap-1.5 p-2.5 rounded-lg border bg-card/65 relative",
+          "flex flex-col items-center gap-1.5 p-2.5 rounded-lg border relative",
           "border-border/70",
           className
         )}
         style={{
-          boxShadow: '0 3px 7px rgba(0,0,0,0.12), 0 8px 18px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.55)',
+          background: 'linear-gradient(to bottom, #f9f9fb, #f0f0f3)',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.08), 0 6px 14px rgba(0,0,0,0.13), 0 12px 28px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.75)',
         }}
       >
         {/* Color swatch */}
