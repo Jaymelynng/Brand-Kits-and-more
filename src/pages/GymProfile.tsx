@@ -1413,8 +1413,8 @@ const GymProfile = () => {
                             size="sm"
                             variant="outline"
                             className={cn(
-                              "w-full bg-white/80 border-white/40 hover:bg-white/90",
-                              copiedStates[logo.file_url] && "bg-green-100 border-green-300 text-green-700"
+                              "w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12",
+                              copiedStates[logo.file_url] && "bg-gym-primary/20 border-gym-primary/50 text-foreground"
                             )}
                           >
                             <Copy className="w-4 h-4 mr-2" />
