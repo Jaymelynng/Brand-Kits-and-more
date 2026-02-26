@@ -226,15 +226,15 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </span>
         </div>
 
-        <BrandCardContent>
-          {/* Main Logo Display */}
-          <div className="mb-4">
+        <BrandCardContent className="px-4 pb-4 pt-3">
+          {/* Main Logo Display — compact */}
+          <div className="mb-3">
             <div 
               className={cn(
-                "w-full h-40 rounded-xl flex items-center justify-center cursor-pointer transition-smooth",
+                "w-full h-24 rounded-lg flex items-center justify-center cursor-pointer transition-all",
                 isDragOver 
-                  ? "border-2 border-dashed border-gym-primary/60 bg-gym-primary/20" 
-                  : mainLogo ? "" : "border-2 border-dashed border-gym-primary/30 hover:border-gym-primary/50 bg-gradient-primary"
+                  ? "border-2 border-dashed border-gym-primary/60 bg-gym-primary/10" 
+                  : mainLogo ? "bg-muted/30" : "border border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-muted/20"
               )}
               onClick={triggerFileUpload}
               onDragOver={handleDragOver}
@@ -242,30 +242,16 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
               onDrop={handleDrop}
             >
               {mainLogo ? (
-                <div 
-                  className="relative group rounded-xl p-3 transition-all duration-300 hover:-translate-y-[2px]"
-                  style={{
-                    background: `linear-gradient(135deg, #fafafa, #f0f0f0)`,
-                    boxShadow: `0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08), 0 12px 40px ${primaryColor}22, inset 0 1px 0 rgba(255,255,255,0.9)`,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = `0 4px 12px rgba(0,0,0,0.14), 0 12px 32px rgba(0,0,0,0.12), 0 16px 48px ${primaryColor}33`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = `0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08), 0 12px 40px ${primaryColor}22, inset 0 1px 0 rgba(255,255,255,0.9)`;
-                  }}
-                >
-                  <img 
-                    src={mainLogo.file_url} 
-                    alt="Main logo" 
-                    className="max-h-36 max-w-full object-contain"
-                  />
-                </div>
+                <img 
+                  src={mainLogo.file_url} 
+                  alt="Main logo" 
+                  className="max-h-20 max-w-[80%] object-contain"
+                />
               ) : (
                 <div className="text-center">
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gym-primary" />
-                  <div className="text-gym-primary font-medium text-sm">
-                    {isDragOver ? "Drop files here" : "Click or drag to add logo"}
+                  <Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                  <div className="text-muted-foreground font-medium text-[10px]">
+                    {isDragOver ? "Drop here" : "Add logo"}
                   </div>
                 </div>
               )}
