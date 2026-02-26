@@ -1654,7 +1654,7 @@ const GymProfile = () => {
                             onClick={() => handleRemoveBackground(logo)}
                             size="sm"
                             variant="outline"
-                            className="bg-white/80 border-white/40 hover:bg-purple-50 text-purple-600"
+                            className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
                             disabled={removingBgLogoId === logo.id}
                             title="Remove Background"
                           >
