@@ -8,6 +8,7 @@ interface ColorSwatchProps {
   color: string;
   label?: string;
   size?: 'sm' | 'md' | 'lg';
+  layout?: 'row' | 'tile';
   showControls?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
