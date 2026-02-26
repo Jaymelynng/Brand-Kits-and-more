@@ -1349,6 +1349,7 @@ const GymProfile = () => {
                         "relative bg-white border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
+                      style={{ borderColor: `${primaryColor}35` }}
                     >
                       <CardContent className="p-6">
                         {/* Selection Checkbox */}
