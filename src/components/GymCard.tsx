@@ -202,7 +202,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
         <BrandCard 
-        className="bg-white rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-[clamp(340px,24vw,420px)] mx-auto"
+        className="bg-white rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-[clamp(360px,26vw,460px)] mx-auto"
         style={{
           borderColor: editMode 
             ? 'hsl(var(--brand-rose-gold))' 
@@ -239,7 +239,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                     : "border border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-muted/20"
               )}
               style={{
-                height: 'clamp(148px, 11vw, 190px)',
+                height: 'clamp(164px, 12.4vw, 220px)',
                 ...(mainLogo ? {
                   background: 'linear-gradient(180deg, #fafafa 0%, #f0f0f0 100%)',
                   boxShadow: `0 1px 2px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.12), 0 0 32px ${primaryColor}35, inset 0 1px 0 rgba(255,255,255,0.95)`
@@ -254,7 +254,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 <img 
                   src={mainLogo.file_url} 
                   alt="Main logo" 
-                  className="max-h-[clamp(120px,8.8vw,150px)] max-w-[85%] object-contain transition-transform duration-300 group-hover:-translate-y-1"
+                  className="max-h-[clamp(132px,10.2vw,176px)] max-w-[85%] object-contain transition-transform duration-300 group-hover:-translate-y-1"
                   style={{ filter: `drop-shadow(0 3px 4px rgba(0,0,0,0.25)) drop-shadow(0 12px 18px ${primaryColor}40)` }}
                 />
               ) : (
@@ -327,27 +327,27 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           </div>
 
           {/* Action Buttons — fixed compact width, Profile on its own row */}
-          <div className="w-[clamp(184px,56%,236px)] mx-auto space-y-1.5">
-            <div className="grid grid-cols-2 gap-1.5">
+          <div className="w-[clamp(210px,58%,270px)] mx-auto space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => copyGymColors(true)}
                 variant="outline"
                 size="sm"
-                className="h-7 text-[10px] text-white font-semibold"
+                className="h-9 text-xs text-white font-semibold"
                 style={{
                   background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
                   border: 'none',
                   boxShadow: `0 3px 6px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)`
                 }}
               >
-                <Copy className="w-2.5 h-2.5 mr-1" />
+                <Copy className="w-3 h-3 mr-1" />
                 Copy #
               </Button>
               <Button
                 onClick={() => copyGymColors(false)}
                 variant="outline"
                 size="sm"
-                className="h-7 text-[10px] font-semibold"
+                className="h-9 text-xs font-semibold"
                 style={{
                   background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
                   border: `1.5px solid ${primaryColor}`,
@@ -355,7 +355,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                   boxShadow: `0 3px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)`
                 }}
               >
-                <Copy className="w-2.5 h-2.5 mr-1" />
+                <Copy className="w-3 h-3 mr-1" />
                 Copy HEX
               </Button>
             </div>
@@ -373,25 +373,25 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 }}
                 variant="outline"
                 size="sm"
-                className="w-full h-7 text-[10px] text-white font-semibold"
+                className="w-full h-9 text-xs text-white font-semibold"
                 style={{
                   background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
                   border: 'none',
                   boxShadow: `0 3px 6px ${secondaryColor}44, inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)`
                 }}
               >
-                <Download className="w-2.5 h-2.5 mr-1" />
+                <Download className="w-3 h-3 mr-1" />
                 Logo
               </Button>
             )}
 
             <Link to={`/gym/${gym.code}`} className="block w-full">
-              <Button className="w-full h-7 text-[10px] text-white font-bold"
+              <Button className="w-full h-9 text-xs text-white font-bold"
                       style={{
                         background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 90%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 75%, black))`,
                         boxShadow: `0 3px 6px ${primaryColor}44, inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)`
                       }}>
-                <Eye className="w-2.5 h-2.5 mr-1" />
+                <Eye className="w-3 h-3 mr-1" />
                 Profile
               </Button>
             </Link>
