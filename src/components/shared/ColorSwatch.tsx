@@ -29,9 +29,9 @@ export const ColorSwatch = ({
   const { toast } = useToast();
 
   const sizes = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12', 
-    lg: 'w-16 h-16'
+    sm: 'w-10 h-10',
+    md: 'w-16 h-16', 
+    lg: 'w-20 h-20'
   };
 
   const copyColor = (colorCode: string, includeHash: boolean = true) => {
@@ -45,14 +45,18 @@ export const ColorSwatch = ({
   };
 
   return (
-    <div className={cn("flex items-center gap-3 relative", className)}>
+    <div className={cn("flex items-center gap-2 relative", className)}>
       <div 
         className={cn(
-          "rounded-xl shadow-md border-2 border-white/30 flex-shrink-0 cursor-pointer transition-smooth hover:scale-105",
+          "rounded-xl flex-shrink-0 cursor-pointer transition-smooth hover:scale-105",
           sizes[size],
           editMode && "cursor-pointer hover:ring-2 hover:ring-gym-primary"
         )}
-        style={{ backgroundColor: color }}
+        style={{ 
+          backgroundColor: color,
+          boxShadow: `0 3px 8px ${color}55, 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.15)`,
+          border: '2px solid rgba(255,255,255,0.4)'
+        }}
         onClick={editMode ? onEdit : () => copyColor(color)}
         title={editMode ? "Click to edit color" : "Click to copy color"}
       />
@@ -71,31 +75,49 @@ export const ColorSwatch = ({
       )}
 
       {showControls && (
-        <div className="flex gap-1">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex gap-1.5">
+          <button
             onClick={() => copyColor(color, true)}
             className={cn(
-              "px-2 py-1 h-7 text-xs transition-smooth",
-              copied === 'hash' && "bg-gym-primary text-gym-primary-foreground"
+              "px-3 py-1.5 h-9 text-xs font-bold rounded-lg transition-all duration-150 active:translate-y-[1px]",
+              copied === 'hash' 
+                ? "text-white" 
+                : "text-foreground"
             )}
+            style={{
+              background: copied === 'hash' 
+                ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
+                : 'linear-gradient(to bottom, #ffffff, #e0e0e0)',
+              border: copied === 'hash' ? 'none' : '1.5px solid rgba(0,0,0,0.2)',
+              boxShadow: copied === 'hash'
+                ? `0 3px 6px ${color}55, inset 0 1px 0 rgba(255,255,255,0.3)`
+                : '0 3px 6px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,0,0,0.08)',
+            }}
             title="Copy with #"
           >
             #
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
+          </button>
+          <button
             onClick={() => copyColor(color, false)}
             className={cn(
-              "px-2 py-1 h-7 text-xs transition-smooth",
-              copied === 'hex' && "bg-gym-primary text-gym-primary-foreground"
+              "px-3 py-1.5 h-9 text-xs font-bold rounded-lg transition-all duration-150 active:translate-y-[1px]",
+              copied === 'hex' 
+                ? "text-white" 
+                : "text-foreground"
             )}
+            style={{
+              background: copied === 'hex' 
+                ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
+                : 'linear-gradient(to bottom, #ffffff, #e0e0e0)',
+              border: copied === 'hex' ? 'none' : '1.5px solid rgba(0,0,0,0.2)',
+              boxShadow: copied === 'hex'
+                ? `0 3px 6px ${color}55, inset 0 1px 0 rgba(255,255,255,0.3)`
+                : '0 3px 6px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,0,0,0.08)',
+            }}
             title="Copy without #"
           >
             HEX
-          </Button>
+          </button>
         </div>
       )}
 
