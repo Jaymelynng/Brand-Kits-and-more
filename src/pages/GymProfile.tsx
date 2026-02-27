@@ -1213,7 +1213,7 @@ const GymProfile = () => {
                                 transformStyle: "preserve-3d",
                                 transform: "rotateY(0deg)",
                                 borderColor: `${primaryColor}35`,
-                                backgroundColor: `${primaryColor}18`,
+                                backgroundColor: '#ffffff',
                                 boxShadow: `
                                   0 20px 60px -10px ${primaryColor}40,
                                   0 10px 30px -5px ${primaryColor}50
