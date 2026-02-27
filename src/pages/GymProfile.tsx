@@ -865,7 +865,7 @@ const GymProfile = () => {
                         showControls={true}
                         editMode={isEditingColors}
                         onEdit={() => handleEditColor(color.id, color.color_hex)}
-                        className="group p-3 rounded-xl hover:bg-card/60 transition-smooth cursor-pointer border border-border/20 hover:border-border/40 hover:shadow-lg"
+                        className="group p-3 rounded-xl bg-muted transition-smooth cursor-pointer border border-border hover:border-border/80 hover:shadow-lg"
                       />
                     ))}
                     
