@@ -882,20 +882,31 @@ const GymProfile = () => {
                             Add New Color
                           </Button>
                         ) : (
-                          <div className="p-4 rounded-xl border-2 border-dashed border-gym-primary/50 bg-gym-primary/5 space-y-3">
+                          <div className="p-4 rounded-xl border-2 border-gym-primary bg-foreground/90 space-y-3">
+                            <p className="text-sm font-semibold text-background">Add a new brand color:</p>
                             <div className="flex gap-3 items-center">
                               <input
                                 type="color"
-                                value={newColorValue}
+                                value={newColorValue.match(/^#[0-9A-Fa-f]{6}$/) ? newColorValue : '#000000'}
                                 onChange={(e) => setNewColorValue(e.target.value)}
-                                className="w-16 h-16 rounded-lg cursor-pointer border-2 border-border"
+                                className="w-16 h-16 rounded-lg cursor-pointer border-2 border-background/30"
                               />
                               <input
                                 type="text"
                                 value={newColorValue}
-                                onChange={(e) => setNewColorValue(e.target.value)}
-                                placeholder="#000000"
-                                className="flex-1 px-4 py-2 rounded-lg border-2 border-border bg-background font-mono text-sm"
+                                onChange={(e) => {
+                                  let val = e.target.value;
+                                  if (!val.startsWith('#')) val = '#' + val;
+                                  setNewColorValue(val);
+                                }}
+                                onPaste={(e) => {
+                                  e.preventDefault();
+                                  let pasted = e.clipboardData.getData('text').trim();
+                                  if (!pasted.startsWith('#')) pasted = '#' + pasted;
+                                  setNewColorValue(pasted);
+                                }}
+                                placeholder="#6b6b6b"
+                                className="flex-1 px-4 py-3 rounded-lg border-2 border-background/30 bg-background font-mono text-base font-bold"
                                 maxLength={7}
                               />
                             </div>
