@@ -159,11 +159,12 @@ export const useAddGymColor = () => {
         ? existingColors[0].order_index + 1 
         : 0;
 
+      const normalizedHex = colorHex.startsWith('#') ? colorHex : `#${colorHex}`;
       const { error } = await supabase
         .from('gym_colors')
         .insert({
           gym_id: gymId,
-          color_hex: colorHex,
+          color_hex: normalizedHex,
           order_index: nextOrderIndex,
         });
 
