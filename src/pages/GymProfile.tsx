@@ -143,6 +143,15 @@ const GymProfile = () => {
     });
   };
 
+  const normalizeHexInput = (rawValue: string) => {
+    let value = rawValue.trim();
+    if (!value.startsWith('#')) value = `#${value}`;
+    value = value.slice(0, 7);
+    return value.toUpperCase();
+  };
+
+  const isValidHexColor = (value: string) => /^#[0-9A-F]{6}$/.test(value);
+
   const handleEditColor = (colorId: string, currentColor: string) => {
     if (!user || !isAdmin) {
       toast({
@@ -153,41 +162,43 @@ const GymProfile = () => {
       return;
     }
 
-    // Create native color picker input
-    const input = document.createElement('input');
-    input.type = 'color';
-    input.value = currentColor;
-    input.style.display = 'none';
-    document.body.appendChild(input);
-    
-    input.onchange = function() {
-      const newColor = input.value;
-      
-      updateColorMutation.mutate(
-        { colorId, newColor },
-        {
-          onSuccess: () => {
-            toast({
-              description: `Color updated to ${newColor}!`,
-              duration: 2000,
-            });
-          },
-          onError: (error) => {
-            console.error('Failed to update color:', error);
-            toast({
-              variant: "destructive",
-              description: 'Failed to update color. Please try again.',
-              duration: 3000,
-            });
-          }
+    setEditingColorId(colorId);
+    setEditingColorValue(currentColor.toUpperCase());
+  };
+
+  const handleSaveEditedColor = () => {
+    if (!editingColorId) return;
+
+    if (!isValidHexColor(editingColorValue)) {
+      toast({
+        variant: "destructive",
+        description: "Please enter a valid HEX color like #1A1A1A",
+        duration: 2500,
+      });
+      return;
+    }
+
+    updateColorMutation.mutate(
+      { colorId: editingColorId, newColor: editingColorValue },
+      {
+        onSuccess: () => {
+          toast({
+            description: `Color updated to ${editingColorValue}!`,
+            duration: 2000,
+          });
+          setEditingColorId(null);
+          setEditingColorValue('#000000');
+        },
+        onError: (error) => {
+          console.error('Failed to update color:', error);
+          toast({
+            variant: "destructive",
+            description: 'Failed to update color. Please try again.',
+            duration: 3000,
+          });
         }
-      );
-      
-      document.body.removeChild(input);
-    };
-    
-    // Trigger the color picker
-    input.click();
+      }
+    );
   };
 
   const handleAddColor = () => {
