@@ -1274,9 +1274,14 @@ const GymProfile = () => {
                                     size="sm"
                                     variant="outline"
                                     className={cn(
-                                      "w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 hover:scale-105 transition-all",
-                                      copiedStates[logo.file_url] && "bg-gym-primary/20 border-gym-primary/50 text-foreground"
+                                      "w-full border-2 font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all",
+                                      copiedStates[logo.file_url] && "ring-2 ring-gym-primary/50"
                                     )}
+                                    style={{
+                                      backgroundColor: `color-mix(in srgb, ${primaryColor} 42%, hsl(var(--background)))`,
+                                      borderColor: `${primaryColor}85`,
+                                      color: "hsl(var(--foreground))"
+                                    }}
                                   >
                                     <Copy className="w-4 h-4 mr-2" />
                                     {copiedStates[logo.file_url] ? "Copied!" : "Copy URL"}
@@ -1290,7 +1295,12 @@ const GymProfile = () => {
                                       }}
                                       size="sm"
                                       variant="outline"
-                                      className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
+                                      className="w-full border-2 font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+                                      style={{
+                                        backgroundColor: `color-mix(in srgb, ${primaryColor} 42%, hsl(var(--background)))`,
+                                        borderColor: `${primaryColor}85`,
+                                        color: "hsl(var(--foreground))"
+                                      }}
                                     >
                                       <Star className="w-4 h-4 mr-2" />
                                       Set as Main
@@ -1304,7 +1314,12 @@ const GymProfile = () => {
                                     }}
                                     size="sm"
                                     variant="outline"
-                                    className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
+                                    className="w-full border-2 font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+                                    style={{
+                                      backgroundColor: `color-mix(in srgb, ${primaryColor} 42%, hsl(var(--background)))`,
+                                      borderColor: `${primaryColor}85`,
+                                      color: "hsl(var(--foreground))"
+                                    }}
                                     disabled={removingBgLogoId === logo.id}
                                   >
                                     {removingBgLogoId === logo.id ? (
@@ -1321,10 +1336,14 @@ const GymProfile = () => {
                                     }}
                                     size="sm"
                                     variant="outline"
-                                    className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive hover:text-destructive hover:scale-105 transition-all"
+                                    className="w-full border-2 font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+                                    style={{
+                                      backgroundColor: `color-mix(in srgb, ${primaryColor} 42%, hsl(var(--background)))`,
+                                      borderColor: `${primaryColor}85`
+                                    }}
                                   >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete
+                                    <Trash2 className="w-4 h-4 mr-2 text-destructive" />
+                                    <span className="text-destructive">Delete</span>
                                   </Button>
                                 </div>
                               </CardContent>
