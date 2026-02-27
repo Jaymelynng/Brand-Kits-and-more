@@ -1483,7 +1483,7 @@ const GymProfile = () => {
                         "relative border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
-                      style={{ borderColor: `${primaryColor}35`, backgroundColor: `${primaryColor}18` }}
+                      style={{ borderColor: `${primaryColor}35`, backgroundColor: '#ffffff' }}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
