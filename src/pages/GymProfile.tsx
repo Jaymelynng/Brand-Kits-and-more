@@ -1038,31 +1038,13 @@ const GymProfile = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl text-white">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
                 <div className="flex items-center gap-2">
-                  {/* Dark/Light Preview Toggle */}
-                  <Button
-                    onClick={() => setLogoBgMode(logoBgMode === 'light' ? 'dark' : 'light')}
-                    variant="outline"
-                    size="sm"
-                    className="font-semibold shadow-lg"
-                    style={{ 
-                      backgroundColor: logoBgMode === 'dark' ? '#1a1a2e' : 'white',
-                      color: logoBgMode === 'dark' ? 'white' : '#1a1a2e',
-                      borderColor: `${primaryColor}40`
-                    }}
-                    title={`Switch to ${logoBgMode === 'light' ? 'dark' : 'light'} background`}
-                  >
-                    {logoBgMode === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-                    {logoBgMode === 'dark' ? 'Light' : 'Dark'}
-                  </Button>
-
                   {/* Download All as ZIP */}
                   <Button
                     onClick={handleDownloadAllAsZip}
                     variant="outline"
                     size="sm"
                     disabled={downloadingZip}
-                    className="text-white font-semibold shadow-lg"
-                    style={{ backgroundColor: primaryColor, borderColor: `${primaryColor}40` }}
+                    className="font-semibold shadow-lg bg-white text-foreground border-white/50 hover:bg-white/90"
                   >
                     {downloadingZip ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileArchive className="w-4 h-4 mr-2" />}
                     {downloadingZip ? 'Zipping...' : 'Download All'}
@@ -1072,11 +1054,7 @@ const GymProfile = () => {
                     onClick={() => setShowUpload(!showUpload)}
                     variant="outline"
                     size="sm"
-                    className="text-foreground border-gym-primary/35 hover:bg-gym-primary/12 font-semibold shadow-lg"
-                    style={{ 
-                      backgroundColor: showUpload ? `${primaryColor}40` : `${primaryColor}20`,
-                      borderColor: `${primaryColor}40`
-                    }}
+                    className="font-semibold shadow-lg bg-white text-foreground border-white/50 hover:bg-white/90"
                   >
                     {showUpload ? (
                       <>
@@ -1091,7 +1069,7 @@ const GymProfile = () => {
                     )}
                   </Button>
                   <Select value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
-                    <SelectTrigger className="w-48 bg-background/85 border-gym-primary/35 text-foreground">
+                    <SelectTrigger className="w-48 bg-white border-white/50 text-foreground font-semibold shadow-lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-background/95 border-gym-primary/30 backdrop-blur-sm">
