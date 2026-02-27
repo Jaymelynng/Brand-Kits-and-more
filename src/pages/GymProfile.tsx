@@ -801,19 +801,28 @@ const GymProfile = () => {
                 <div className="border-t-2 pt-5" style={{ borderColor: `${primaryColor}15` }}>
                   <div className="text-lg font-semibold text-foreground mb-3">📊 Brand Assets</div>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-4 rounded-xl bg-gym-primary/10">
-                      <div className="text-3xl font-bold mb-1 text-gym-primary">
+                    <div 
+                      className="text-center p-4 rounded-xl border-2 shadow-md"
+                      style={{ backgroundColor: `${primaryColor}12`, borderColor: `${primaryColor}30` }}
+                    >
+                      <div className="text-3xl font-bold mb-1" style={{ color: primaryColor }}>
                         {gym.logos.length}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">Logo Variations</div>
                     </div>
-                    <div className="text-center p-4 rounded-xl bg-gym-secondary/10">
-                      <div className="text-3xl font-bold mb-1 text-gym-secondary">
+                    <div 
+                      className="text-center p-4 rounded-xl border-2 shadow-md"
+                      style={{ backgroundColor: `${secondaryColor}12`, borderColor: `${secondaryColor}30` }}
+                    >
+                      <div className="text-3xl font-bold mb-1" style={{ color: secondaryColor }}>
                         {gym.colors.length}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
                     </div>
-                    <div className="text-center p-4 rounded-xl" style={{ backgroundColor: `${primaryColor}18` }}>
+                    <div 
+                      className="text-center p-4 rounded-xl border-2 shadow-md"
+                      style={{ backgroundColor: `${primaryColor}12`, borderColor: `${primaryColor}30` }}
+                    >
                       <div className="text-3xl font-bold mb-1" style={{ color: primaryColor }}>
                         {gym.elements?.length || 0}
                       </div>
