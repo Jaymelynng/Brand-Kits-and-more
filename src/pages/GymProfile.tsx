@@ -1033,10 +1033,10 @@ const GymProfile = () => {
 
         {/* Logo Gallery */}
         {gym.logos.length > 0 && (
-          <Card className="lg:col-span-4 bg-white shadow-2xl border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
+          <Card className="lg:col-span-4 shadow-2xl border-2" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 85%, #1a1a1a)`, borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
+                <CardTitle className="text-2xl text-white">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
                 <div className="flex items-center gap-2">
                   {/* Dark/Light Preview Toggle */}
                   <Button
@@ -1213,7 +1213,7 @@ const GymProfile = () => {
                                 transformStyle: "preserve-3d",
                                 transform: "rotateY(0deg)",
                                 borderColor: `${primaryColor}35`,
-                                backgroundColor: `${primaryColor}18`,
+                                backgroundColor: '#ffffff',
                                 boxShadow: `
                                   0 20px 60px -10px ${primaryColor}40,
                                   0 10px 30px -5px ${primaryColor}50
@@ -1367,7 +1367,7 @@ const GymProfile = () => {
                         "relative border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
-                      style={{ borderColor: `${primaryColor}35`, backgroundColor: `${primaryColor}18` }}
+                      style={{ borderColor: `${primaryColor}35`, backgroundColor: '#ffffff' }}
                     >
                       <CardContent className="p-6">
                         {/* Selection Checkbox */}
@@ -1483,7 +1483,7 @@ const GymProfile = () => {
                         "relative border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
-                      style={{ borderColor: `${primaryColor}35`, backgroundColor: `${primaryColor}18` }}
+                      style={{ borderColor: `${primaryColor}35`, backgroundColor: '#ffffff' }}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
@@ -1592,7 +1592,7 @@ const GymProfile = () => {
                         "relative break-inside-avoid border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
-                      style={{ borderColor: `${primaryColor}35`, backgroundColor: `${primaryColor}18` }}
+                      style={{ borderColor: `${primaryColor}35`, backgroundColor: '#ffffff' }}
                     >
                       <CardContent className="p-4">
                         {/* Selection Checkbox */}
