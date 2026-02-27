@@ -1201,11 +1201,11 @@ const GymProfile = () => {
                               style={{
                                 transformStyle: "preserve-3d",
                                 transform: "rotateY(0deg)",
-                                borderColor: `${primaryColor}35`,
-                                backgroundColor: `${primaryColor}18`,
+                                borderColor: `${primaryColor}80`,
+                                backgroundColor: `color-mix(in srgb, ${primaryColor} 62%, hsl(var(--muted)))`,
                                 boxShadow: `
-                                  0 20px 60px -10px ${primaryColor}40,
-                                  0 10px 30px -5px ${primaryColor}50
+                                  0 20px 60px -10px ${primaryColor}55,
+                                  0 10px 30px -5px ${primaryColor}45
                                 `,
                               }}
                             >
