@@ -801,32 +801,23 @@ const GymProfile = () => {
                 <div className="border-t-2 pt-5" style={{ borderColor: `${primaryColor}15` }}>
                   <div className="text-lg font-semibold text-foreground mb-3">📊 Brand Assets</div>
                   <div className="grid grid-cols-3 gap-3">
-                    <div 
-                      className="text-center p-4 rounded-xl border-2 shadow-md"
-                      style={{ backgroundColor: `${primaryColor}12`, borderColor: `${primaryColor}30` }}
-                    >
-                      <div className="text-3xl font-bold mb-1" style={{ color: primaryColor }}>
+                    <div className="text-center p-4 rounded-2xl border-2 shadow-lg bg-gym-primary text-gym-primary-foreground border-gym-primary-foreground/25">
+                      <div className="text-3xl font-bold mb-1">
                         {gym.logos.length}
                       </div>
-                      <div className="text-sm font-medium text-muted-foreground">Logo Variations</div>
+                      <div className="text-sm font-semibold text-gym-primary-foreground/90">Logo Variations</div>
                     </div>
-                    <div 
-                      className="text-center p-4 rounded-xl border-2 shadow-md"
-                      style={{ backgroundColor: `${secondaryColor}12`, borderColor: `${secondaryColor}30` }}
-                    >
-                      <div className="text-3xl font-bold mb-1" style={{ color: secondaryColor }}>
+                    <div className="text-center p-4 rounded-2xl border-2 shadow-lg bg-gym-secondary text-gym-secondary-foreground border-gym-secondary-foreground/25">
+                      <div className="text-3xl font-bold mb-1">
                         {gym.colors.length}
                       </div>
-                      <div className="text-sm font-medium text-muted-foreground">Brand Colors</div>
+                      <div className="text-sm font-semibold text-gym-secondary-foreground/90">Brand Colors</div>
                     </div>
-                    <div 
-                      className="text-center p-4 rounded-xl border-2 shadow-md"
-                      style={{ backgroundColor: `${primaryColor}12`, borderColor: `${primaryColor}30` }}
-                    >
-                      <div className="text-3xl font-bold mb-1" style={{ color: primaryColor }}>
+                    <div className="text-center p-4 rounded-2xl border-2 shadow-lg bg-primary text-primary-foreground border-primary-foreground/25">
+                      <div className="text-3xl font-bold mb-1">
                         {gym.elements?.length || 0}
                       </div>
-                      <div className="text-sm font-medium text-muted-foreground">Brand Elements</div>
+                      <div className="text-sm font-semibold text-primary-foreground/90">Brand Elements</div>
                     </div>
                   </div>
                 </div>
