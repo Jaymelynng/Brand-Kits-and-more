@@ -75,14 +75,16 @@ export const ColorSwatch = ({
         {/* Color swatch */}
         <div 
           className={cn(
-            "rounded-md cursor-pointer transition-all hover:scale-[1.03]",
+            "rounded-md cursor-pointer transition-all hover:scale-[1.04] hover:-translate-y-0.5",
             editMode && "hover:ring-2 hover:ring-gym-primary"
           )}
           style={{ 
             width: SWATCH, height: SWATCH,
             backgroundColor: color,
-            boxShadow: `0 3px 8px ${color}55, 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.12)`,
-            border: light ? '2px solid rgba(0,0,0,0.28)' : '1.5px solid rgba(255,255,255,0.3)'
+            boxShadow: light
+              ? '0 4px 12px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(0,0,0,0.08)'
+              : `0 4px 12px ${color}66, 0 8px 24px rgba(0,0,0,0.2), 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -2px 0 rgba(0,0,0,0.15)`,
+            border: light ? '2.5px solid rgba(0,0,0,0.3)' : '2px solid rgba(255,255,255,0.35)'
           }}
           onClick={editMode ? onEdit : () => copyColor(color)}
           title={editMode ? "Click to edit color" : "Click to copy color"}
