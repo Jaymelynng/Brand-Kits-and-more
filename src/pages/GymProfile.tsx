@@ -1069,7 +1069,7 @@ const GymProfile = () => {
                     )}
                   </Button>
                   <Select value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
-                    <SelectTrigger className="w-48 bg-background/85 border-gym-primary/35 text-foreground">
+                    <SelectTrigger className="w-48 bg-white border-white/50 text-foreground font-semibold shadow-lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-background/95 border-gym-primary/30 backdrop-blur-sm">
