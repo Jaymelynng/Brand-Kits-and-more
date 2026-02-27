@@ -3,6 +3,7 @@ import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement
 import { useAuth } from "@/hooks/useAuth";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
@@ -44,6 +45,8 @@ const GymProfile = () => {
   const [isEditingColors, setIsEditingColors] = useState(false);
   const [showAddColor, setShowAddColor] = useState(false);
   const [newColorValue, setNewColorValue] = useState('#000000');
+  const [editingColorId, setEditingColorId] = useState<string | null>(null);
+  const [editingColorValue, setEditingColorValue] = useState('#000000');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedLogos, setSelectedLogos] = useState<Set<string>>(new Set());
   const [showRenamer, setShowRenamer] = useState(false);
@@ -141,6 +144,15 @@ const GymProfile = () => {
     });
   };
 
+  const normalizeHexInput = (rawValue: string) => {
+    let value = rawValue.trim();
+    if (!value.startsWith('#')) value = `#${value}`;
+    value = value.slice(0, 7);
+    return value.toUpperCase();
+  };
+
+  const isValidHexColor = (value: string) => /^#[0-9A-F]{6}$/.test(value);
+
   const handleEditColor = (colorId: string, currentColor: string) => {
     if (!user || !isAdmin) {
       toast({
@@ -151,41 +163,43 @@ const GymProfile = () => {
       return;
     }
 
-    // Create native color picker input
-    const input = document.createElement('input');
-    input.type = 'color';
-    input.value = currentColor;
-    input.style.display = 'none';
-    document.body.appendChild(input);
-    
-    input.onchange = function() {
-      const newColor = input.value;
-      
-      updateColorMutation.mutate(
-        { colorId, newColor },
-        {
-          onSuccess: () => {
-            toast({
-              description: `Color updated to ${newColor}!`,
-              duration: 2000,
-            });
-          },
-          onError: (error) => {
-            console.error('Failed to update color:', error);
-            toast({
-              variant: "destructive",
-              description: 'Failed to update color. Please try again.',
-              duration: 3000,
-            });
-          }
+    setEditingColorId(colorId);
+    setEditingColorValue(currentColor.toUpperCase());
+  };
+
+  const handleSaveEditedColor = () => {
+    if (!editingColorId) return;
+
+    if (!isValidHexColor(editingColorValue)) {
+      toast({
+        variant: "destructive",
+        description: "Please enter a valid HEX color like #1A1A1A",
+        duration: 2500,
+      });
+      return;
+    }
+
+    updateColorMutation.mutate(
+      { colorId: editingColorId, newColor: editingColorValue },
+      {
+        onSuccess: () => {
+          toast({
+            description: `Color updated to ${editingColorValue}!`,
+            duration: 2000,
+          });
+          setEditingColorId(null);
+          setEditingColorValue('#000000');
+        },
+        onError: (error) => {
+          console.error('Failed to update color:', error);
+          toast({
+            variant: "destructive",
+            description: 'Failed to update color. Please try again.',
+            duration: 3000,
+          });
         }
-      );
-      
-      document.body.removeChild(input);
-    };
-    
-    // Trigger the color picker
-    input.click();
+      }
+    );
   };
 
   const handleAddColor = () => {
@@ -833,7 +847,14 @@ const GymProfile = () => {
                     <div className="flex gap-2">
                       {isAdmin && (
                         <Button
-                          onClick={() => setIsEditingColors(!isEditingColors)}
+                          onClick={() => {
+                            if (isEditingColors) {
+                              setEditingColorId(null);
+                              setEditingColorValue('#000000');
+                              setShowAddColor(false);
+                            }
+                            setIsEditingColors(!isEditingColors);
+                          }}
                           size="sm"
                           variant={isEditingColors ? "default" : "outline"}
                           className={isEditingColors 
@@ -868,6 +889,54 @@ const GymProfile = () => {
                         className="group p-3 rounded-xl bg-muted transition-smooth cursor-pointer border border-border hover:border-border/80 hover:shadow-lg"
                       />
                     ))}
+
+                    {isEditingColors && isAdmin && editingColorId && (
+                      <div className="p-4 rounded-xl border-2 border-gym-primary bg-card space-y-3">
+                        <p className="text-sm font-semibold text-foreground">Edit selected color (paste HEX allowed):</p>
+                        <div className="flex gap-3 items-center">
+                          <input
+                            type="color"
+                            value={isValidHexColor(editingColorValue) ? editingColorValue : '#000000'}
+                            onChange={(e) => setEditingColorValue(e.target.value.toUpperCase())}
+                            className="w-16 h-16 rounded-lg cursor-pointer border-2 border-border"
+                          />
+                          <Input
+                            type="text"
+                            value={editingColorValue}
+                            onChange={(e) => setEditingColorValue(normalizeHexInput(e.target.value))}
+                            onPaste={(e) => {
+                              e.preventDefault();
+                              const pasted = e.clipboardData.getData('text');
+                              setEditingColorValue(normalizeHexInput(pasted));
+                            }}
+                            placeholder="#6B6B6B"
+                            className="font-mono text-base font-bold"
+                            maxLength={7}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handleSaveEditedColor}
+                            className="flex-1 bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground"
+                            disabled={updateColorMutation.isPending || !isValidHexColor(editingColorValue)}
+                          >
+                            {updateColorMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : null}
+                            Save Color
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setEditingColorId(null);
+                              setEditingColorValue('#000000');
+                            }}
+                            variant="outline"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Add Color Section */}
                     {isEditingColors && isAdmin && (
@@ -887,26 +956,21 @@ const GymProfile = () => {
                             <div className="flex gap-3 items-center">
                               <input
                                 type="color"
-                                value={newColorValue.match(/^#[0-9A-Fa-f]{6}$/) ? newColorValue : '#000000'}
-                                onChange={(e) => setNewColorValue(e.target.value)}
+                                value={isValidHexColor(newColorValue) ? newColorValue : '#000000'}
+                                onChange={(e) => setNewColorValue(e.target.value.toUpperCase())}
                                 className="w-16 h-16 rounded-lg cursor-pointer border-2 border-background/30"
                               />
-                              <input
+                              <Input
                                 type="text"
                                 value={newColorValue}
-                                onChange={(e) => {
-                                  let val = e.target.value;
-                                  if (!val.startsWith('#')) val = '#' + val;
-                                  setNewColorValue(val);
-                                }}
+                                onChange={(e) => setNewColorValue(normalizeHexInput(e.target.value))}
                                 onPaste={(e) => {
                                   e.preventDefault();
-                                  let pasted = e.clipboardData.getData('text').trim();
-                                  if (!pasted.startsWith('#')) pasted = '#' + pasted;
-                                  setNewColorValue(pasted);
+                                  const pasted = e.clipboardData.getData('text');
+                                  setNewColorValue(normalizeHexInput(pasted));
                                 }}
-                                placeholder="#6b6b6b"
-                                className="flex-1 px-4 py-3 rounded-lg border-2 border-background/30 bg-background font-mono text-base font-bold"
+                                placeholder="#6B6B6B"
+                                className="font-mono text-base font-bold"
                                 maxLength={7}
                               />
                             </div>
@@ -914,7 +978,7 @@ const GymProfile = () => {
                               <Button
                                 onClick={handleAddColor}
                                 className="flex-1 bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground"
-                                disabled={addColorMutation.isPending}
+                                disabled={addColorMutation.isPending || !isValidHexColor(newColorValue)}
                               >
                                 {addColorMutation.isPending ? (
                                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
