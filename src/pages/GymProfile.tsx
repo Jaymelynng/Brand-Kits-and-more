@@ -44,6 +44,8 @@ const GymProfile = () => {
   const [isEditingColors, setIsEditingColors] = useState(false);
   const [showAddColor, setShowAddColor] = useState(false);
   const [newColorValue, setNewColorValue] = useState('#000000');
+  const [editingColorId, setEditingColorId] = useState<string | null>(null);
+  const [editingColorValue, setEditingColorValue] = useState('#000000');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedLogos, setSelectedLogos] = useState<Set<string>>(new Set());
   const [showRenamer, setShowRenamer] = useState(false);
