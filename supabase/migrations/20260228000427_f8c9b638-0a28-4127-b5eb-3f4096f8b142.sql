@@ -1,0 +1,1 @@
+UPDATE gym_colors SET color_hex = '#' || color_hex WHERE color_hex NOT LIKE '#%';
