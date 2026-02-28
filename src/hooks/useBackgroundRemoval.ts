@@ -1,46 +1,40 @@
-import { useState, useCallback } from 'react';
-
-interface BackgroundRemovalState {
-  isProcessing: boolean;
-  progress: number;
-  statusMessage: string;
-}
+import { useState } from "react";
 
 export const useBackgroundRemoval = () => {
-  const [state, setState] = useState<BackgroundRemovalState>({
-    isProcessing: false,
-    progress: 0,
-    statusMessage: '',
-  });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  const removeBg = useCallback(async (imageUrl: string): Promise<Blob | null> => {
-    setState({ isProcessing: true, progress: 0, statusMessage: 'Downloading AI model...' });
-
+  const removeBg = async (imageUrl: string): Promise<Blob | null> => {
     try {
-      const { removeBackground } = await import('@imgly/background-removal');
+      setIsProcessing(true);
+      setStatusMessage("Loading background removal model...");
+      setProgress(10);
+
+      const { removeBackground } = await import("@imgly/background-removal");
+
+      setStatusMessage("Processing image...");
+      setProgress(30);
+
       const result = await removeBackground(imageUrl, {
         progress: (key: string, current: number, total: number) => {
-          const pct = total > 0 ? Math.round((current / total) * 100) : 0;
-          const message = key.includes('fetch') || key.includes('download')
-            ? 'Downloading AI model...'
-            : 'Removing background...';
-          setState(prev => ({ ...prev, progress: pct, statusMessage: message }));
+          const pct = Math.round((current / total) * 100);
+          setProgress(30 + pct * 0.7);
         },
       });
 
-      setState({ isProcessing: false, progress: 100, statusMessage: 'Done!' });
+      setProgress(100);
+      setStatusMessage("Done!");
       return result;
     } catch (error) {
-      console.error('Background removal failed:', error);
-      setState({ isProcessing: false, progress: 0, statusMessage: '' });
+      console.error("Background removal failed:", error);
       return null;
+    } finally {
+      setIsProcessing(false);
+      setProgress(0);
+      setStatusMessage(null);
     }
-  }, []);
-
-  return {
-    removeBg,
-    isProcessing: state.isProcessing,
-    progress: state.progress,
-    statusMessage: state.statusMessage,
   };
+
+  return { removeBg, isProcessing, progress, statusMessage };
 };
