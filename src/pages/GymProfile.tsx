@@ -235,14 +235,22 @@ const GymProfile = () => {
     );
   };
 
-  const downloadLogo = (logoUrl: string, filename: string) => {
-    const link = document.createElement('a');
-    link.href = logoUrl;
-    link.download = filename;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadLogo = async (logoUrl: string, filename: string) => {
+    try {
+      const response = await fetch(logoUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+      toast({ title: "Download Failed", description: "Could not download the logo.", variant: "destructive" });
+    }
   };
 
   const copyUrl = (url: string) => {
