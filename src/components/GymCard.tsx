@@ -374,14 +374,23 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
 
             {mainLogo && (
               <Button
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = mainLogo.file_url;
-                  link.download = mainLogo.filename;
-                  link.target = '_blank';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                onClick={async () => {
+                  try {
+                    const response = await fetch(mainLogo.file_url);
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = mainLogo.filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    toast({ description: `Downloaded ${mainLogo.filename}!`, duration: 2000 });
+                  } catch (err) {
+                    console.error('Download failed:', err);
+                    toast({ title: "Download Failed", description: "Could not download the logo.", variant: "destructive" });
+                  }
                 }}
                 variant="outline"
                 size="sm"
