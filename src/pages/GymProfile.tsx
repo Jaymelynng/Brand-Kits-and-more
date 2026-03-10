@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUploadHeroVideo, useUpdateHeroVideo } from "@/hooks/useGyms";
+import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Button } from "@/components/ui/button";
@@ -783,6 +784,19 @@ const GymProfile = () => {
                 </p>
               </div>
             </>
+          )}
+
+          {/* Hero Video Admin Controls */}
+          {isAdmin && (
+            <div className="max-w-md mx-auto mb-6">
+              <HeroVideoManager
+                gymId={gym.id}
+                gymName={gym.name}
+                gymCode={gym.code}
+                currentVideoUrl={gym.hero_video_url || null}
+                primaryColor={primaryColor}
+              />
+            </div>
           )}
 
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}

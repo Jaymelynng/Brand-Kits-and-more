@@ -439,3 +439,54 @@ export const useUpdateElementType = () => {
     },
   });
 };
+
+export const useUpdateHeroVideo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ gymId, heroVideoUrl }: { gymId: string; heroVideoUrl: string | null }) => {
+      const { error } = await supabase
+        .from('gyms')
+        .update({ hero_video_url: heroVideoUrl })
+        .eq('id', gymId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
+export const useUploadHeroVideo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ gymId, file }: { gymId: string; file: File }) => {
+      const fileExt = file.name.split('.').pop() || 'mp4';
+      const filePath = `${gymId}-hero-video-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('campaign-assets')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('campaign-assets')
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from('gyms')
+        .update({ hero_video_url: publicUrl })
+        .eq('id', gymId);
+
+      if (updateError) throw updateError;
+
+      return publicUrl;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
