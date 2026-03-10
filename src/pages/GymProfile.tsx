@@ -1,7 +1,9 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUploadHeroVideo, useUpdateHeroVideo } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor } from "@/hooks/useGyms";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Settings } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +55,7 @@ const GymProfile = () => {
   const [showRenamer, setShowRenamer] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark'>('light');
   const [downloadingZip, setDownloadingZip] = useState(false);
+  const [showVideoManager, setShowVideoManager] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -786,18 +789,49 @@ const GymProfile = () => {
             </>
           )}
 
-          {/* Hero Video Admin Controls */}
-          {isAdmin && (
-            <div className="max-w-md mx-auto mb-6">
-              <HeroVideoManager
-                gymId={gym.id}
-                gymName={gym.name}
-                gymCode={gym.code}
-                currentVideoUrl={gym.hero_video_url || null}
-                primaryColor={primaryColor}
-              />
+          {/* Admin Hero Video Settings Button */}
+          {isAdmin && gym.hero_video_url && (
+            <div className="absolute top-4 right-4 z-20">
+              <Button
+                size="sm"
+                variant="outline"
+                className="bg-black/50 border-white/20 text-white hover:bg-black/70 backdrop-blur-sm"
+                onClick={() => setShowVideoManager(true)}
+              >
+                <Settings className="w-4 h-4 mr-1" /> Manage Video
+              </Button>
             </div>
           )}
+          {isAdmin && !gym.hero_video_url && (
+            <div className="flex justify-center mb-4">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowVideoManager(true)}
+                style={{ borderColor: `${primaryColor}50`, color: primaryColor }}
+              >
+                <Settings className="w-4 h-4 mr-1" /> Set Hero Video
+              </Button>
+            </div>
+          )}
+
+          {/* Hero Video Manager Sheet */}
+          <Sheet open={showVideoManager} onOpenChange={setShowVideoManager}>
+            <SheetContent className="w-[400px] sm:w-[480px]">
+              <SheetHeader>
+                <SheetTitle className="text-lg font-bold">Hero Video — {gym.name}</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6">
+                <HeroVideoManager
+                  gymId={gym.id}
+                  gymName={gym.name}
+                  gymCode={gym.code}
+                  currentVideoUrl={gym.hero_video_url || null}
+                  primaryColor={primaryColor}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
 
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
