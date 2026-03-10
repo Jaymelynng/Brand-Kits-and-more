@@ -786,19 +786,6 @@ const GymProfile = () => {
             </>
           )}
 
-          {/* Hero Video Admin Controls */}
-          {isAdmin && (
-            <div className="max-w-md mx-auto mb-6">
-              <HeroVideoManager
-                gymId={gym.id}
-                gymName={gym.name}
-                gymCode={gym.code}
-                currentVideoUrl={gym.hero_video_url || null}
-                primaryColor={primaryColor}
-              />
-            </div>
-          )}
-
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
             {/* Left Column: Logo + Brand Assets Stats */}
