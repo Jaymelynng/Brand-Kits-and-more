@@ -235,23 +235,15 @@ const Index = () => {
               </p>
               
               {/* Admin Access Button - always visible, handles login redirect */}
-              {!isAdmin && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 text-xs opacity-60 hover:opacity-100 transition-opacity"
-                  onClick={() => {
-                    if (!user) {
-                      navigate("/auth");
-                    } else {
-                      handleAdminClick();
-                    }
-                  }}
-                >
-                  <Shield className="w-3 h-3 mr-1" />
-                  Admin Access
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 text-xs opacity-60 hover:opacity-100 transition-opacity"
+                onClick={handleAdminClick}
+              >
+                <Shield className="w-3 h-3 mr-1" />
+                {isAdmin ? 'Admin Toolkit' : 'Admin Access'}
+              </Button>
             </div>
           </div>
         </div>
