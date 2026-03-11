@@ -1427,7 +1427,25 @@ const GymProfile = () => {
                                   </div>
                                 )}
                                 
-                                {/* Logo Display with 3D effect */}
+                                {/* Theme Tag Badge */}
+                                {(() => {
+                                  const assetMatch = gymAssets.find(a => a.file_url === logo.file_url);
+                                  const catName = assetMatch?.category?.name;
+                                  return catName ? (
+                                    <div className="absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-[10px] font-bold"
+                                      style={{ background: 'hsl(var(--brand-rose-gold) / 0.2)', color: 'hsl(var(--brand-navy))' }}
+                                    >{catName}</div>
+                                  ) : null;
+                                })()}
+                                
+                                {/* Edit Pencil */}
+                                {!selectionMode && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); openAssetModal(logo.file_url); }}
+                                    className="absolute bottom-3 right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center bg-white/90 hover:bg-white shadow-md transition-all hover:scale-110"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+                                  </button>
                                 <div 
                                   className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
                                   style={{ 
