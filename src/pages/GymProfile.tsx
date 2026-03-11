@@ -2212,6 +2212,9 @@ const GymProfile = () => {
           <ChevronUp className="w-6 h-6" />
         </Button>
       )}
+
+      {/* Asset Modal */}
+      <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />
     </div>
     </GymColorProvider>
   );
