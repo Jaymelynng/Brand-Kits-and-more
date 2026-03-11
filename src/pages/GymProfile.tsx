@@ -834,7 +834,7 @@ const GymProfile = () => {
           </Sheet>
 
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto -mt-12 relative z-10">
             {/* Left Column: Logo + Brand Assets Stats */}
             <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
               <BrandCardContent className="p-6">
