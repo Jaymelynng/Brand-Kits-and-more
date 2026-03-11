@@ -1647,7 +1647,7 @@ const GymProfile = () => {
                 </div>
               ) : viewMode === 'list' ? (
                 <div className="space-y-4">
-                  {gym.logos.map((logo) => (
+                  {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 
                       className={cn(
