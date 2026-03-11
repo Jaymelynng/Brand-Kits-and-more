@@ -1195,8 +1195,8 @@ const GymProfile = () => {
         {gym.logos.length > 0 && (
           <Card className="lg:col-span-4 shadow-2xl border-2" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 85%, #1a1a1a)`, borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl text-white">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <CardTitle className="text-2xl text-white">📁 Logo Gallery ({filteredLogos.length} files)</CardTitle>
                 <div className="flex items-center gap-2">
                   {/* Download All as ZIP */}
                   <Button
