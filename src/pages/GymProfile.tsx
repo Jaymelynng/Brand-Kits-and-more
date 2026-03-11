@@ -1446,6 +1446,9 @@ const GymProfile = () => {
                                   >
                                     <Pencil className="w-3.5 h-3.5" style={{ color: primaryColor }} />
                                   </button>
+                                )}
+                                
+                                {/* Logo Display with 3D effect */}
                                 <div 
                                   className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
                                   style={{ 
