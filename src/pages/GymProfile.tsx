@@ -1261,6 +1261,39 @@ const GymProfile = () => {
                   </Select>
                 </div>
               </div>
+              {/* Theme/Category Filter Tabs */}
+              {availableCategories.length > 1 && (
+                <div className="flex items-center gap-2 mt-4 flex-wrap">
+                  <button
+                    onClick={() => setActiveCategoryFilter('all')}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border",
+                      activeCategoryFilter === 'all'
+                        ? "bg-white text-foreground border-white shadow-md"
+                        : "bg-white/15 text-white/80 border-white/25 hover:bg-white/25 hover:text-white"
+                    )}
+                  >
+                    All ({gym.logos.length})
+                  </button>
+                  {availableCategories.map(cat => {
+                    const count = gym.logos.filter(l => assetCategoryMap.get(l.file_url) === cat.name).length;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setActiveCategoryFilter(cat.name)}
+                        className={cn(
+                          "px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border",
+                          activeCategoryFilter === cat.name
+                            ? "bg-white text-foreground border-white shadow-md"
+                            : "bg-white/15 text-white/80 border-white/25 hover:bg-white/25 hover:text-white"
+                        )}
+                      >
+                        {cat.name} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               {viewMode === 'carousel' ? (
