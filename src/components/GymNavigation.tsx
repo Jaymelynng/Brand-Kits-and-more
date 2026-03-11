@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { DiamondSelector } from "./DiamondSelector";
 import { SecretAdminButton } from "./SecretAdminButton";
-import { LogOut } from "lucide-react";
+import { LogOut, Layers } from "lucide-react";
 import { GymWithColors } from "@/hooks/useGyms";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
