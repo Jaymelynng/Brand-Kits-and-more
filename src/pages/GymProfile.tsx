@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor } from "@/hooks/useGyms";
+import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -34,6 +35,10 @@ const GymProfile = () => {
   // Find gym
   const gym = gyms.find(g => g.code === gymCode || g.id === gymCode);
   
+  // Asset system hooks
+  const { data: gymAssets = [] } = useGymAssets(gym?.id);
+  const { data: categories = [] } = useAssetCategories();
+
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
@@ -56,6 +61,7 @@ const GymProfile = () => {
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark'>('light');
   const [downloadingZip, setDownloadingZip] = useState(false);
   const [showVideoManager, setShowVideoManager] = useState(false);
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -631,6 +637,40 @@ const GymProfile = () => {
     }
   }, [gym, toast]);
 
+  // Build asset-to-category map for filtering
+  const assetCategoryMap = useMemo(() => {
+    const map = new Map<string, string>(); // file_url -> category name
+    gymAssets.forEach(asset => {
+      if (asset.category) {
+        map.set(asset.file_url, asset.category.name);
+      }
+    });
+    return map;
+  }, [gymAssets]);
+
+  // Get categories that have logos in this gym
+  const availableCategories = useMemo(() => {
+    if (!gym) return [];
+    const catNames = new Set<string>();
+    gym.logos.forEach(logo => {
+      const cat = assetCategoryMap.get(logo.file_url);
+      if (cat) catNames.add(cat);
+    });
+    return categories
+      .filter(c => catNames.has(c.name))
+      .sort((a, b) => a.order_index - b.order_index);
+  }, [gym, assetCategoryMap, categories]);
+
+  // Filter logos by active category
+  const filteredLogos = useMemo(() => {
+    if (!gym) return [];
+    if (activeCategoryFilter === 'all') return gym.logos;
+    return gym.logos.filter(logo => {
+      const cat = assetCategoryMap.get(logo.file_url);
+      return cat === activeCategoryFilter;
+    });
+  }, [gym, activeCategoryFilter, assetCategoryMap]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -1155,8 +1195,8 @@ const GymProfile = () => {
         {gym.logos.length > 0 && (
           <Card className="lg:col-span-4 shadow-2xl border-2" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 85%, #1a1a1a)`, borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl text-white">📁 Logo Gallery ({gym.logos.length} files)</CardTitle>
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <CardTitle className="text-2xl text-white">📁 Logo Gallery ({filteredLogos.length} files)</CardTitle>
                 <div className="flex items-center gap-2">
                   {/* Download All as ZIP */}
                   <Button
@@ -1221,6 +1261,39 @@ const GymProfile = () => {
                   </Select>
                 </div>
               </div>
+              {/* Theme/Category Filter Tabs */}
+              {availableCategories.length > 1 && (
+                <div className="flex items-center gap-2 mt-4 flex-wrap">
+                  <button
+                    onClick={() => setActiveCategoryFilter('all')}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border",
+                      activeCategoryFilter === 'all'
+                        ? "bg-white text-foreground border-white shadow-md"
+                        : "bg-white/15 text-white/80 border-white/25 hover:bg-white/25 hover:text-white"
+                    )}
+                  >
+                    All ({gym.logos.length})
+                  </button>
+                  {availableCategories.map(cat => {
+                    const count = gym.logos.filter(l => assetCategoryMap.get(l.file_url) === cat.name).length;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setActiveCategoryFilter(cat.name)}
+                        className={cn(
+                          "px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border",
+                          activeCategoryFilter === cat.name
+                            ? "bg-white text-foreground border-white shadow-md"
+                            : "bg-white/15 text-white/80 border-white/25 hover:bg-white/25 hover:text-white"
+                        )}
+                      >
+                        {cat.name} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               {viewMode === 'carousel' ? (
@@ -1287,7 +1360,7 @@ const GymProfile = () => {
                     }}
                   >
                     <CarouselContent>
-                      {gym.logos.map((logo, index) => (
+                      {filteredLogos.map((logo, index) => (
                         <CarouselItem 
                           key={logo.id} 
                           className="md:basis-1/2 lg:basis-1/3"
@@ -1458,7 +1531,7 @@ const GymProfile = () => {
                 </div>
               ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {gym.logos.map((logo) => (
+                  {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 
                       className={cn(
@@ -1574,7 +1647,7 @@ const GymProfile = () => {
                 </div>
               ) : viewMode === 'list' ? (
                 <div className="space-y-4">
-                  {gym.logos.map((logo) => (
+                  {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 
                       className={cn(
@@ -1683,7 +1756,7 @@ const GymProfile = () => {
                 </div>
               ) : (
                 <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-                  {gym.logos.map((logo) => (
+                  {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 
                       className={cn(
