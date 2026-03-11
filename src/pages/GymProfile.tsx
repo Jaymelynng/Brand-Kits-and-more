@@ -1360,7 +1360,7 @@ const GymProfile = () => {
                     }}
                   >
                     <CarouselContent>
-                      {gym.logos.map((logo, index) => (
+                      {filteredLogos.map((logo, index) => (
                         <CarouselItem 
                           key={logo.id} 
                           className="md:basis-1/2 lg:basis-1/3"
