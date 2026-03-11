@@ -41,6 +41,159 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_categories: {
+        Row: {
+          asset_type_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          order_index: number
+        }
+        Insert: {
+          asset_type_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          order_index?: number
+        }
+        Update: {
+          asset_type_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_categories_asset_type_id_fkey"
+            columns: ["asset_type_id"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_types: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          order_index: number
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          order_index?: number
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          order_index?: number
+          slug?: string
+        }
+        Relationships: []
+      }
+      gym_asset_assignments: {
+        Row: {
+          asset_id: string
+          created_at: string | null
+          gym_id: string
+          id: string
+          is_main: boolean
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string | null
+          gym_id: string
+          id?: string
+          is_main?: boolean
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string | null
+          gym_id?: string
+          id?: string
+          is_main?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_asset_assignments_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "gym_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_asset_assignments_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_asset_assignments_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_assets: {
+        Row: {
+          asset_type_id: string
+          category_id: string | null
+          created_at: string | null
+          file_url: string
+          filename: string
+          id: string
+          is_global: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          asset_type_id: string
+          category_id?: string | null
+          created_at?: string | null
+          file_url: string
+          filename: string
+          id?: string
+          is_global?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          asset_type_id?: string
+          category_id?: string | null
+          created_at?: string | null
+          file_url?: string
+          filename?: string
+          id?: string
+          is_global?: boolean
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_assets_asset_type_id_fkey"
+            columns: ["asset_type_id"]
+            isOneToOne: false
+            referencedRelation: "asset_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_assets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gym_colors: {
         Row: {
           color_hex: string
