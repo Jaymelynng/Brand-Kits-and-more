@@ -35,6 +35,10 @@ const GymProfile = () => {
   // Find gym
   const gym = gyms.find(g => g.code === gymCode || g.id === gymCode);
   
+  // Asset system hooks
+  const { data: gymAssets = [] } = useGymAssets(gym?.id);
+  const { data: categories = [] } = useAssetCategories();
+
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
