@@ -76,6 +76,91 @@ export type Database = {
           },
         ]
       }
+      asset_comments: {
+        Row: {
+          asset_id: string
+          content: string
+          created_at: string | null
+          gym_mention_id: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          asset_id: string
+          content: string
+          created_at?: string | null
+          gym_mention_id?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          asset_id?: string
+          content?: string
+          created_at?: string | null
+          gym_mention_id?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_comments_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "gym_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_comments_gym_mention_id_fkey"
+            columns: ["gym_mention_id"]
+            isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "asset_comments_gym_mention_id_fkey"
+            columns: ["gym_mention_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_theme_tags: {
+        Row: {
+          asset_id: string
+          created_at: string | null
+          id: string
+          theme_tag_id: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string | null
+          id?: string
+          theme_tag_id: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string | null
+          id?: string
+          theme_tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_theme_tags_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "gym_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_theme_tags_theme_tag_id_fkey"
+            columns: ["theme_tag_id"]
+            isOneToOne: false
+            referencedRelation: "theme_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_types: {
         Row: {
           created_at: string | null
@@ -104,6 +189,7 @@ export type Database = {
         Row: {
           asset_id: string
           created_at: string | null
+          file_url: string | null
           gym_id: string
           id: string
           is_main: boolean
@@ -111,6 +197,7 @@ export type Database = {
         Insert: {
           asset_id: string
           created_at?: string | null
+          file_url?: string | null
           gym_id: string
           id?: string
           is_main?: boolean
@@ -118,6 +205,7 @@ export type Database = {
         Update: {
           asset_id?: string
           created_at?: string | null
+          file_url?: string | null
           gym_id?: string
           id?: string
           is_main?: boolean
@@ -151,9 +239,11 @@ export type Database = {
           asset_type_id: string
           category_id: string | null
           created_at: string | null
+          description: string | null
           file_url: string
           filename: string
           id: string
+          is_all_gyms: boolean
           is_global: boolean
           updated_at: string | null
         }
@@ -161,9 +251,11 @@ export type Database = {
           asset_type_id: string
           category_id?: string | null
           created_at?: string | null
+          description?: string | null
           file_url: string
           filename: string
           id?: string
+          is_all_gyms?: boolean
           is_global?: boolean
           updated_at?: string | null
         }
@@ -171,9 +263,11 @@ export type Database = {
           asset_type_id?: string
           category_id?: string | null
           created_at?: string | null
+          description?: string | null
           file_url?: string
           filename?: string
           id?: string
+          is_all_gyms?: boolean
           is_global?: boolean
           updated_at?: string | null
         }
@@ -356,6 +450,24 @@ export type Database = {
           phone?: string | null
           updated_at?: string | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      theme_tags: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
