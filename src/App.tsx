@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import GymProfile from "./pages/GymProfile";
 import Auth from "./pages/Auth";
+import Themes from "./pages/Themes";
+import ThemeDetail from "./pages/ThemeDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
