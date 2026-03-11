@@ -637,6 +637,40 @@ const GymProfile = () => {
     }
   }, [gym, toast]);
 
+  // Build asset-to-category map for filtering
+  const assetCategoryMap = useMemo(() => {
+    const map = new Map<string, string>(); // file_url -> category name
+    gymAssets.forEach(asset => {
+      if (asset.category) {
+        map.set(asset.file_url, asset.category.name);
+      }
+    });
+    return map;
+  }, [gymAssets]);
+
+  // Get categories that have logos in this gym
+  const availableCategories = useMemo(() => {
+    if (!gym) return [];
+    const catNames = new Set<string>();
+    gym.logos.forEach(logo => {
+      const cat = assetCategoryMap.get(logo.file_url);
+      if (cat) catNames.add(cat);
+    });
+    return categories
+      .filter(c => catNames.has(c.name))
+      .sort((a, b) => a.order_index - b.order_index);
+  }, [gym, assetCategoryMap, categories]);
+
+  // Filter logos by active category
+  const filteredLogos = useMemo(() => {
+    if (!gym) return [];
+    if (activeCategoryFilter === 'all') return gym.logos;
+    return gym.logos.filter(logo => {
+      const cat = assetCategoryMap.get(logo.file_url);
+      return cat === activeCategoryFilter;
+    });
+  }, [gym, activeCategoryFilter, assetCategoryMap]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -666,38 +700,6 @@ const GymProfile = () => {
   const mainLogo = gym.logos.find(logo => logo.is_main_logo);
   const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
   const secondaryColor = gym.colors[1]?.color_hex || '#9CA3AF';
-
-  // Build asset-to-category map for filtering
-  const assetCategoryMap = useMemo(() => {
-    const map = new Map<string, string>(); // file_url -> category name
-    gymAssets.forEach(asset => {
-      if (asset.category) {
-        map.set(asset.file_url, asset.category.name);
-      }
-    });
-    return map;
-  }, [gymAssets]);
-
-  // Get categories that have logos in this gym
-  const availableCategories = useMemo(() => {
-    const catNames = new Set<string>();
-    gym.logos.forEach(logo => {
-      const cat = assetCategoryMap.get(logo.file_url);
-      if (cat) catNames.add(cat);
-    });
-    return categories
-      .filter(c => catNames.has(c.name))
-      .sort((a, b) => a.order_index - b.order_index);
-  }, [gym.logos, assetCategoryMap, categories]);
-
-  // Filter logos by active category
-  const filteredLogos = useMemo(() => {
-    if (activeCategoryFilter === 'all') return gym.logos;
-    return gym.logos.filter(logo => {
-      const cat = assetCategoryMap.get(logo.file_url);
-      return cat === activeCategoryFilter;
-    });
-  }, [gym.logos, activeCategoryFilter, assetCategoryMap]);
   const logoBgColor = logoBgMode === 'dark' ? '#1a1a2e' : `${primaryColor}08`;
 
   // Convert hex to HSL for better manipulation
