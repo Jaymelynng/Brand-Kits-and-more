@@ -3,13 +3,18 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useGyms, GymWithColors } from "@/hooks/useGyms";
 import { useThemeTags, useAllAssetThemeTags } from "@/hooks/useThemeTags";
 import { useAllAssetsWithAssignments, GymAsset, GymAssetAssignment } from "@/hooks/useAssets";
+import { useAssetComments, useAddAssetComment } from "@/hooks/useAssetComments";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Download, Link2, AlertTriangle, Upload, Image, Check, Copy } from "lucide-react";
+import { ArrowLeft, Download, Copy, Trash2, Check, AlertTriangle, Send, MessageSquare, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import JSZip from "jszip";
-import AssetModal from "@/components/AssetModal";
 
 interface GymThemeAsset {
   asset: GymAsset;
@@ -20,10 +25,9 @@ const ThemeDetail = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { user, isAdmin } = useAuth();
   const [downloading, setDownloading] = useState(false);
-  const [selectedGymId, setSelectedGymId] = useState<string | null>(null);
-  const [assetModalOpen, setAssetModalOpen] = useState(false);
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
 
   const { data: themeTags = [] } = useThemeTags();
   const { data: allAssetThemeTags = [] } = useAllAssetThemeTags();
@@ -56,20 +60,13 @@ const ThemeDetail = () => {
     return map;
   }, [taggedAssetIds, assets, assignments]);
 
-  // Select first gym if none selected
-  const effectiveSelectedGymId = selectedGymId || gyms[0]?.id || null;
-  const selectedGym = gyms.find(g => g.id === effectiveSelectedGymId);
-  const selectedGymAssets = effectiveSelectedGymId ? (gymAssetMap.get(effectiveSelectedGymId) || []) : [];
-  const selectedAssetForPreview = selectedGymAssets[0];
-
   const gymsWithAssets = gyms.filter(g => gymAssetMap.has(g.id));
-  const gymsMissing = gyms.filter(g => !gymAssetMap.has(g.id));
 
   // All URLs for bulk actions
   const allUrls = useMemo(() => {
     const urls: string[] = [];
-    gymAssetMap.forEach(assets => {
-      assets.forEach(a => {
+    gymAssetMap.forEach(gAssets => {
+      gAssets.forEach(a => {
         const url = a.assignment.file_url || a.asset.file_url;
         if (url) urls.push(url);
       });
@@ -88,7 +85,6 @@ const ThemeDetail = () => {
     try {
       const zip = new JSZip();
       const folder = zip.folder(tag?.name || 'theme');
-
       const promises: Promise<void>[] = [];
       gymAssetMap.forEach((gymAssets, gymId) => {
         const gym = gyms.find(g => g.id === gymId);
@@ -96,14 +92,13 @@ const ThemeDetail = () => {
           const url = ga.assignment.file_url || ga.asset.file_url;
           if (!url) return;
           promises.push(
-            fetch(url).then(res => res.blob()).then(blob => {
+            fetch(url).then(r => r.blob()).then(blob => {
               const ext = url.split('.').pop()?.split('?')[0] || 'png';
               folder!.file(`${gym?.code || 'unknown'}_${ga.asset.filename}.${ext}`, blob);
             }).catch(() => {})
           );
         });
       });
-
       await Promise.all(promises);
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(blob);
@@ -112,22 +107,41 @@ const ThemeDetail = () => {
       a.download = `${tag?.name || 'theme'}_assets.zip`;
       a.click();
       URL.revokeObjectURL(url);
-      toast({ description: 'ZIP downloaded!', duration: 2000 });
+      toast({ description: 'ZIP downloaded!' });
     } catch {
-      toast({ description: 'Download failed', variant: 'destructive', duration: 2000 });
+      toast({ description: 'Download failed', variant: 'destructive' });
     } finally {
       setDownloading(false);
     }
   };
 
-  const handleOpenAsset = (assetId: string) => {
-    setSelectedAssetId(assetId);
-    setAssetModalOpen(true);
+  // Communication — use first tagged asset for comments (theme-level)
+  const firstTaggedAssetId = useMemo(() => {
+    const ids = Array.from(taggedAssetIds);
+    return ids[0] || null;
+  }, [taggedAssetIds]);
+
+  const { data: comments = [] } = useAssetComments(firstTaggedAssetId || undefined);
+  const addCommentMutation = useAddAssetComment();
+  const [commentText, setCommentText] = useState("");
+
+  const handleAddComment = async () => {
+    if (!firstTaggedAssetId || !user || !commentText.trim()) return;
+    try {
+      await addCommentMutation.mutateAsync({
+        assetId: firstTaggedAssetId,
+        userId: user.id,
+        content: commentText.trim(),
+      });
+      setCommentText("");
+    } catch {
+      toast({ description: "Failed to post comment", variant: "destructive" });
+    }
   };
 
   if (gymsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--brand-white))' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--background))' }}>
         <div className="text-xl" style={{ color: 'hsl(var(--brand-text-primary))' }}>Loading theme...</div>
       </div>
     );
@@ -135,265 +149,387 @@ const ThemeDetail = () => {
 
   if (!tag) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--brand-white))' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--background))' }}>
         <div className="text-xl text-destructive">Theme not found</div>
       </div>
     );
   }
 
+  const completedCount = gymsWithAssets.length;
+  const totalCount = gyms.length;
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'hsl(var(--background))' }}>
-      {/* Header */}
-      <div className="sticky top-0 z-40 shadow-sm" style={{ background: 'hsl(var(--brand-white))' }}>
-        <div className="py-3 px-6" style={{
-          background: 'linear-gradient(to bottom, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.12))',
-          borderBottom: '2px solid hsl(var(--brand-rose-gold) / 0.25)'
-        }}>
-          <div className="max-w-[1400px] mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/themes')}>
-                <ArrowLeft className="w-4 h-4 mr-1" /> Themes
-              </Button>
-              <div className="h-6 w-px" style={{ background: 'hsl(var(--brand-rose-gold) / 0.4)' }} />
-              <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--brand-navy))' }}>{tag.name}</h1>
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
+      {/* Header Bar */}
+      <div className="shrink-0 shadow-md" style={{
+        background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.85))',
+      }}>
+        <div className="px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/themes')}
+              className="text-white/80 hover:text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" /> Themes
+            </Button>
+            <div className="h-5 w-px bg-white/20" />
+            <span className="px-3 py-1 rounded-lg text-sm font-bold text-white"
+              style={{ background: 'hsl(var(--brand-rose-gold))' }}
+            >
+              {tag.name}
+            </span>
+            <span className="text-white/60 text-xs font-medium">
+              {completedCount}/{totalCount} gyms complete
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs"
+              onClick={handleCopyAllUrls} disabled={allUrls.length === 0}
+            >
+              <Copy className="w-3.5 h-3.5 mr-1" /> Copy All
+            </Button>
+            <Button size="sm" onClick={handleDownloadAll}
+              disabled={allUrls.length === 0 || downloading}
+              className="text-xs text-white"
+              style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}
+            >
+              <Download className="w-3.5 h-3.5 mr-1" /> {downloading ? 'Zipping...' : 'Download All'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Three-Column Layout */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* LEFT — Gym Asset Rows (Variable Info style) */}
+        <div className="flex-1 flex flex-col border-r overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between" style={{
+            background: 'hsl(var(--muted) / 0.5)',
+            borderColor: 'hsl(var(--border))',
+          }}>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy))' }}>
+                📋 Asset Info
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
                 style={{ background: 'hsl(var(--brand-rose-gold) / 0.15)', color: 'hsl(var(--brand-navy))' }}
               >
-                {gymsWithAssets.length}/{gyms.length} gyms
+                {completedCount}/{totalCount}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={handleCopyAllUrls} disabled={allUrls.length === 0} className="text-xs">
-                <Link2 className="w-3.5 h-3.5 mr-1" /> Copy All URLs
-              </Button>
-              <Button size="sm" onClick={handleDownloadAll} disabled={allUrls.length === 0 || downloading} className="text-xs text-white"
-                style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}
-              >
-                <Download className="w-3.5 h-3.5 mr-1" /> {downloading ? 'Zipping...' : 'Download All'}
-              </Button>
-            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Three Panel Layout */}
-      <div className="flex flex-1 overflow-hidden max-w-[1400px] mx-auto w-full">
-        {/* Left Panel - Gym List */}
-        <div className="w-[260px] border-r overflow-y-auto shrink-0" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--muted) / 0.3)' }}>
-          <div className="px-3 py-2 border-b sticky top-0 z-10" style={{ background: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }}>
-            <p className="text-xs font-semibold" style={{ color: 'hsl(var(--brand-navy))' }}>All Gyms ({gyms.length})</p>
-          </div>
-          {gyms.map(gym => {
-            const hasAssets = gymAssetMap.has(gym.id);
-            const gymAssets = gymAssetMap.get(gym.id) || [];
-            const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
-            const firstUrl = gymAssets[0]?.assignment?.file_url || gymAssets[0]?.asset?.file_url;
-            const isSelected = gym.id === effectiveSelectedGymId;
+          <div className="flex-1 overflow-y-auto">
+            {gyms.map(gym => {
+              const gymAssets = gymAssetMap.get(gym.id) || [];
+              const hasAsset = gymAssets.length > 0;
+              const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
+              const firstAsset = gymAssets[0];
+              const fileUrl = firstAsset?.assignment?.file_url || firstAsset?.asset?.file_url || '';
 
-            return (
-              <button
-                key={gym.id}
-                onClick={() => setSelectedGymId(gym.id)}
-                className={cn(
-                  "w-full px-3 py-2.5 flex items-center gap-3 text-left transition-all border-l-3",
-                  isSelected ? "border-l-[3px]" : "border-l-[3px] border-transparent hover:bg-accent/50",
-                  !hasAssets && "opacity-60"
-                )}
-                style={isSelected ? { borderLeftColor: primaryColor, background: `${primaryColor}10` } : {}}
-              >
-                {/* Thumbnail */}
-                <div className="w-8 h-8 rounded border overflow-hidden shrink-0 flex items-center justify-center"
-                  style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--muted) / 0.5)' }}
-                >
-                  {firstUrl ? (
-                    <img src={firstUrl} alt="" className="w-full h-full object-contain" />
-                  ) : (
-                    <Image className="w-4 h-4 opacity-30" />
-                  )}
-                </div>
+              return (
+                <div key={gym.id} className={cn(
+                  "px-4 py-3 border-b flex flex-col gap-2 transition-all",
+                  !hasAsset && "opacity-60"
+                )} style={{ borderColor: 'hsl(var(--border) / 0.5)' }}>
+                  {/* Top row: checkbox, badge, URL input, status, actions */}
+                  <div className="flex items-center gap-3">
+                    <Checkbox checked={hasAsset} disabled className="shrink-0" />
 
-                {/* Gym Info */}
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs font-bold block truncate" style={{ color: primaryColor }}>{gym.code}</span>
-                  <span className="text-[10px] truncate block" style={{ color: 'hsl(var(--muted-foreground))' }}>{gym.name}</span>
-                </div>
+                    {/* Gym Badge */}
+                    <span className="px-2.5 py-1 rounded-md text-xs font-bold text-white shrink-0 min-w-[42px] text-center"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      {gym.code}
+                    </span>
 
-                {/* Status */}
-                {hasAssets ? (
-                  <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0"
-                    style={{ background: 'hsl(142 76% 36% / 0.15)', color: 'hsl(142 76% 36%)' }}
-                  >
-                    <Check className="w-2.5 h-2.5 inline" />
-                  </span>
-                ) : (
-                  <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0"
-                    style={{ background: 'hsl(var(--destructive) / 0.1)', color: 'hsl(var(--destructive))' }}
-                  >
-                    <AlertTriangle className="w-2.5 h-2.5 inline" />
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Center Panel - Preview */}
-        <div className="flex-1 overflow-y-auto flex flex-col">
-          {selectedGym && (
-            <div className="flex-1 p-6 flex flex-col">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1.5 rounded-lg text-sm font-bold text-white"
-                  style={{ backgroundColor: selectedGym.colors[0]?.color_hex || '#6B7280' }}
-                >
-                  {selectedGym.code}
-                </span>
-                <h2 className="text-lg font-bold" style={{ color: 'hsl(var(--brand-navy))' }}>{selectedGym.name}</h2>
-              </div>
-
-              {selectedGymAssets.length > 0 ? (
-                <>
-                  {/* Large Preview */}
-                  <div className="flex-1 flex items-center justify-center rounded-2xl border-2 mb-4 min-h-[300px]"
-                    style={{ background: 'hsl(var(--muted) / 0.3)', borderColor: 'hsl(var(--border))' }}
-                  >
-                    <img
-                      src={selectedAssetForPreview?.assignment?.file_url || selectedAssetForPreview?.asset?.file_url}
-                      alt={selectedAssetForPreview?.asset?.filename}
-                      className="max-h-[400px] max-w-full object-contain p-6 cursor-pointer"
-                      onClick={() => selectedAssetForPreview && handleOpenAsset(selectedAssetForPreview.asset.id)}
+                    {/* URL Input */}
+                    <Input
+                      value={fileUrl}
+                      readOnly
+                      placeholder="No asset URL..."
+                      className="flex-1 text-xs h-8 font-mono"
+                      style={{ background: hasAsset ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.3)' }}
                     />
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="text-xs"
+                    {/* Status Badge */}
+                    <span className={cn(
+                      "px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 flex items-center gap-1",
+                    )} style={{
+                      background: hasAsset ? 'hsl(142 76% 36% / 0.12)' : 'hsl(32 95% 44% / 0.12)',
+                      color: hasAsset ? 'hsl(142 76% 36%)' : 'hsl(32 95% 44%)',
+                    }}>
+                      {hasAsset ? (
+                        <><Check className="w-3 h-3" />COMPLETE</>
+                      ) : (
+                        <><AlertTriangle className="w-3 h-3" />MISSING</>
+                      )}
+                    </span>
+
+                    {/* Copy URL */}
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"
+                      disabled={!fileUrl}
                       onClick={() => {
-                        const url = selectedAssetForPreview?.assignment?.file_url || selectedAssetForPreview?.asset?.file_url;
-                        if (url) {
-                          fetch(url).then(r => r.blob()).then(blob => {
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(blob);
-                            link.download = selectedAssetForPreview?.asset?.filename || 'asset';
-                            link.click();
-                          });
-                        }
+                        navigator.clipboard.writeText(fileUrl);
+                        toast({ description: "URL copied!" });
                       }}
                     >
-                      <Download className="w-3.5 h-3.5 mr-1" /> Download
+                      <Copy className="w-3.5 h-3.5" />
                     </Button>
-                    <Button size="sm" variant="outline" className="text-xs"
-                      onClick={() => {
-                        const url = selectedAssetForPreview?.assignment?.file_url || selectedAssetForPreview?.asset?.file_url;
-                        if (url) {
-                          navigator.clipboard.writeText(url);
-                          toast({ description: "URL copied!" });
-                        }
+
+                    {/* Delete */}
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-destructive"
+                      disabled={!isAdmin || !hasAsset}
+                      onClick={async () => {
+                        if (!firstAsset) return;
+                        await supabase
+                          .from('gym_asset_assignments')
+                          .delete()
+                          .eq('asset_id', firstAsset.asset.id)
+                          .eq('gym_id', gym.id);
+                        queryClient.invalidateQueries({ queryKey: ['all-assets-with-assignments'] });
+                        toast({ description: `Removed ${gym.code} assignment` });
                       }}
                     >
-                      <Copy className="w-3.5 h-3.5 mr-1" /> Copy URL
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-xs"
-                      onClick={() => selectedAssetForPreview && handleOpenAsset(selectedAssetForPreview.asset.id)}
-                    >
-                      Edit Asset
+                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
 
-                  {/* Multiple assets in this theme for this gym */}
-                  {selectedGymAssets.length > 1 && (
-                    <div className="mt-4 grid grid-cols-4 gap-2">
-                      {selectedGymAssets.map((ga, i) => (
-                        <button key={i} className="rounded-lg border overflow-hidden p-2 hover:ring-2 ring-primary transition-all"
-                          style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--muted) / 0.3)' }}
-                          onClick={() => handleOpenAsset(ga.asset.id)}
-                        >
-                          <img src={ga.assignment.file_url || ga.asset.file_url} alt="" className="w-full h-16 object-contain" />
-                          <p className="text-[10px] truncate mt-1" style={{ color: 'hsl(var(--muted-foreground))' }}>{ga.asset.filename}</p>
-                        </button>
-                      ))}
+                  {/* Thumbnail Row */}
+                  {hasAsset && fileUrl && (
+                    <div className="ml-[74px] flex items-center gap-3">
+                      <div className="w-14 h-14 rounded-lg border-2 overflow-hidden shrink-0 flex items-center justify-center"
+                        style={{ borderColor: `${primaryColor}30`, background: 'hsl(var(--muted) / 0.3)' }}
+                      >
+                        <img src={fileUrl} alt="" className="max-w-full max-h-full object-contain" />
+                      </div>
+                      <span className="text-[11px] truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>
+                        {firstAsset?.asset?.filename}
+                      </span>
                     </div>
                   )}
-                </>
-              ) : (
-                /* Upload Drop Zone for missing gyms */
-                <div className="flex-1 flex items-center justify-center rounded-2xl border-2 border-dashed min-h-[300px]"
-                  style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.4)', background: 'hsl(var(--muted) / 0.15)' }}
-                >
-                  <div className="text-center">
-                    <Upload className="w-12 h-12 mx-auto mb-3 opacity-30" style={{ color: 'hsl(var(--brand-text-primary))' }} />
-                    <p className="text-sm font-medium mb-1" style={{ color: 'hsl(var(--brand-text-primary))' }}>
-                      No {tag.name} asset for {selectedGym.code}
-                    </p>
-                    <p className="text-xs mb-4" style={{ color: 'hsl(var(--muted-foreground))' }}>
-                      Upload from this gym's profile page
-                    </p>
-                    <Button size="sm" variant="outline" onClick={() => navigate(`/gym/${selectedGym.code}`)}>
-                      <Upload className="w-3.5 h-3.5 mr-1" /> Go to Profile
-                    </Button>
-                  </div>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Right Panel - Asset Details */}
-        <div className="w-[280px] border-l overflow-y-auto shrink-0" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--muted) / 0.2)' }}>
-          <div className="px-3 py-2 border-b sticky top-0 z-10" style={{ background: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }}>
-            <p className="text-xs font-semibold" style={{ color: 'hsl(var(--brand-navy))' }}>Asset Details</p>
+              );
+            })}
           </div>
 
-          {selectedAssetForPreview ? (
-            <div className="p-4 space-y-4">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'hsl(var(--muted-foreground))' }}>Filename</p>
-                <p className="text-sm font-medium" style={{ color: 'hsl(var(--foreground))' }}>{selectedAssetForPreview.asset.filename}</p>
-              </div>
+          {/* Bottom Bulk Actions */}
+          <div className="shrink-0 border-t flex" style={{ borderColor: 'hsl(var(--border))' }}>
+            <button className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent"
+              style={{ color: 'hsl(var(--brand-navy))' }}
+              onClick={handleCopyAllUrls}
+            >
+              <Copy className="w-3.5 h-3.5" /> Copy All
+            </button>
+            <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
+            <button className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent"
+              style={{ color: 'hsl(var(--brand-navy))' }}
+              onClick={handleDownloadAll}
+              disabled={downloading}
+            >
+              <Download className="w-3.5 h-3.5" /> {downloading ? 'Zipping...' : 'Download All'}
+            </button>
+            <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
+            <button className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-red-50"
+              style={{ color: 'hsl(var(--destructive))' }}
+              disabled={!isAdmin}
+              onClick={async () => {
+                if (!categoryId) return;
+                // Delete all assignments for assets in this theme
+                const assetIds = Array.from(taggedAssetIds);
+                for (const aid of assetIds) {
+                  await supabase.from('gym_asset_assignments').delete().eq('asset_id', aid);
+                }
+                queryClient.invalidateQueries({ queryKey: ['all-assets-with-assignments'] });
+                toast({ description: "All gym assignments removed" });
+              }}
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete All Gyms
+            </button>
+          </div>
+        </div>
 
-              {(selectedAssetForPreview.asset as any).description && (
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'hsl(var(--muted-foreground))' }}>Description</p>
-                  <p className="text-xs" style={{ color: 'hsl(var(--foreground))' }}>{(selectedAssetForPreview.asset as any).description}</p>
-                </div>
-              )}
+        {/* CENTER — Details & Actions */}
+        <div className="w-[320px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="px-4 py-2.5 border-b shrink-0" style={{
+            background: 'hsl(var(--muted) / 0.5)',
+            borderColor: 'hsl(var(--border))',
+          }}>
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy))' }}>
+              ⚙️ Details & Actions
+            </span>
+          </div>
 
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'hsl(var(--muted-foreground))' }}>Gyms with this asset</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {Array.from(gymAssetMap.entries())
-                    .filter(([_, ga]) => ga.some(a => a.asset.id === selectedAssetForPreview.asset.id))
-                    .map(([gymId]) => {
-                      const g = gyms.find(gg => gg.id === gymId);
-                      return g ? (
-                        <span key={gymId} className="px-2 py-0.5 rounded-md text-[10px] font-bold text-white"
-                          style={{ backgroundColor: g.colors[0]?.color_hex || '#6B7280' }}
-                        >
-                          {g.code}
-                        </span>
-                      ) : null;
-                    })
-                  }
-                </div>
-              </div>
-
-              <Button size="sm" variant="outline" className="w-full text-xs"
-                onClick={() => handleOpenAsset(selectedAssetForPreview.asset.id)}
+          <div className="p-4 space-y-5">
+            {/* Description */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+                style={{ color: 'hsl(var(--brand-navy))' }}
               >
-                Open Full Asset Manager
-              </Button>
+                📝 Description
+              </label>
+              <Textarea
+                placeholder="Describe what this theme is used for..."
+                className="text-sm min-h-[80px] resize-none"
+                readOnly
+                style={{ background: 'hsl(var(--muted) / 0.3)' }}
+              />
             </div>
-          ) : (
-            <div className="p-6 text-center">
-              <p className="text-xs" style={{ color: 'hsl(var(--muted-foreground))' }}>
-                Select a gym with assets to see details
-              </p>
+
+            {/* Settings */}
+            <div className="space-y-3">
+              <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+                style={{ color: 'hsl(var(--brand-navy))' }}
+              >
+                ⚙️ Settings
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-semibold uppercase" style={{ color: 'hsl(var(--muted-foreground))' }}>Theme</span>
+                  <div className="px-3 py-2 rounded-lg border text-sm font-medium"
+                    style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--muted) / 0.3)', color: 'hsl(var(--foreground))' }}
+                  >
+                    {tag.name}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-semibold uppercase" style={{ color: 'hsl(var(--muted-foreground))' }}>Assets</span>
+                  <div className="px-3 py-2 rounded-lg border text-sm font-medium"
+                    style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--muted) / 0.3)', color: 'hsl(var(--foreground))' }}
+                  >
+                    {taggedAssetIds.size} total
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+
+            {/* Gym Coverage List */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+                  style={{ color: 'hsl(var(--brand-navy))' }}
+                >
+                  🏋️ Gym Coverage
+                </label>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: 'hsl(var(--brand-rose-gold) / 0.15)', color: 'hsl(var(--brand-navy))' }}
+                >
+                  {completedCount} / {totalCount}
+                </span>
+              </div>
+
+              {/* Coverage progress bar */}
+              <div className="h-2 rounded-full overflow-hidden" style={{ background: 'hsl(var(--muted))' }}>
+                <div className="h-full rounded-full transition-all duration-500" style={{
+                  width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
+                  background: completedCount === totalCount && totalCount > 0
+                    ? 'hsl(var(--brand-gold))'
+                    : 'linear-gradient(90deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))',
+                }} />
+              </div>
+
+              <div className="space-y-1 max-h-[280px] overflow-y-auto rounded-lg border p-1.5" style={{ borderColor: 'hsl(var(--border))' }}>
+                {gyms.map(gym => {
+                  const hasAsset = gymAssetMap.has(gym.id);
+                  const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
+                  return (
+                    <div key={gym.id} className={cn(
+                      "flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-colors",
+                      hasAsset ? "hover:bg-accent" : "opacity-50"
+                    )} style={hasAsset ? { background: `${primaryColor}08` } : {}}>
+                      <Checkbox checked={hasAsset} disabled className="shrink-0" />
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold text-white shrink-0"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        {gym.code}
+                      </span>
+                      <span className="text-xs truncate flex-1" style={{ color: 'hsl(var(--foreground))' }}>{gym.name}</span>
+                      {hasAsset ? (
+                        <Check className="w-3 h-3 shrink-0" style={{ color: 'hsl(142 76% 36%)' }} />
+                      ) : (
+                        <AlertTriangle className="w-3 h-3 shrink-0" style={{ color: 'hsl(32 95% 44%)' }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Synced status */}
+            <div className="flex items-center justify-center gap-2 py-2 rounded-lg"
+              style={{ background: completedCount === totalCount && totalCount > 0 ? 'hsl(142 76% 36% / 0.1)' : 'hsl(32 95% 44% / 0.1)' }}
+            >
+              {completedCount === totalCount && totalCount > 0 ? (
+                <span className="text-xs font-bold" style={{ color: 'hsl(142 76% 36%)' }}>
+                  ✅ {completedCount} synced
+                </span>
+              ) : (
+                <span className="text-xs font-bold" style={{ color: 'hsl(32 95% 44%)' }}>
+                  ⚠️ {totalCount - completedCount} missing
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — Communication */}
+        <div className="w-[320px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--muted) / 0.15)' }}>
+          <div className="px-4 py-2.5 border-b shrink-0" style={{
+            background: 'hsl(var(--muted) / 0.5)',
+            borderColor: 'hsl(var(--border))',
+          }}>
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy))' }}>
+              💬 Communication
+            </span>
+          </div>
+
+          {/* Comments list */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {comments.length === 0 && (
+              <div className="text-center py-12">
+                <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                <p className="text-xs" style={{ color: 'hsl(var(--muted-foreground))' }}>
+                  No activity yet. Add a comment to start the conversation.
+                </p>
+              </div>
+            )}
+            {comments.map(c => (
+              <div key={c.id} className="text-xs p-3 rounded-lg border" style={{
+                borderColor: 'hsl(var(--border))',
+                background: 'hsl(var(--background))',
+              }}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold" style={{ color: 'hsl(var(--brand-navy))' }}>
+                    {c.user_id.slice(0, 8)}...
+                  </span>
+                  <span style={{ color: 'hsl(var(--muted-foreground))' }}>
+                    {c.created_at ? new Date(c.created_at).toLocaleString() : ''}
+                  </span>
+                </div>
+                <p style={{ color: 'hsl(var(--foreground))' }}>{c.content}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Comment input */}
+          <div className="shrink-0 p-3 border-t flex gap-2" style={{ borderColor: 'hsl(var(--border))' }}>
+            <Input
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Add a comment... (type @ to tag a gym)"
+              className="text-xs h-9"
+              onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+            />
+            <Button size="sm" variant="outline" onClick={handleAddComment}
+              disabled={!commentText.trim()} className="h-9 px-3"
+            >
+              <Send className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
       </div>
-
-      {/* Asset Modal */}
-      <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />
     </div>
   );
 };
