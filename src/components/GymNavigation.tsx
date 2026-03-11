@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { DiamondSelector } from "./DiamondSelector";
 import { SecretAdminButton } from "./SecretAdminButton";
-import { LogOut } from "lucide-react";
+import { LogOut, Layers } from "lucide-react";
 import { GymWithColors } from "@/hooks/useGyms";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -102,6 +102,20 @@ export const GymNavigation = ({
 
           {/* Navigation Group */}
           <div className="flex items-center gap-3">
+            <Button
+              size="sm"
+              onClick={() => navigate('/themes')}
+              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
+              style={{
+                borderColor: 'hsl(var(--brand-blue-gray))',
+                color: 'hsl(var(--brand-navy))',
+                background: 'linear-gradient(135deg, #f8fafc, hsl(var(--brand-blue-gray) / 0.2))',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              }}
+            >
+              <Layers className="w-4 h-4 mr-1" />
+              Themes
+            </Button>
             {isAdmin && <SecretAdminButton onClick={onAdminClick} />}
             
             {user && (
