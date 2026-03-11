@@ -25,6 +25,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { HeroVideoBackground } from "@/components/HeroVideoBackground";
 import JSZip from "jszip";
 import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
+import AssetModal from "@/components/AssetModal";
+import { Pencil } from "lucide-react";
 
 const GymProfile = () => {
   const { gymCode } = useParams<{ gymCode: string }>();
