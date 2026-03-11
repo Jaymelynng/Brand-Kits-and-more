@@ -637,9 +637,9 @@ const GymProfile = () => {
     }
   }, [gym, toast]);
 
-  // Build asset-to-category map for filtering
+  // Build asset-to-category map for filtering (file_url -> category name)
   const assetCategoryMap = useMemo(() => {
-    const map = new Map<string, string>(); // file_url -> category name
+    const map = new Map<string, string>();
     gymAssets.forEach(asset => {
       if (asset.category) {
         map.set(asset.file_url, asset.category.name);
@@ -648,18 +648,18 @@ const GymProfile = () => {
     return map;
   }, [gymAssets]);
 
-  // Get categories that have logos in this gym
+  // Get categories that have logo-type assets in this gym (derived from gymAssets directly)
   const availableCategories = useMemo(() => {
-    if (!gym) return [];
     const catNames = new Set<string>();
-    gym.logos.forEach(logo => {
-      const cat = assetCategoryMap.get(logo.file_url);
-      if (cat) catNames.add(cat);
+    gymAssets.forEach(asset => {
+      if (asset.asset_type?.slug === 'logo' && asset.category) {
+        catNames.add(asset.category.name);
+      }
     });
     return categories
       .filter(c => catNames.has(c.name))
       .sort((a, b) => a.order_index - b.order_index);
-  }, [gym, assetCategoryMap, categories]);
+  }, [gymAssets, categories]);
 
   // Filter logos by active category
   const filteredLogos = useMemo(() => {
