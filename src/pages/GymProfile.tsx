@@ -77,6 +77,17 @@ const GymProfile = () => {
   const addColorMutation = useAddGymColor();
   const { removeBg, isProcessing: isRemovingBg, progress: bgRemovalProgress, statusMessage: bgRemovalStatus } = useBackgroundRemoval();
   const [removingBgLogoId, setRemovingBgLogoId] = useState<string | null>(null);
+  const [assetModalOpen, setAssetModalOpen] = useState(false);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+
+  // Find the gym_asset id for a gym_logo by matching file_url
+  const openAssetModal = (logoFileUrl: string) => {
+    const matchingAsset = gymAssets.find(a => a.file_url === logoFileUrl);
+    if (matchingAsset) {
+      setSelectedAssetId(matchingAsset.id);
+      setAssetModalOpen(true);
+    }
+  };
 
   // Scroll to top on page load and back to top functionality
   useEffect(() => {
