@@ -23,6 +23,8 @@ export interface GymAsset {
   asset_type_id: string;
   category_id: string | null;
   is_global: boolean;
+  description: string | null;
+  is_all_gyms: boolean;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -32,6 +34,7 @@ export interface GymAssetAssignment {
   asset_id: string;
   gym_id: string;
   is_main: boolean;
+  file_url: string | null;
   created_at: string | null;
 }
 
@@ -102,12 +105,12 @@ export const useGymAssets = (gymId: string | undefined) => {
           .select('*')
           .in('id', assignedAssetIds);
         if (error) throw error;
-        assignedAssets = data;
+        assignedAssets = data as GymAsset[];
       }
 
       // Merge: assigned assets + global assets not already assigned
       const allAssetIds = new Set(assignedAssets.map(a => a.id));
-      const extraGlobals = globalAssets.filter(g => !allAssetIds.has(g.id));
+      const extraGlobals = (globalAssets as GymAsset[]).filter(g => !allAssetIds.has(g.id));
       const allAssets = [...assignedAssets, ...extraGlobals];
 
       // Fetch types and categories
@@ -131,6 +134,33 @@ export const useGymAssets = (gymId: string | undefined) => {
         category: asset.category_id ? catMap.get(asset.category_id) : undefined,
         assignment: assignMap.get(asset.id),
       }));
+    },
+  });
+};
+
+// Fetch all assets with all assignments (for theme views)
+export const useAllAssetsWithAssignments = () => {
+  return useQuery({
+    queryKey: ['all-assets-with-assignments'],
+    queryFn: async () => {
+      const [assetsRes, assignmentsRes, typesRes, catsRes] = await Promise.all([
+        supabase.from('gym_assets').select('*'),
+        supabase.from('gym_asset_assignments').select('*'),
+        supabase.from('asset_types').select('*'),
+        supabase.from('asset_categories').select('*'),
+      ]);
+      
+      if (assetsRes.error) throw assetsRes.error;
+      if (assignmentsRes.error) throw assignmentsRes.error;
+      if (typesRes.error) throw typesRes.error;
+      if (catsRes.error) throw catsRes.error;
+
+      return {
+        assets: assetsRes.data as GymAsset[],
+        assignments: assignmentsRes.data as GymAssetAssignment[],
+        types: typesRes.data as AssetType[],
+        categories: catsRes.data as AssetCategory[],
+      };
     },
   });
 };
