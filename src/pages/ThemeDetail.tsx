@@ -604,12 +604,12 @@ const ThemeDetail = () => {
         </div>
 
         {/* RIGHT — Communication */}
-        <div className="w-[320px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--muted) / 0.15)' }}>
-          <div className="px-4 py-2.5 border-b shrink-0" style={{
+        <div className="w-[360px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--muted) / 0.15)' }}>
+          <div className="px-4 py-3 border-b shrink-0" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
               💬 Communication
             </span>
           </div>
