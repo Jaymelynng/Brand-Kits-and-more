@@ -647,7 +647,7 @@ const ThemeDetail = () => {
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
-            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
               💬 Communication
             </span>
           </div>
