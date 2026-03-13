@@ -287,6 +287,8 @@ const ThemeDetail = () => {
       {/* Header Bar */}
       <div className="shrink-0 rounded-xl border overflow-hidden" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.85))',
+        borderColor: 'hsl(var(--brand-navy) / 0.5)',
+        boxShadow: '0 14px 32px -14px hsl(var(--brand-navy) / 0.65)',
       }}>
         <div className="px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
