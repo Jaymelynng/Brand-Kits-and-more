@@ -412,15 +412,14 @@ const ThemeDetail = () => {
                     </Button>
                   </div>
 
-                  {/* Thumbnail Row */}
                   {hasAsset && fileUrl && (
-                    <div className="ml-[74px] flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-lg border-2 overflow-hidden shrink-0 flex items-center justify-center"
+                    <div className="ml-[80px] flex items-center gap-3">
+                      <div className="w-16 h-16 rounded-lg border-2 overflow-hidden shrink-0 flex items-center justify-center"
                         style={{ borderColor: `${primaryColor}30`, background: 'hsl(var(--muted) / 0.3)' }}
                       >
-                        <img src={fileUrl} alt="" className="max-w-full max-h-full object-contain" />
+                        <img src={fileUrl} alt={`${gym.name} asset preview`} className="max-w-full max-h-full object-contain" loading="lazy" />
                       </div>
-                      <span className="text-[11px] truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>
+                      <span className="text-xs truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>
                         {firstAsset?.asset?.filename}
                       </span>
                     </div>
