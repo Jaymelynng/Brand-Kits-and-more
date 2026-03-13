@@ -480,12 +480,12 @@ const ThemeDetail = () => {
         </div>
 
         {/* CENTER — Details & Actions */}
-        <div className="w-[320px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))' }}>
-          <div className="px-4 py-2.5 border-b shrink-0" style={{
+        <div className="w-[360px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="px-4 py-3 border-b shrink-0" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
               ⚙️ Details & Actions
             </span>
           </div>
