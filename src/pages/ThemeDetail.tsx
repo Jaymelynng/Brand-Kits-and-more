@@ -68,10 +68,10 @@ const ThemeDetail = () => {
   const selectedGymIds = useMemo(() => {
     return new Set(
       gyms
-        .filter(g => gymAssetMap.has(g.id) && !excludedGymIds.has(g.id))
+        .filter(g => !excludedGymIds.has(g.id))
         .map(g => g.id)
     );
-  }, [gyms, gymAssetMap, excludedGymIds]);
+  }, [gyms, excludedGymIds]);
 
   // Selected URLs for bulk actions
   const allUrls = useMemo(() => {
