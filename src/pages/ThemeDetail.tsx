@@ -277,36 +277,36 @@ const ThemeDetail = () => {
       <div className="shrink-0 shadow-md" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.85))',
       }}>
-        <div className="px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
             <Button variant="ghost" size="sm" onClick={() => navigate('/themes')}
-              className="text-white/80 hover:text-white hover:bg-white/10"
+              className="text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10"
             >
               <ArrowLeft className="w-4 h-4 mr-1" /> Themes
             </Button>
-            <div className="h-5 w-px bg-white/20" />
-            <span className="px-3 py-1 rounded-lg text-sm font-bold text-white"
+            <div className="h-5 w-px bg-primary-foreground/30" />
+            <span className="px-3 py-1.5 rounded-lg text-sm font-semibold text-primary-foreground"
               style={{ background: 'hsl(var(--brand-rose-gold))' }}
             >
               {tag.name}
             </span>
-            <span className="text-white/60 text-xs font-medium">
+            <span className="text-sm font-medium text-primary-foreground/80 truncate">
               {completedCount}/{totalCount} gyms complete
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button size="sm" variant="outline"
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs"
-              onClick={handleCopyAllUrls} disabled={allUrls.length === 0}
+              className="bg-primary-foreground/10 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 text-sm"
+              onClick={handleCopyAllUrls} disabled={allUrls.length === 0 || bulkActionLoading === "copy"}
             >
-              <Copy className="w-3.5 h-3.5 mr-1" /> Copy All
+              <Copy className="w-4 h-4 mr-1" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy All"}
             </Button>
             <Button size="sm" onClick={handleDownloadAll}
               disabled={allUrls.length === 0 || downloading}
-              className="text-xs text-white"
+              className="text-sm text-primary-foreground"
               style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}
             >
-              <Download className="w-3.5 h-3.5 mr-1" /> {downloading ? 'Zipping...' : 'Download All'}
+              <Download className="w-4 h-4 mr-1" /> {downloading ? 'Zipping...' : 'Download All'}
             </Button>
           </div>
         </div>
