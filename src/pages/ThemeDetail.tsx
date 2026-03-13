@@ -360,12 +360,18 @@ const ThemeDetail = () => {
                   {/* Top row: checkbox, badge, URL input, status, actions */}
                   <div className="flex items-center gap-3">
                     <Checkbox
-                      checked={hasAsset}
-                      disabled={!isAdmin || !hasAsset || rowMutationGymId === gym.id}
+                      checked={hasAsset && !excludedGymIds.has(gym.id)}
+                      disabled={!hasAsset}
                       onCheckedChange={(checked) => {
-                        if (checked === false && hasAsset) {
-                          void handleRemoveGymFromTheme(gym.id);
-                        }
+                        setExcludedGymIds(prev => {
+                          const next = new Set(prev);
+                          if (checked === false) {
+                            next.add(gym.id);
+                          } else {
+                            next.delete(gym.id);
+                          }
+                          return next;
+                        });
                       }}
                       className="shrink-0"
                     />
