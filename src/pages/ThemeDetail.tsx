@@ -304,8 +304,8 @@ const ThemeDetail = () => {
             >
               {tag.name}
             </span>
-            <span className="text-sm font-medium text-primary-foreground/80 truncate">
-              {completedCount}/{totalCount} gyms complete
+            <span className="text-sm font-medium text-primary-foreground/90 truncate">
+              {completedCount}/{totalCount} gyms complete • {selectedCount} selected for bulk
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
