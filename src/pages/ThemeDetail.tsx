@@ -550,20 +550,21 @@ const ThemeDetail = () => {
 
         {/* CENTER — Details & Actions */}
         <div
-          className="w-[390px] shrink-0 overflow-y-auto rounded-xl border-2 shadow-elegant"
+          className="w-[390px] shrink-0 overflow-y-auto rounded-xl border-2"
           style={{
-            borderColor: "hsl(var(--brand-navy) / 0.35)",
-            background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.2))",
+            borderColor: 'hsl(var(--brand-navy) / 0.45)',
+            background: 'linear-gradient(180deg, hsl(var(--card)), hsl(var(--brand-rose-gold) / 0.2))',
+            boxShadow: '0 16px 32px -24px hsl(var(--brand-navy) / 0.65)',
           }}
         >
           <div
             className="px-4 py-3 border-b shrink-0"
             style={{
-              background: "linear-gradient(135deg, hsl(var(--brand-blue-gray) / 0.22), hsl(var(--brand-navy) / 0.12))",
-              borderColor: "hsl(var(--brand-navy) / 0.25)",
+              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-navy) / 0.82))',
+              borderColor: 'hsl(var(--brand-navy) / 0.55)',
             }}
           >
-            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide text-primary-foreground">
               ⚙️ Details & Actions
             </span>
           </div>
