@@ -317,15 +317,15 @@ const ThemeDetail = () => {
 
         {/* LEFT — Gym Asset Rows (Variable Info style) */}
         <div className="flex-1 flex flex-col border-r overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-          <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between" style={{
+          <div className="px-4 py-3 border-b shrink-0 flex items-center justify-between" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy))' }}>
+              <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
                 📋 Asset Info
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
                 style={{ background: 'hsl(var(--brand-rose-gold) / 0.15)', color: 'hsl(var(--brand-navy))' }}
               >
                 {completedCount}/{totalCount}
@@ -343,7 +343,7 @@ const ThemeDetail = () => {
 
               return (
                 <div key={gym.id} className={cn(
-                  "px-4 py-3 border-b flex flex-col gap-2 transition-all",
+                  "px-4 py-4 border-b flex flex-col gap-2 transition-all",
                   !hasAsset && "opacity-60"
                 )} style={{ borderColor: 'hsl(var(--border) / 0.5)' }}>
                   {/* Top row: checkbox, badge, URL input, status, actions */}
