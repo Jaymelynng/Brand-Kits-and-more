@@ -672,11 +672,20 @@ const ThemeDetail = () => {
         </div>
 
         {/* RIGHT — Communication */}
-        <div className="w-[380px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--card))', boxShadow: 'inset 0 1px 0 hsl(var(--background))' }}>
-          <div className="px-4 py-3 border-b shrink-0" style={{
-            background: 'hsl(var(--muted) / 0.5)',
-            borderColor: 'hsl(var(--border))',
-          }}>
+        <div
+          className="w-[390px] shrink-0 flex flex-col overflow-hidden rounded-xl border-2 shadow-elegant"
+          style={{
+            borderColor: "hsl(var(--brand-navy) / 0.35)",
+            background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.16))",
+          }}
+        >
+          <div
+            className="px-4 py-3 border-b shrink-0"
+            style={{
+              background: "linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.22), hsl(var(--brand-blue-gray) / 0.18))",
+              borderColor: "hsl(var(--brand-navy) / 0.25)",
+            }}
+          >
             <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
               💬 Communication
             </span>
