@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGyms, GymWithColors } from "@/hooks/useGyms";
+import { useGyms } from "@/hooks/useGyms";
 import { useThemeTags, useAllAssetThemeTags } from "@/hooks/useThemeTags";
 import { useAllAssetsWithAssignments, GymAsset, GymAssetAssignment } from "@/hooks/useAssets";
 import { useAssetComments, useAddAssetComment } from "@/hooks/useAssetComments";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Download, Copy, Trash2, Check, AlertTriangle, Send, MessageSquare, Upload } from "lucide-react";
+import { ArrowLeft, Download, Copy, Trash2, Check, AlertTriangle, Send, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +28,9 @@ const ThemeDetail = () => {
   const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
   const [downloading, setDownloading] = useState(false);
+  const [bulkActionLoading, setBulkActionLoading] = useState<"copy" | "download" | null>(null);
+  const [rowMutationGymId, setRowMutationGymId] = useState<string | null>(null);
+  const [deleteAllLoading, setDeleteAllLoading] = useState(false);
 
   const { data: themeTags = [] } = useThemeTags();
   const { data: allAssetThemeTags = [] } = useAllAssetThemeTags();
