@@ -279,7 +279,7 @@ const ThemeDetail = () => {
   }
 
   const completedCount = gymsWithAssets.length;
-  const selectedCount = selectedGymIds.size;
+  const selectedCount = gyms.filter(g => !excludedGymIds.has(g.id)).length;
   const totalCount = gyms.length;
 
   return (
