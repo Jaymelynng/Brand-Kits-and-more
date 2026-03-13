@@ -504,7 +504,7 @@ const ThemeDetail = () => {
         </div>
 
         {/* CENTER — Details & Actions */}
-        <div className="w-[360px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))' }}>
+        <div className="w-[380px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))', boxShadow: 'inset 0 1px 0 hsl(var(--background))' }}>
           <div className="px-4 py-3 border-b shrink-0" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
