@@ -335,7 +335,7 @@ const ThemeDetail = () => {
             borderColor: 'hsl(var(--border))',
           }}>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
+              <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
                 📋 Asset Info
               </span>
               <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
