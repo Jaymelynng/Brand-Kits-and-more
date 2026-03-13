@@ -344,9 +344,9 @@ const ThemeDetail = () => {
                 📋 Asset Info
               </span>
               <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                style={{ background: 'hsl(var(--brand-rose-gold) / 0.15)', color: 'hsl(var(--brand-navy))' }}
+                style={{ background: 'hsl(var(--brand-rose-gold) / 0.18)', color: 'hsl(var(--brand-navy))', boxShadow: 'inset 0 1px 0 hsl(var(--background))' }}
               >
-                {completedCount}/{totalCount}
+                {selectedCount} selected
               </span>
             </div>
           </div>
