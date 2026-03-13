@@ -68,10 +68,10 @@ const ThemeDetail = () => {
   const selectedGymIds = useMemo(() => {
     return new Set(
       gyms
-        .filter(g => gymAssetMap.has(g.id) && !excludedGymIds.has(g.id))
+        .filter(g => !excludedGymIds.has(g.id))
         .map(g => g.id)
     );
-  }, [gyms, gymAssetMap, excludedGymIds]);
+  }, [gyms, excludedGymIds]);
 
   // Selected URLs for bulk actions
   const allUrls = useMemo(() => {
@@ -279,7 +279,7 @@ const ThemeDetail = () => {
   }
 
   const completedCount = gymsWithAssets.length;
-  const selectedCount = selectedGymIds.size;
+  const selectedCount = gyms.filter(g => !excludedGymIds.has(g.id)).length;
   const totalCount = gyms.length;
 
   return (
@@ -356,7 +356,7 @@ const ThemeDetail = () => {
             {gyms.map(gym => {
               const gymAssets = gymAssetMap.get(gym.id) || [];
               const hasAsset = gymAssets.length > 0;
-              const isSelectedForBulk = hasAsset && !excludedGymIds.has(gym.id);
+              const isSelectedForBulk = !excludedGymIds.has(gym.id);
               const primaryColor = gym.colors[0]?.color_hex || 'hsl(var(--muted-foreground))';
               const firstAsset = gymAssets[0];
               const fileUrl = firstAsset?.assignment?.file_url || firstAsset?.asset?.file_url || '';
@@ -382,7 +382,6 @@ const ThemeDetail = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (!hasAsset) return;
                         setExcludedGymIds(prev => {
                           const next = new Set(prev);
                           if (isSelectedForBulk) {
@@ -396,8 +395,7 @@ const ThemeDetail = () => {
                       aria-pressed={isSelectedForBulk}
                       aria-label={`${isSelectedForBulk ? "Exclude" : "Include"} ${gym.code} in bulk actions`}
                       className={cn(
-                        "shrink-0 h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all",
-                        hasAsset ? "cursor-pointer" : "cursor-default opacity-60",
+                        "shrink-0 h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer",
                         isSelectedForBulk
                           ? "bg-primary border-primary text-primary-foreground shadow-sm"
                           : "bg-background border-border text-transparent"
