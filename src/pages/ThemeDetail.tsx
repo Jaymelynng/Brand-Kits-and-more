@@ -66,17 +66,27 @@ const ThemeDetail = () => {
 
   const gymsWithAssets = gyms.filter(g => gymAssetMap.has(g.id));
 
-  // All URLs for bulk actions
+  const selectedGymIds = useMemo(() => {
+    return new Set(
+      gyms
+        .filter(g => gymAssetMap.has(g.id) && !excludedGymIds.has(g.id))
+        .map(g => g.id)
+    );
+  }, [gyms, gymAssetMap, excludedGymIds]);
+
+  // Selected URLs for bulk actions
   const allUrls = useMemo(() => {
     const urls: string[] = [];
-    gymAssetMap.forEach(gAssets => {
+    gymAssetMap.forEach((gAssets, gymId) => {
+      if (!selectedGymIds.has(gymId)) return;
+
       gAssets.forEach(a => {
         const url = a.assignment.file_url || a.asset.file_url;
         if (url) urls.push(url);
       });
     });
     return urls;
-  }, [gymAssetMap]);
+  }, [gymAssetMap, selectedGymIds]);
 
   const copyTextToClipboard = async (text: string) => {
     try {
