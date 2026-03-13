@@ -532,7 +532,7 @@ const ThemeDetail = () => {
                     </Button>
                   </div>
 
-                  {hasAsset && fileUrl && (
+                  {fileUrl && (
                     <div className="ml-[80px] flex items-center gap-3">
                       <div className="w-16 h-16 rounded-lg border-2 overflow-hidden shrink-0 flex items-center justify-center"
                         style={{ borderColor: `${primaryColor}30`, background: 'hsl(var(--muted) / 0.3)' }}
@@ -540,7 +540,7 @@ const ThemeDetail = () => {
                         <img src={fileUrl} alt={`${gym.name} asset preview`} className="max-w-full max-h-full object-contain" loading="lazy" />
                       </div>
                       <span className="text-xs truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>
-                        {firstAsset?.asset?.filename}
+                        {fileName || (isFallback ? 'Main logo fallback' : 'No filename')}
                       </span>
                     </div>
                   )}
