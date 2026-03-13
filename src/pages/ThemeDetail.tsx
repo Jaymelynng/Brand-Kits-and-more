@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGyms, GymWithColors } from "@/hooks/useGyms";
+import { useGyms } from "@/hooks/useGyms";
 import { useThemeTags, useAllAssetThemeTags } from "@/hooks/useThemeTags";
 import { useAllAssetsWithAssignments, GymAsset, GymAssetAssignment } from "@/hooks/useAssets";
 import { useAssetComments, useAddAssetComment } from "@/hooks/useAssetComments";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Download, Copy, Trash2, Check, AlertTriangle, Send, MessageSquare, Upload } from "lucide-react";
+import { ArrowLeft, Download, Copy, Trash2, Check, AlertTriangle, Send, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +28,9 @@ const ThemeDetail = () => {
   const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
   const [downloading, setDownloading] = useState(false);
+  const [bulkActionLoading, setBulkActionLoading] = useState<"copy" | "download" | null>(null);
+  const [rowMutationGymId, setRowMutationGymId] = useState<string | null>(null);
+  const [deleteAllLoading, setDeleteAllLoading] = useState(false);
 
   const { data: themeTags = [] } = useThemeTags();
   const { data: allAssetThemeTags = [] } = useAllAssetThemeTags();
@@ -74,44 +77,154 @@ const ThemeDetail = () => {
     return urls;
   }, [gymAssetMap]);
 
-  const handleCopyAllUrls = () => {
-    navigator.clipboard.writeText(allUrls.join('\n'));
-    toast({ description: `${allUrls.length} URL(s) copied!`, duration: 2000 });
+  const copyTextToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return copied;
+    }
+  };
+
+  const parseStoragePathFromUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      const marker = "/storage/v1/object/public/";
+      const markerIndex = parsed.pathname.indexOf(marker);
+      if (markerIndex === -1) return null;
+
+      const storagePath = parsed.pathname.slice(markerIndex + marker.length);
+      const [bucket, ...rest] = storagePath.split("/");
+      if (!bucket || rest.length === 0) return null;
+
+      return { bucket, filePath: rest.join("/") };
+    } catch {
+      return null;
+    }
+  };
+
+  const getFileExtension = (url: string, fallbackName: string) => {
+    const fromUrl = url.split(".").pop()?.split("?")[0]?.trim();
+    if (fromUrl && fromUrl.length <= 5) return fromUrl;
+
+    const fromName = fallbackName.split(".").pop()?.trim();
+    return fromName || "png";
+  };
+
+  const getAssetBlob = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Network fetch failed");
+      return await response.blob();
+    } catch {
+      const parsed = parseStoragePathFromUrl(url);
+      if (!parsed) throw new Error("Unable to parse storage path");
+
+      const { data, error } = await supabase.storage.from(parsed.bucket).download(parsed.filePath);
+      if (error || !data) throw error || new Error("Storage download failed");
+      return data;
+    }
+  };
+
+  const refreshAssetAssignments = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["all-assets-with-assignments"] });
+  };
+
+  const handleCopyAllUrls = async () => {
+    if (allUrls.length === 0) return;
+
+    setBulkActionLoading("copy");
+    const copied = await copyTextToClipboard(allUrls.join("\n"));
+    setBulkActionLoading(null);
+
+    toast({
+      description: copied ? `${allUrls.length} URL(s) copied!` : "Copy failed",
+      variant: copied ? "default" : "destructive",
+      duration: 2000,
+    });
   };
 
   const handleDownloadAll = async () => {
     if (allUrls.length === 0) return;
     setDownloading(true);
+    setBulkActionLoading("download");
+
     try {
       const zip = new JSZip();
-      const folder = zip.folder(tag?.name || 'theme');
+      const folder = zip.folder(tag?.name || "theme");
       const promises: Promise<void>[] = [];
+
       gymAssetMap.forEach((gymAssets, gymId) => {
         const gym = gyms.find(g => g.id === gymId);
-        gymAssets.forEach(ga => {
+
+        gymAssets.forEach((ga, index) => {
           const url = ga.assignment.file_url || ga.asset.file_url;
           if (!url) return;
+
           promises.push(
-            fetch(url).then(r => r.blob()).then(blob => {
-              const ext = url.split('.').pop()?.split('?')[0] || 'png';
-              folder!.file(`${gym?.code || 'unknown'}_${ga.asset.filename}.${ext}`, blob);
-            }).catch(() => {})
+            getAssetBlob(url)
+              .then(blob => {
+                const ext = getFileExtension(url, ga.asset.filename);
+                const safeName = `${gym?.code || "unknown"}_${ga.asset.filename}`.replace(/[^a-zA-Z0-9._-]/g, "_");
+                folder!.file(`${safeName}_${index + 1}.${ext}`, blob);
+              })
+              .catch(() => {
+                // Continue zipping other assets even if one fails
+              })
           );
         });
       });
+
       await Promise.all(promises);
-      const blob = await zip.generateAsync({ type: 'blob' });
+      const blob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `${tag?.name || 'theme'}_assets.zip`;
+      a.download = `${tag?.name || "theme"}_assets.zip`;
       a.click();
       URL.revokeObjectURL(url);
-      toast({ description: 'ZIP downloaded!' });
+      toast({ description: "ZIP downloaded!" });
     } catch {
-      toast({ description: 'Download failed', variant: 'destructive' });
+      toast({ description: "Download failed", variant: "destructive" });
     } finally {
       setDownloading(false);
+      setBulkActionLoading(null);
+    }
+  };
+
+  const handleRemoveGymFromTheme = async (gymId: string) => {
+    if (!isAdmin || !categoryId) return;
+
+    const assetIds = Array.from(taggedAssetIds);
+    if (assetIds.length === 0) return;
+
+    setRowMutationGymId(gymId);
+
+    try {
+      const { error } = await supabase
+        .from("gym_asset_assignments")
+        .delete()
+        .eq("gym_id", gymId)
+        .in("asset_id", assetIds);
+
+      if (error) throw error;
+
+      await refreshAssetAssignments();
+      const gym = gyms.find(g => g.id === gymId);
+      toast({ description: `Removed ${gym?.code || "gym"} assignment(s)` });
+    } catch {
+      toast({ description: "Failed to remove gym assignments", variant: "destructive" });
+    } finally {
+      setRowMutationGymId(null);
     }
   };
 
@@ -164,36 +277,36 @@ const ThemeDetail = () => {
       <div className="shrink-0 shadow-md" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.85))',
       }}>
-        <div className="px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
             <Button variant="ghost" size="sm" onClick={() => navigate('/themes')}
-              className="text-white/80 hover:text-white hover:bg-white/10"
+              className="text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10"
             >
               <ArrowLeft className="w-4 h-4 mr-1" /> Themes
             </Button>
-            <div className="h-5 w-px bg-white/20" />
-            <span className="px-3 py-1 rounded-lg text-sm font-bold text-white"
+            <div className="h-5 w-px bg-primary-foreground/30" />
+            <span className="px-3 py-1.5 rounded-lg text-sm font-semibold text-primary-foreground"
               style={{ background: 'hsl(var(--brand-rose-gold))' }}
             >
               {tag.name}
             </span>
-            <span className="text-white/60 text-xs font-medium">
+            <span className="text-sm font-medium text-primary-foreground/80 truncate">
               {completedCount}/{totalCount} gyms complete
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button size="sm" variant="outline"
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs"
-              onClick={handleCopyAllUrls} disabled={allUrls.length === 0}
+              className="bg-primary-foreground/10 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 text-sm"
+              onClick={handleCopyAllUrls} disabled={allUrls.length === 0 || bulkActionLoading === "copy"}
             >
-              <Copy className="w-3.5 h-3.5 mr-1" /> Copy All
+              <Copy className="w-4 h-4 mr-1" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy All"}
             </Button>
             <Button size="sm" onClick={handleDownloadAll}
               disabled={allUrls.length === 0 || downloading}
-              className="text-xs text-white"
+              className="text-sm text-primary-foreground"
               style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}
             >
-              <Download className="w-3.5 h-3.5 mr-1" /> {downloading ? 'Zipping...' : 'Download All'}
+              <Download className="w-4 h-4 mr-1" /> {downloading ? 'Zipping...' : 'Download All'}
             </Button>
           </div>
         </div>
@@ -204,15 +317,15 @@ const ThemeDetail = () => {
 
         {/* LEFT — Gym Asset Rows (Variable Info style) */}
         <div className="flex-1 flex flex-col border-r overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
-          <div className="px-4 py-2.5 border-b shrink-0 flex items-center justify-between" style={{
+          <div className="px-4 py-3 border-b shrink-0 flex items-center justify-between" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy))' }}>
+              <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
                 📋 Asset Info
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
                 style={{ background: 'hsl(var(--brand-rose-gold) / 0.15)', color: 'hsl(var(--brand-navy))' }}
               >
                 {completedCount}/{totalCount}
@@ -230,15 +343,24 @@ const ThemeDetail = () => {
 
               return (
                 <div key={gym.id} className={cn(
-                  "px-4 py-3 border-b flex flex-col gap-2 transition-all",
+                  "px-4 py-4 border-b flex flex-col gap-2 transition-all",
                   !hasAsset && "opacity-60"
                 )} style={{ borderColor: 'hsl(var(--border) / 0.5)' }}>
                   {/* Top row: checkbox, badge, URL input, status, actions */}
                   <div className="flex items-center gap-3">
-                    <Checkbox checked={hasAsset} disabled className="shrink-0" />
+                    <Checkbox
+                      checked={hasAsset}
+                      disabled={!isAdmin || !hasAsset || rowMutationGymId === gym.id}
+                      onCheckedChange={(checked) => {
+                        if (checked === false && hasAsset) {
+                          void handleRemoveGymFromTheme(gym.id);
+                        }
+                      }}
+                      className="shrink-0"
+                    />
 
                     {/* Gym Badge */}
-                    <span className="px-2.5 py-1 rounded-md text-xs font-bold text-white shrink-0 min-w-[42px] text-center"
+                    <span className="px-2.5 py-1 rounded-md text-sm font-semibold text-primary-foreground shrink-0 min-w-[50px] text-center"
                       style={{ backgroundColor: primaryColor }}
                     >
                       {gym.code}
@@ -249,62 +371,55 @@ const ThemeDetail = () => {
                       value={fileUrl}
                       readOnly
                       placeholder="No asset URL..."
-                      className="flex-1 text-xs h-8 font-mono"
+                      className="flex-1 text-sm h-9 font-mono"
                       style={{ background: hasAsset ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.3)' }}
                     />
 
                     {/* Status Badge */}
                     <span className={cn(
-                      "px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 flex items-center gap-1",
+                      "px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 flex items-center gap-1",
                     )} style={{
                       background: hasAsset ? 'hsl(142 76% 36% / 0.12)' : 'hsl(32 95% 44% / 0.12)',
                       color: hasAsset ? 'hsl(142 76% 36%)' : 'hsl(32 95% 44%)',
                     }}>
                       {hasAsset ? (
-                        <><Check className="w-3 h-3" />COMPLETE</>
+                        <><Check className="w-3.5 h-3.5" />COMPLETE</>
                       ) : (
-                        <><AlertTriangle className="w-3 h-3" />MISSING</>
+                        <><AlertTriangle className="w-3.5 h-3.5" />MISSING</>
                       )}
                     </span>
 
                     {/* Copy URL */}
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"
                       disabled={!fileUrl}
-                      onClick={() => {
-                        navigator.clipboard.writeText(fileUrl);
-                        toast({ description: "URL copied!" });
+                      onClick={async () => {
+                        const copied = await copyTextToClipboard(fileUrl);
+                        toast({
+                          description: copied ? "URL copied!" : "Copy failed",
+                          variant: copied ? "default" : "destructive",
+                        });
                       }}
                     >
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-4 h-4" />
                     </Button>
 
                     {/* Delete */}
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-destructive"
-                      disabled={!isAdmin || !hasAsset}
-                      onClick={async () => {
-                        if (!firstAsset) return;
-                        await supabase
-                          .from('gym_asset_assignments')
-                          .delete()
-                          .eq('asset_id', firstAsset.asset.id)
-                          .eq('gym_id', gym.id);
-                        queryClient.invalidateQueries({ queryKey: ['all-assets-with-assignments'] });
-                        toast({ description: `Removed ${gym.code} assignment` });
-                      }}
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-destructive"
+                      disabled={!isAdmin || !hasAsset || rowMutationGymId === gym.id}
+                      onClick={() => void handleRemoveGymFromTheme(gym.id)}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
 
-                  {/* Thumbnail Row */}
                   {hasAsset && fileUrl && (
-                    <div className="ml-[74px] flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-lg border-2 overflow-hidden shrink-0 flex items-center justify-center"
+                    <div className="ml-[80px] flex items-center gap-3">
+                      <div className="w-16 h-16 rounded-lg border-2 overflow-hidden shrink-0 flex items-center justify-center"
                         style={{ borderColor: `${primaryColor}30`, background: 'hsl(var(--muted) / 0.3)' }}
                       >
-                        <img src={fileUrl} alt="" className="max-w-full max-h-full object-contain" />
+                        <img src={fileUrl} alt={`${gym.name} asset preview`} className="max-w-full max-h-full object-contain" loading="lazy" />
                       </div>
-                      <span className="text-[11px] truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>
+                      <span className="text-xs truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>
                         {firstAsset?.asset?.filename}
                       </span>
                     </div>
@@ -316,47 +431,61 @@ const ThemeDetail = () => {
 
           {/* Bottom Bulk Actions */}
           <div className="shrink-0 border-t flex" style={{ borderColor: 'hsl(var(--border))' }}>
-            <button className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent"
+            <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent disabled:opacity-50"
               style={{ color: 'hsl(var(--brand-navy))' }}
-              onClick={handleCopyAllUrls}
+              onClick={() => void handleCopyAllUrls()}
+              disabled={allUrls.length === 0 || bulkActionLoading === "copy"}
             >
-              <Copy className="w-3.5 h-3.5" /> Copy All
+              <Copy className="w-4 h-4" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy All"}
             </button>
             <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
-            <button className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent"
+            <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent disabled:opacity-50"
               style={{ color: 'hsl(var(--brand-navy))' }}
-              onClick={handleDownloadAll}
-              disabled={downloading}
+              onClick={() => void handleDownloadAll()}
+              disabled={allUrls.length === 0 || downloading}
             >
-              <Download className="w-3.5 h-3.5" /> {downloading ? 'Zipping...' : 'Download All'}
+              <Download className="w-4 h-4" /> {downloading ? 'Zipping...' : 'Download All'}
             </button>
             <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
-            <button className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-red-50"
+            <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-destructive/10 disabled:opacity-50"
               style={{ color: 'hsl(var(--destructive))' }}
-              disabled={!isAdmin}
+              disabled={!isAdmin || deleteAllLoading}
               onClick={async () => {
                 if (!categoryId) return;
-                // Delete all assignments for assets in this theme
                 const assetIds = Array.from(taggedAssetIds);
-                for (const aid of assetIds) {
-                  await supabase.from('gym_asset_assignments').delete().eq('asset_id', aid);
+                if (assetIds.length === 0) return;
+
+                setDeleteAllLoading(true);
+
+                try {
+                  const { error } = await supabase
+                    .from("gym_asset_assignments")
+                    .delete()
+                    .in("asset_id", assetIds);
+
+                  if (error) throw error;
+
+                  await refreshAssetAssignments();
+                  toast({ description: "All gym assignments removed" });
+                } catch {
+                  toast({ description: "Failed to remove all gym assignments", variant: "destructive" });
+                } finally {
+                  setDeleteAllLoading(false);
                 }
-                queryClient.invalidateQueries({ queryKey: ['all-assets-with-assignments'] });
-                toast({ description: "All gym assignments removed" });
               }}
             >
-              <Trash2 className="w-3.5 h-3.5" /> Delete All Gyms
+              <Trash2 className="w-4 h-4" /> {deleteAllLoading ? "Deleting..." : "Delete All Gyms"}
             </button>
           </div>
         </div>
 
         {/* CENTER — Details & Actions */}
-        <div className="w-[320px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))' }}>
-          <div className="px-4 py-2.5 border-b shrink-0" style={{
+        <div className="w-[360px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="px-4 py-3 border-b shrink-0" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
               ⚙️ Details & Actions
             </span>
           </div>
@@ -475,12 +604,12 @@ const ThemeDetail = () => {
         </div>
 
         {/* RIGHT — Communication */}
-        <div className="w-[320px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--muted) / 0.15)' }}>
-          <div className="px-4 py-2.5 border-b shrink-0" style={{
+        <div className="w-[360px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--muted) / 0.15)' }}>
+          <div className="px-4 py-3 border-b shrink-0" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
               💬 Communication
             </span>
           </div>
@@ -519,11 +648,11 @@ const ThemeDetail = () => {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Add a comment... (type @ to tag a gym)"
-              className="text-xs h-9"
+              className="text-sm h-10"
               onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
             />
             <Button size="sm" variant="outline" onClick={handleAddComment}
-              disabled={!commentText.trim()} className="h-9 px-3"
+              disabled={!commentText.trim()} className="h-10 px-3"
             >
               <Send className="w-3.5 h-3.5" />
             </Button>
