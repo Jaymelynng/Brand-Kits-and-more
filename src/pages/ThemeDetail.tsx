@@ -458,25 +458,34 @@ const ThemeDetail = () => {
           </div>
 
           {/* Bottom Bulk Actions */}
-          <div className="shrink-0 border-t flex" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="shrink-0 border-t flex" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--muted) / 0.2)' }}>
             <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent disabled:opacity-50"
-              style={{ color: 'hsl(var(--brand-navy))' }}
+              style={{
+                color: 'hsl(var(--brand-navy))',
+                boxShadow: 'inset 0 1px 0 hsl(var(--background))',
+              }}
               onClick={() => void handleCopyAllUrls()}
               disabled={allUrls.length === 0 || bulkActionLoading === "copy"}
             >
-              <Copy className="w-4 h-4" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy All"}
+              <Copy className="w-4 h-4" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy Selected"}
             </button>
             <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
             <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent disabled:opacity-50"
-              style={{ color: 'hsl(var(--brand-navy))' }}
+              style={{
+                color: 'hsl(var(--brand-navy))',
+                boxShadow: 'inset 0 1px 0 hsl(var(--background))',
+              }}
               onClick={() => void handleDownloadAll()}
               disabled={allUrls.length === 0 || downloading}
             >
-              <Download className="w-4 h-4" /> {downloading ? 'Zipping...' : 'Download All'}
+              <Download className="w-4 h-4" /> {downloading ? 'Zipping...' : 'Download Selected'}
             </button>
             <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
             <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-destructive/10 disabled:opacity-50"
-              style={{ color: 'hsl(var(--destructive))' }}
+              style={{
+                color: 'hsl(var(--destructive))',
+                boxShadow: 'inset 0 1px 0 hsl(var(--background))',
+              }}
               disabled={!isAdmin || deleteAllLoading}
               onClick={async () => {
                 if (!categoryId) return;
