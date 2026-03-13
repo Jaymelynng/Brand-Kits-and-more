@@ -65,6 +65,35 @@ const ThemeDetail = () => {
 
   const gymsWithAssets = gyms.filter(g => gymAssetMap.has(g.id));
 
+  const gymDisplayMap = useMemo(() => {
+    const map = new Map<string, {
+      themeAssets: GymThemeAsset[];
+      hasThemeAsset: boolean;
+      fileUrl: string;
+      fileName: string;
+      isFallback: boolean;
+    }>();
+
+    gyms.forEach(gym => {
+      const themeAssets = gymAssetMap.get(gym.id) || [];
+      const firstThemeAsset = themeAssets[0];
+      const themeUrl = firstThemeAsset?.assignment.file_url || firstThemeAsset?.asset.file_url || "";
+      const fallbackLogo = gym.logos.find(logo => logo.is_main_logo) || gym.logos[0];
+      const fallbackUrl = fallbackLogo?.file_url || "";
+      const fileUrl = themeUrl || fallbackUrl;
+
+      map.set(gym.id, {
+        themeAssets,
+        hasThemeAsset: themeAssets.length > 0,
+        fileUrl,
+        fileName: firstThemeAsset?.asset.filename || fallbackLogo?.filename || "",
+        isFallback: !themeUrl && !!fallbackUrl,
+      });
+    });
+
+    return map;
+  }, [gyms, gymAssetMap]);
+
   const selectedGymIds = useMemo(() => {
     return new Set(
       gyms
@@ -75,17 +104,21 @@ const ThemeDetail = () => {
 
   // Selected URLs for bulk actions
   const allUrls = useMemo(() => {
-    const urls: string[] = [];
-    gymAssetMap.forEach((gAssets, gymId) => {
-      if (!selectedGymIds.has(gymId)) return;
+    return gyms
+      .filter(gym => selectedGymIds.has(gym.id))
+      .flatMap(gym => {
+        const gymInfo = gymDisplayMap.get(gym.id);
+        if (!gymInfo?.fileUrl) return [];
 
-      gAssets.forEach(a => {
-        const url = a.assignment.file_url || a.asset.file_url;
-        if (url) urls.push(url);
+        if (gymInfo.hasThemeAsset) {
+          return gymInfo.themeAssets
+            .map(a => a.assignment.file_url || a.asset.file_url)
+            .filter((url): url is string => Boolean(url));
+        }
+
+        return [gymInfo.fileUrl];
       });
-    });
-    return urls;
-  }, [gymAssetMap, selectedGymIds]);
+  }, [gyms, selectedGymIds, gymDisplayMap]);
 
   const copyTextToClipboard = async (text: string) => {
     try {
@@ -173,25 +206,44 @@ const ThemeDetail = () => {
       const folder = zip.folder(tag?.name || "theme");
       const promises: Promise<void>[] = [];
 
-      gymAssetMap.forEach((gymAssets, gymId) => {
-        const gym = gyms.find(g => g.id === gymId);
+      gyms.forEach(gym => {
+        if (!selectedGymIds.has(gym.id)) return;
 
-        gymAssets.forEach((ga, index) => {
-          const url = ga.assignment.file_url || ga.asset.file_url;
-          if (!url) return;
+        const gymInfo = gymDisplayMap.get(gym.id);
+        if (!gymInfo?.fileUrl) return;
 
-          promises.push(
-            getAssetBlob(url)
-              .then(blob => {
-                const ext = getFileExtension(url, ga.asset.filename);
-                const safeName = `${gym?.code || "unknown"}_${ga.asset.filename}`.replace(/[^a-zA-Z0-9._-]/g, "_");
-                folder!.file(`${safeName}_${index + 1}.${ext}`, blob);
-              })
-              .catch(() => {
-                // Continue zipping other assets even if one fails
-              })
-          );
-        });
+        if (gymInfo.hasThemeAsset) {
+          gymInfo.themeAssets.forEach((ga, index) => {
+            const url = ga.assignment.file_url || ga.asset.file_url;
+            if (!url) return;
+
+            promises.push(
+              getAssetBlob(url)
+                .then(blob => {
+                  const ext = getFileExtension(url, ga.asset.filename);
+                  const safeName = `${gym.code}_${ga.asset.filename}`.replace(/[^a-zA-Z0-9._-]/g, "_");
+                  folder!.file(`${safeName}_${index + 1}.${ext}`, blob);
+                })
+                .catch(() => {
+                  // Continue zipping other assets even if one fails
+                })
+            );
+          });
+          return;
+        }
+
+        promises.push(
+          getAssetBlob(gymInfo.fileUrl)
+            .then(blob => {
+              const fallbackName = gymInfo.fileName || `${gym.code}_logo`;
+              const ext = getFileExtension(gymInfo.fileUrl, fallbackName);
+              const safeName = `${gym.code}_${fallbackName}`.replace(/[^a-zA-Z0-9._-]/g, "_");
+              folder!.file(`${safeName}.${ext}`, blob);
+            })
+            .catch(() => {
+              // Continue zipping other assets even if one fails
+            })
+        );
       });
 
       await Promise.all(promises);
@@ -365,26 +417,28 @@ const ThemeDetail = () => {
 
           <div className="flex-1 overflow-y-auto">
             {gyms.map(gym => {
-              const gymAssets = gymAssetMap.get(gym.id) || [];
-              const hasAsset = gymAssets.length > 0;
+              const gymInfo = gymDisplayMap.get(gym.id);
+              const gymAssets = gymInfo?.themeAssets || [];
+              const hasAsset = gymInfo?.hasThemeAsset ?? false;
               const isSelectedForBulk = !excludedGymIds.has(gym.id);
               const primaryColor = gym.colors[0]?.color_hex || 'hsl(var(--muted-foreground))';
-              const firstAsset = gymAssets[0];
-              const fileUrl = firstAsset?.assignment?.file_url || firstAsset?.asset?.file_url || '';
+              const fileUrl = gymInfo?.fileUrl || '';
+              const fileName = gymInfo?.fileName || '';
+              const isFallback = gymInfo?.isFallback ?? false;
 
               return (
                 <div key={gym.id} className={cn(
                   "px-4 py-4 border-b flex flex-col gap-2 transition-all",
-                  !hasAsset && "opacity-70",
-                  hasAsset && !isSelectedForBulk && "opacity-75"
+                  !hasAsset && !isFallback && "opacity-70",
+                  (hasAsset || isFallback) && !isSelectedForBulk && "opacity-75"
                 )} style={{
                   borderColor: 'hsl(var(--brand-navy) / 0.2)',
                   background: hasAsset
                     ? (isSelectedForBulk
                         ? 'linear-gradient(180deg, hsl(var(--background)), hsl(var(--brand-blue-gray) / 0.18))'
                         : 'hsl(var(--muted) / 0.72)')
-                    : 'hsl(var(--destructive) / 0.08)',
-                  boxShadow: hasAsset && isSelectedForBulk
+                    : (isFallback ? 'hsl(var(--brand-blue-gray) / 0.22)' : 'hsl(var(--destructive) / 0.08)'),
+                  boxShadow: (hasAsset || isFallback) && isSelectedForBulk
                     ? 'inset 0 1px 0 hsl(var(--background)), 0 14px 26px -20px hsl(var(--brand-navy) / 0.75)'
                     : 'none',
                 }}>
@@ -429,8 +483,8 @@ const ThemeDetail = () => {
                       placeholder="No asset URL..."
                       className="flex-1 text-sm h-9 font-mono border-2"
                       style={{
-                        background: hasAsset ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.5)',
-                        borderColor: hasAsset ? 'hsl(var(--brand-navy) / 0.2)' : 'hsl(var(--border))'
+                        background: hasAsset || isFallback ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.5)',
+                        borderColor: hasAsset || isFallback ? 'hsl(var(--brand-navy) / 0.2)' : 'hsl(var(--border))'
                       }}
                     />
 
@@ -438,11 +492,17 @@ const ThemeDetail = () => {
                     <span className={cn(
                       "px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 flex items-center gap-1",
                     )} style={{
-                      background: hasAsset ? 'hsl(142 76% 36% / 0.12)' : 'hsl(32 95% 44% / 0.12)',
-                      color: hasAsset ? 'hsl(142 76% 36%)' : 'hsl(32 95% 44%)',
+                      background: hasAsset
+                        ? 'hsl(142 76% 36% / 0.12)'
+                        : (isFallback ? 'hsl(var(--brand-blue-gray) / 0.2)' : 'hsl(32 95% 44% / 0.12)'),
+                      color: hasAsset
+                        ? 'hsl(142 76% 36%)'
+                        : (isFallback ? 'hsl(var(--brand-navy))' : 'hsl(32 95% 44%)'),
                     }}>
                       {hasAsset ? (
                         <><Check className="w-3.5 h-3.5" />COMPLETE</>
+                      ) : isFallback ? (
+                        <><Check className="w-3.5 h-3.5" />FALLBACK</>
                       ) : (
                         <><AlertTriangle className="w-3.5 h-3.5" />MISSING</>
                       )}
@@ -471,7 +531,7 @@ const ThemeDetail = () => {
                     </Button>
                   </div>
 
-                  {hasAsset && fileUrl && (
+                  {fileUrl && (
                     <div className="ml-[80px] flex items-center gap-3">
                       <div className="w-16 h-16 rounded-lg border-2 overflow-hidden shrink-0 flex items-center justify-center"
                         style={{ borderColor: `${primaryColor}30`, background: 'hsl(var(--muted) / 0.3)' }}
@@ -479,7 +539,7 @@ const ThemeDetail = () => {
                         <img src={fileUrl} alt={`${gym.name} asset preview`} className="max-w-full max-h-full object-contain" loading="lazy" />
                       </div>
                       <span className="text-xs truncate" style={{ color: 'hsl(var(--muted-foreground))' }}>
-                        {firstAsset?.asset?.filename}
+                        {fileName || (isFallback ? 'Main logo fallback' : 'No filename')}
                       </span>
                     </div>
                   )}
