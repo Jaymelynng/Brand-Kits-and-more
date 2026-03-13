@@ -652,7 +652,7 @@ const ThemeDetail = () => {
               onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
             />
             <Button size="sm" variant="outline" onClick={handleAddComment}
-              disabled={!commentText.trim()} className="h-9 px-3"
+              disabled={!commentText.trim()} className="h-10 px-3"
             >
               <Send className="w-3.5 h-3.5" />
             </Button>
