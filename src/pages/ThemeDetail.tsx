@@ -10,7 +10,6 @@ import { ArrowLeft, Download, Copy, Trash2, Check, AlertTriangle, Send, MessageS
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -284,7 +283,7 @@ const ThemeDetail = () => {
   const totalCount = gyms.length;
 
   return (
-    <div className="min-h-screen flex flex-col p-3 gap-3" style={{ background: 'linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.35))' }}>
+    <div className="min-h-screen flex flex-col p-3 gap-3 bg-background">
       {/* Header Bar */}
       <div className="shrink-0 rounded-xl border overflow-hidden" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.85))',
@@ -331,14 +330,20 @@ const ThemeDetail = () => {
       </div>
 
       {/* Three-Column Layout */}
-      <div className="flex flex-1 overflow-hidden rounded-xl border" style={{ borderColor: 'hsl(var(--border))', boxShadow: '0 18px 42px -20px hsl(var(--brand-navy) / 0.45)' }}>
+      <div className="flex flex-1 min-h-0 gap-3">
 
         {/* LEFT — Gym Asset Rows (Variable Info style) */}
-        <div className="flex-1 flex flex-col border-r overflow-hidden" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))' }}>
-          <div className="px-4 py-3 border-b shrink-0 flex items-center justify-between" style={{
-            background: 'hsl(var(--muted) / 0.5)',
-            borderColor: 'hsl(var(--border))',
-          }}>
+        <div
+          className="flex-1 min-w-0 flex flex-col overflow-hidden rounded-xl border-2 bg-card shadow-elegant"
+          style={{ borderColor: "hsl(var(--brand-navy) / 0.35)" }}
+        >
+          <div
+            className="px-4 py-3 border-b shrink-0 flex items-center justify-between"
+            style={{
+              background: "linear-gradient(135deg, hsl(var(--brand-navy) / 0.14), hsl(var(--brand-rose-gold) / 0.2))",
+              borderColor: "hsl(var(--brand-navy) / 0.25)",
+            }}
+          >
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
                 📋 Asset Info
@@ -374,13 +379,13 @@ const ThemeDetail = () => {
                 }}>
                   {/* Top row: checkbox, badge, URL input, status, actions */}
                   <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={isSelectedForBulk}
-                      onCheckedChange={(checked) => {
+                    <button
+                      type="button"
+                      onClick={() => {
                         if (!hasAsset) return;
                         setExcludedGymIds(prev => {
                           const next = new Set(prev);
-                          if (checked === false) {
+                          if (isSelectedForBulk) {
                             next.add(gym.id);
                           } else {
                             next.delete(gym.id);
@@ -388,8 +393,18 @@ const ThemeDetail = () => {
                           return next;
                         });
                       }}
-                      className="shrink-0 cursor-pointer"
-                    />
+                      aria-pressed={isSelectedForBulk}
+                      aria-label={`${isSelectedForBulk ? "Exclude" : "Include"} ${gym.code} in bulk actions`}
+                      className={cn(
+                        "shrink-0 h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all",
+                        hasAsset ? "cursor-pointer" : "cursor-default opacity-60",
+                        isSelectedForBulk
+                          ? "bg-primary border-primary text-primary-foreground shadow-sm"
+                          : "bg-background border-border text-transparent"
+                      )}
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
 
                     {/* Gym Badge */}
                     <span className="px-2.5 py-1 rounded-md text-sm font-semibold text-primary-foreground shrink-0 min-w-[50px] text-center"
@@ -522,11 +537,20 @@ const ThemeDetail = () => {
         </div>
 
         {/* CENTER — Details & Actions */}
-        <div className="w-[380px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))', boxShadow: 'inset 0 1px 0 hsl(var(--background))' }}>
-          <div className="px-4 py-3 border-b shrink-0" style={{
-            background: 'hsl(var(--muted) / 0.5)',
-            borderColor: 'hsl(var(--border))',
-          }}>
+        <div
+          className="w-[390px] shrink-0 overflow-y-auto rounded-xl border-2 shadow-elegant"
+          style={{
+            borderColor: "hsl(var(--brand-navy) / 0.35)",
+            background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.2))",
+          }}
+        >
+          <div
+            className="px-4 py-3 border-b shrink-0"
+            style={{
+              background: "linear-gradient(135deg, hsl(var(--brand-blue-gray) / 0.22), hsl(var(--brand-navy) / 0.12))",
+              borderColor: "hsl(var(--brand-navy) / 0.25)",
+            }}
+          >
             <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
               ⚙️ Details & Actions
             </span>
@@ -648,11 +672,20 @@ const ThemeDetail = () => {
         </div>
 
         {/* RIGHT — Communication */}
-        <div className="w-[380px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--card))', boxShadow: 'inset 0 1px 0 hsl(var(--background))' }}>
-          <div className="px-4 py-3 border-b shrink-0" style={{
-            background: 'hsl(var(--muted) / 0.5)',
-            borderColor: 'hsl(var(--border))',
-          }}>
+        <div
+          className="w-[390px] shrink-0 flex flex-col overflow-hidden rounded-xl border-2 shadow-elegant"
+          style={{
+            borderColor: "hsl(var(--brand-navy) / 0.35)",
+            background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.16))",
+          }}
+        >
+          <div
+            className="px-4 py-3 border-b shrink-0"
+            style={{
+              background: "linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.22), hsl(var(--brand-blue-gray) / 0.18))",
+              borderColor: "hsl(var(--brand-navy) / 0.25)",
+            }}
+          >
             <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
               💬 Communication
             </span>
