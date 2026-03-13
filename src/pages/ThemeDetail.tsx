@@ -356,7 +356,7 @@ const ThemeDetail = () => {
             {gyms.map(gym => {
               const gymAssets = gymAssetMap.get(gym.id) || [];
               const hasAsset = gymAssets.length > 0;
-              const isSelectedForBulk = hasAsset && !excludedGymIds.has(gym.id);
+              const isSelectedForBulk = !excludedGymIds.has(gym.id);
               const primaryColor = gym.colors[0]?.color_hex || 'hsl(var(--muted-foreground))';
               const firstAsset = gymAssets[0];
               const fileUrl = firstAsset?.assignment?.file_url || firstAsset?.asset?.file_url || '';
