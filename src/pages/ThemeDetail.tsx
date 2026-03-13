@@ -31,6 +31,7 @@ const ThemeDetail = () => {
   const [bulkActionLoading, setBulkActionLoading] = useState<"copy" | "download" | null>(null);
   const [rowMutationGymId, setRowMutationGymId] = useState<string | null>(null);
   const [deleteAllLoading, setDeleteAllLoading] = useState(false);
+  const [excludedGymIds, setExcludedGymIds] = useState<Set<string>>(new Set());
 
   const { data: themeTags = [] } = useThemeTags();
   const { data: allAssetThemeTags = [] } = useAllAssetThemeTags();
@@ -65,17 +66,27 @@ const ThemeDetail = () => {
 
   const gymsWithAssets = gyms.filter(g => gymAssetMap.has(g.id));
 
-  // All URLs for bulk actions
+  const selectedGymIds = useMemo(() => {
+    return new Set(
+      gyms
+        .filter(g => gymAssetMap.has(g.id) && !excludedGymIds.has(g.id))
+        .map(g => g.id)
+    );
+  }, [gyms, gymAssetMap, excludedGymIds]);
+
+  // Selected URLs for bulk actions
   const allUrls = useMemo(() => {
     const urls: string[] = [];
-    gymAssetMap.forEach(gAssets => {
+    gymAssetMap.forEach((gAssets, gymId) => {
+      if (!selectedGymIds.has(gymId)) return;
+
       gAssets.forEach(a => {
         const url = a.assignment.file_url || a.asset.file_url;
         if (url) urls.push(url);
       });
     });
     return urls;
-  }, [gymAssetMap]);
+  }, [gymAssetMap, selectedGymIds]);
 
   const copyTextToClipboard = async (text: string) => {
     try {
@@ -269,13 +280,16 @@ const ThemeDetail = () => {
   }
 
   const completedCount = gymsWithAssets.length;
+  const selectedCount = selectedGymIds.size;
   const totalCount = gyms.length;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'hsl(var(--background))' }}>
+    <div className="min-h-screen flex flex-col p-3 gap-3" style={{ background: 'linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.35))' }}>
       {/* Header Bar */}
-      <div className="shrink-0 shadow-md" style={{
+      <div className="shrink-0 rounded-xl border overflow-hidden" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.85))',
+        borderColor: 'hsl(var(--brand-navy) / 0.5)',
+        boxShadow: '0 14px 32px -14px hsl(var(--brand-navy) / 0.65)',
       }}>
         <div className="px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -290,46 +304,46 @@ const ThemeDetail = () => {
             >
               {tag.name}
             </span>
-            <span className="text-sm font-medium text-primary-foreground/80 truncate">
-              {completedCount}/{totalCount} gyms complete
+            <span className="text-sm font-medium text-primary-foreground/90 truncate">
+              {completedCount}/{totalCount} gyms complete • {selectedCount} selected for bulk
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Button size="sm" variant="outline"
               className="bg-primary-foreground/10 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 text-sm"
+              style={{ boxShadow: '0 8px 18px -10px hsl(var(--brand-navy) / 0.8)' }}
               onClick={handleCopyAllUrls} disabled={allUrls.length === 0 || bulkActionLoading === "copy"}
             >
-              <Copy className="w-4 h-4 mr-1" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy All"}
+              <Copy className="w-4 h-4 mr-1" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy Selected"}
             </Button>
             <Button size="sm" onClick={handleDownloadAll}
               disabled={allUrls.length === 0 || downloading}
               className="text-sm text-primary-foreground"
-              style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}
+              style={{
+                background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))',
+                boxShadow: '0 10px 22px -12px hsl(var(--brand-rose-gold) / 0.9)',
+              }}
             >
-              <Download className="w-4 h-4 mr-1" /> {downloading ? 'Zipping...' : 'Download All'}
+              <Download className="w-4 h-4 mr-1" /> {downloading ? 'Zipping...' : 'Download Selected'}
             </Button>
           </div>
         </div>
       </div>
 
       {/* Three-Column Layout */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden rounded-xl border" style={{ borderColor: 'hsl(var(--border))', boxShadow: '0 18px 42px -20px hsl(var(--brand-navy) / 0.45)' }}>
 
         {/* LEFT — Gym Asset Rows (Variable Info style) */}
-        <div className="flex-1 flex flex-col border-r overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+        <div className="flex-1 flex flex-col border-r overflow-hidden" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))' }}>
           <div className="px-4 py-3 border-b shrink-0 flex items-center justify-between" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
+              <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
                 📋 Asset Info
               </span>
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                style={{ background: 'hsl(var(--brand-rose-gold) / 0.15)', color: 'hsl(var(--brand-navy))' }}
-              >
-                {completedCount}/{totalCount}
-              </span>
+              <span className="text-xs" style={{ color: 'hsl(var(--muted-foreground))' }}>Uncheck = exclude from bulk only</span>
             </div>
           </div>
 
@@ -337,24 +351,42 @@ const ThemeDetail = () => {
             {gyms.map(gym => {
               const gymAssets = gymAssetMap.get(gym.id) || [];
               const hasAsset = gymAssets.length > 0;
-              const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
+              const isSelectedForBulk = hasAsset && !excludedGymIds.has(gym.id);
+              const primaryColor = gym.colors[0]?.color_hex || 'hsl(var(--muted-foreground))';
               const firstAsset = gymAssets[0];
               const fileUrl = firstAsset?.assignment?.file_url || firstAsset?.asset?.file_url || '';
 
               return (
                 <div key={gym.id} className={cn(
                   "px-4 py-4 border-b flex flex-col gap-2 transition-all",
-                  !hasAsset && "opacity-60"
-                )} style={{ borderColor: 'hsl(var(--border) / 0.5)' }}>
+                  !hasAsset && "opacity-70",
+                  hasAsset && !isSelectedForBulk && "opacity-75"
+                )} style={{
+                  borderColor: 'hsl(var(--border) / 0.6)',
+                  background: hasAsset
+                    ? (isSelectedForBulk
+                        ? 'linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.12))'
+                        : 'hsl(var(--muted) / 0.26)')
+                    : 'hsl(var(--muted) / 0.2)',
+                  boxShadow: hasAsset && isSelectedForBulk
+                    ? 'inset 0 1px 0 hsl(var(--background)), 0 10px 20px -16px hsl(var(--brand-navy) / 0.5)'
+                    : 'none',
+                }}>
                   {/* Top row: checkbox, badge, URL input, status, actions */}
                   <div className="flex items-center gap-3">
                     <Checkbox
-                      checked={hasAsset}
-                      disabled={!isAdmin || !hasAsset || rowMutationGymId === gym.id}
+                      checked={isSelectedForBulk}
+                      disabled={!hasAsset}
                       onCheckedChange={(checked) => {
-                        if (checked === false && hasAsset) {
-                          void handleRemoveGymFromTheme(gym.id);
-                        }
+                        setExcludedGymIds(prev => {
+                          const next = new Set(prev);
+                          if (checked === false) {
+                            next.add(gym.id);
+                          } else {
+                            next.delete(gym.id);
+                          }
+                          return next;
+                        });
                       }}
                       className="shrink-0"
                     />
@@ -430,25 +462,34 @@ const ThemeDetail = () => {
           </div>
 
           {/* Bottom Bulk Actions */}
-          <div className="shrink-0 border-t flex" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="shrink-0 border-t flex" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--muted) / 0.2)' }}>
             <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent disabled:opacity-50"
-              style={{ color: 'hsl(var(--brand-navy))' }}
+              style={{
+                color: 'hsl(var(--brand-navy))',
+                boxShadow: 'inset 0 1px 0 hsl(var(--background))',
+              }}
               onClick={() => void handleCopyAllUrls()}
               disabled={allUrls.length === 0 || bulkActionLoading === "copy"}
             >
-              <Copy className="w-4 h-4" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy All"}
+              <Copy className="w-4 h-4" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy Selected"}
             </button>
             <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
             <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent disabled:opacity-50"
-              style={{ color: 'hsl(var(--brand-navy))' }}
+              style={{
+                color: 'hsl(var(--brand-navy))',
+                boxShadow: 'inset 0 1px 0 hsl(var(--background))',
+              }}
               onClick={() => void handleDownloadAll()}
               disabled={allUrls.length === 0 || downloading}
             >
-              <Download className="w-4 h-4" /> {downloading ? 'Zipping...' : 'Download All'}
+              <Download className="w-4 h-4" /> {downloading ? 'Zipping...' : 'Download Selected'}
             </button>
             <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
             <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-destructive/10 disabled:opacity-50"
-              style={{ color: 'hsl(var(--destructive))' }}
+              style={{
+                color: 'hsl(var(--destructive))',
+                boxShadow: 'inset 0 1px 0 hsl(var(--background))',
+              }}
               disabled={!isAdmin || deleteAllLoading}
               onClick={async () => {
                 if (!categoryId) return;
@@ -466,6 +507,7 @@ const ThemeDetail = () => {
                   if (error) throw error;
 
                   await refreshAssetAssignments();
+                  setExcludedGymIds(new Set());
                   toast({ description: "All gym assignments removed" });
                 } catch {
                   toast({ description: "Failed to remove all gym assignments", variant: "destructive" });
@@ -480,12 +522,12 @@ const ThemeDetail = () => {
         </div>
 
         {/* CENTER — Details & Actions */}
-        <div className="w-[360px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))' }}>
+        <div className="w-[380px] shrink-0 border-r overflow-y-auto" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))', boxShadow: 'inset 0 1px 0 hsl(var(--background))' }}>
           <div className="px-4 py-3 border-b shrink-0" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
-            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
               ⚙️ Details & Actions
             </span>
           </div>
@@ -562,7 +604,7 @@ const ThemeDetail = () => {
               <div className="space-y-1 max-h-[280px] overflow-y-auto rounded-lg border p-1.5" style={{ borderColor: 'hsl(var(--border))' }}>
                 {gyms.map(gym => {
                   const hasAsset = gymAssetMap.has(gym.id);
-                  const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
+                  const primaryColor = gym.colors[0]?.color_hex || 'hsl(var(--muted-foreground))';
                   return (
                     <div key={gym.id} className={cn(
                       "flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-colors",
@@ -604,12 +646,12 @@ const ThemeDetail = () => {
         </div>
 
         {/* RIGHT — Communication */}
-        <div className="w-[360px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--muted) / 0.15)' }}>
+        <div className="w-[380px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--card))', boxShadow: 'inset 0 1px 0 hsl(var(--background))' }}>
           <div className="px-4 py-3 border-b shrink-0" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
           }}>
-            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
               💬 Communication
             </span>
           </div>
