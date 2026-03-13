@@ -31,6 +31,7 @@ const ThemeDetail = () => {
   const [bulkActionLoading, setBulkActionLoading] = useState<"copy" | "download" | null>(null);
   const [rowMutationGymId, setRowMutationGymId] = useState<string | null>(null);
   const [deleteAllLoading, setDeleteAllLoading] = useState(false);
+  const [excludedGymIds, setExcludedGymIds] = useState<Set<string>>(new Set());
 
   const { data: themeTags = [] } = useThemeTags();
   const { data: allAssetThemeTags = [] } = useAllAssetThemeTags();
