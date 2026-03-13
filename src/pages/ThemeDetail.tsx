@@ -283,7 +283,7 @@ const ThemeDetail = () => {
   const totalCount = gyms.length;
 
   return (
-    <div className="min-h-screen flex flex-col p-3 gap-3 bg-background">
+    <div className="min-h-screen flex flex-col p-3 gap-3" style={{ background: 'linear-gradient(180deg, hsl(var(--muted) / 0.55), hsl(var(--background)))' }}>
       {/* Header Bar */}
       <div className="shrink-0 rounded-xl border overflow-hidden" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.85))',
@@ -330,25 +330,36 @@ const ThemeDetail = () => {
       </div>
 
       {/* Three-Column Layout */}
-      <div className="flex flex-1 min-h-0 gap-3">
+      <div
+        className="flex flex-1 min-h-0 gap-3 rounded-xl border-2 p-2"
+        style={{
+          borderColor: 'hsl(var(--brand-navy) / 0.35)',
+          background: 'hsl(var(--brand-navy) / 0.08)',
+          boxShadow: 'inset 0 1px 0 hsl(var(--background)), 0 22px 44px -28px hsl(var(--brand-navy) / 0.5)',
+        }}
+      >
 
         {/* LEFT — Gym Asset Rows (Variable Info style) */}
         <div
-          className="flex-1 min-w-0 flex flex-col overflow-hidden rounded-xl border-2 bg-card shadow-elegant"
-          style={{ borderColor: "hsl(var(--brand-navy) / 0.35)" }}
+          className="flex-1 min-w-0 flex flex-col overflow-hidden rounded-xl border-2"
+          style={{
+            borderColor: 'hsl(var(--brand-navy) / 0.45)',
+            background: 'linear-gradient(180deg, hsl(var(--card)), hsl(var(--brand-blue-gray) / 0.22))',
+            boxShadow: '0 16px 32px -24px hsl(var(--brand-navy) / 0.65)',
+          }}
         >
           <div
             className="px-4 py-3 border-b shrink-0 flex items-center justify-between"
             style={{
-              background: "linear-gradient(135deg, hsl(var(--brand-navy) / 0.14), hsl(var(--brand-rose-gold) / 0.2))",
-              borderColor: "hsl(var(--brand-navy) / 0.25)",
+              background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.78))',
+              borderColor: 'hsl(var(--brand-navy) / 0.6)',
             }}
           >
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
+              <span className="text-sm font-semibold uppercase tracking-wide text-primary-foreground">
                 📋 Asset Info
               </span>
-              <span className="text-xs" style={{ color: 'hsl(var(--muted-foreground))' }}>Uncheck = exclude from bulk only</span>
+              <span className="text-xs text-primary-foreground/75">Uncheck = exclude from bulk only</span>
             </div>
           </div>
 
@@ -367,14 +378,14 @@ const ThemeDetail = () => {
                   !hasAsset && "opacity-70",
                   hasAsset && !isSelectedForBulk && "opacity-75"
                 )} style={{
-                  borderColor: 'hsl(var(--border) / 0.6)',
+                  borderColor: 'hsl(var(--brand-navy) / 0.2)',
                   background: hasAsset
                     ? (isSelectedForBulk
-                        ? 'linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.12))'
-                        : 'hsl(var(--muted) / 0.26)')
-                    : 'hsl(var(--muted) / 0.2)',
+                        ? 'linear-gradient(180deg, hsl(var(--background)), hsl(var(--brand-blue-gray) / 0.18))'
+                        : 'hsl(var(--muted) / 0.72)')
+                    : 'hsl(var(--destructive) / 0.08)',
                   boxShadow: hasAsset && isSelectedForBulk
-                    ? 'inset 0 1px 0 hsl(var(--background)), 0 10px 20px -16px hsl(var(--brand-navy) / 0.5)'
+                    ? 'inset 0 1px 0 hsl(var(--background)), 0 14px 26px -20px hsl(var(--brand-navy) / 0.75)'
                     : 'none',
                 }}>
                   {/* Top row: checkbox, badge, URL input, status, actions */}
@@ -416,8 +427,11 @@ const ThemeDetail = () => {
                       value={fileUrl}
                       readOnly
                       placeholder="No asset URL..."
-                      className="flex-1 text-sm h-9 font-mono"
-                      style={{ background: hasAsset ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.3)' }}
+                      className="flex-1 text-sm h-9 font-mono border-2"
+                      style={{
+                        background: hasAsset ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.5)',
+                        borderColor: hasAsset ? 'hsl(var(--brand-navy) / 0.2)' : 'hsl(var(--border))'
+                      }}
                     />
 
                     {/* Status Badge */}
@@ -536,20 +550,21 @@ const ThemeDetail = () => {
 
         {/* CENTER — Details & Actions */}
         <div
-          className="w-[390px] shrink-0 overflow-y-auto rounded-xl border-2 shadow-elegant"
+          className="w-[390px] shrink-0 overflow-y-auto rounded-xl border-2"
           style={{
-            borderColor: "hsl(var(--brand-navy) / 0.35)",
-            background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.2))",
+            borderColor: 'hsl(var(--brand-navy) / 0.45)',
+            background: 'linear-gradient(180deg, hsl(var(--card)), hsl(var(--brand-rose-gold) / 0.2))',
+            boxShadow: '0 16px 32px -24px hsl(var(--brand-navy) / 0.65)',
           }}
         >
           <div
             className="px-4 py-3 border-b shrink-0"
             style={{
-              background: "linear-gradient(135deg, hsl(var(--brand-blue-gray) / 0.22), hsl(var(--brand-navy) / 0.12))",
-              borderColor: "hsl(var(--brand-navy) / 0.25)",
+              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-navy) / 0.82))',
+              borderColor: 'hsl(var(--brand-navy) / 0.55)',
             }}
           >
-            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide text-primary-foreground">
               ⚙️ Details & Actions
             </span>
           </div>
@@ -671,20 +686,21 @@ const ThemeDetail = () => {
 
         {/* RIGHT — Communication */}
         <div
-          className="w-[390px] shrink-0 flex flex-col overflow-hidden rounded-xl border-2 shadow-elegant"
+          className="w-[390px] shrink-0 flex flex-col overflow-hidden rounded-xl border-2"
           style={{
-            borderColor: "hsl(var(--brand-navy) / 0.35)",
-            background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.16))",
+            borderColor: 'hsl(var(--brand-navy) / 0.45)',
+            background: 'linear-gradient(180deg, hsl(var(--card)), hsl(var(--brand-blue-gray) / 0.2))',
+            boxShadow: '0 16px 32px -24px hsl(var(--brand-navy) / 0.65)',
           }}
         >
           <div
             className="px-4 py-3 border-b shrink-0"
             style={{
-              background: "linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.22), hsl(var(--brand-blue-gray) / 0.18))",
-              borderColor: "hsl(var(--brand-navy) / 0.25)",
+              background: 'linear-gradient(135deg, hsl(var(--brand-blue-gray)), hsl(var(--brand-navy) / 0.86))',
+              borderColor: 'hsl(var(--brand-navy) / 0.55)',
             }}
           >
-            <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
+            <span className="text-sm font-semibold uppercase tracking-wide text-primary-foreground">
               💬 Communication
             </span>
           </div>
