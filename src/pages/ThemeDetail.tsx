@@ -376,8 +376,8 @@ const ThemeDetail = () => {
                   <div className="flex items-center gap-3">
                     <Checkbox
                       checked={isSelectedForBulk}
-                      disabled={!hasAsset}
                       onCheckedChange={(checked) => {
+                        if (!hasAsset) return;
                         setExcludedGymIds(prev => {
                           const next = new Set(prev);
                           if (checked === false) {
@@ -388,7 +388,7 @@ const ThemeDetail = () => {
                           return next;
                         });
                       }}
-                      className="shrink-0"
+                      className="shrink-0 cursor-pointer"
                     />
 
                     {/* Gym Badge */}
