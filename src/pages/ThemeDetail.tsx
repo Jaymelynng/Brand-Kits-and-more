@@ -348,10 +348,19 @@ const ThemeDetail = () => {
                 )} style={{ borderColor: 'hsl(var(--border) / 0.5)' }}>
                   {/* Top row: checkbox, badge, URL input, status, actions */}
                   <div className="flex items-center gap-3">
-                    <Checkbox checked={hasAsset} disabled className="shrink-0" />
+                    <Checkbox
+                      checked={hasAsset}
+                      disabled={!isAdmin || !hasAsset || rowMutationGymId === gym.id}
+                      onCheckedChange={(checked) => {
+                        if (checked === false && hasAsset) {
+                          void handleRemoveGymFromTheme(gym.id);
+                        }
+                      }}
+                      className="shrink-0"
+                    />
 
                     {/* Gym Badge */}
-                    <span className="px-2.5 py-1 rounded-md text-xs font-bold text-white shrink-0 min-w-[42px] text-center"
+                    <span className="px-2.5 py-1 rounded-md text-sm font-semibold text-primary-foreground shrink-0 min-w-[50px] text-center"
                       style={{ backgroundColor: primaryColor }}
                     >
                       {gym.code}
@@ -362,50 +371,44 @@ const ThemeDetail = () => {
                       value={fileUrl}
                       readOnly
                       placeholder="No asset URL..."
-                      className="flex-1 text-xs h-8 font-mono"
+                      className="flex-1 text-sm h-9 font-mono"
                       style={{ background: hasAsset ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.3)' }}
                     />
 
                     {/* Status Badge */}
                     <span className={cn(
-                      "px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 flex items-center gap-1",
+                      "px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 flex items-center gap-1",
                     )} style={{
                       background: hasAsset ? 'hsl(142 76% 36% / 0.12)' : 'hsl(32 95% 44% / 0.12)',
                       color: hasAsset ? 'hsl(142 76% 36%)' : 'hsl(32 95% 44%)',
                     }}>
                       {hasAsset ? (
-                        <><Check className="w-3 h-3" />COMPLETE</>
+                        <><Check className="w-3.5 h-3.5" />COMPLETE</>
                       ) : (
-                        <><AlertTriangle className="w-3 h-3" />MISSING</>
+                        <><AlertTriangle className="w-3.5 h-3.5" />MISSING</>
                       )}
                     </span>
 
                     {/* Copy URL */}
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"
                       disabled={!fileUrl}
-                      onClick={() => {
-                        navigator.clipboard.writeText(fileUrl);
-                        toast({ description: "URL copied!" });
+                      onClick={async () => {
+                        const copied = await copyTextToClipboard(fileUrl);
+                        toast({
+                          description: copied ? "URL copied!" : "Copy failed",
+                          variant: copied ? "default" : "destructive",
+                        });
                       }}
                     >
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-4 h-4" />
                     </Button>
 
                     {/* Delete */}
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-destructive"
-                      disabled={!isAdmin || !hasAsset}
-                      onClick={async () => {
-                        if (!firstAsset) return;
-                        await supabase
-                          .from('gym_asset_assignments')
-                          .delete()
-                          .eq('asset_id', firstAsset.asset.id)
-                          .eq('gym_id', gym.id);
-                        queryClient.invalidateQueries({ queryKey: ['all-assets-with-assignments'] });
-                        toast({ description: `Removed ${gym.code} assignment` });
-                      }}
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-destructive"
+                      disabled={!isAdmin || !hasAsset || rowMutationGymId === gym.id}
+                      onClick={() => void handleRemoveGymFromTheme(gym.id)}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
 
