@@ -65,6 +65,35 @@ const ThemeDetail = () => {
 
   const gymsWithAssets = gyms.filter(g => gymAssetMap.has(g.id));
 
+  const gymDisplayMap = useMemo(() => {
+    const map = new Map<string, {
+      themeAssets: GymThemeAsset[];
+      hasThemeAsset: boolean;
+      fileUrl: string;
+      fileName: string;
+      isFallback: boolean;
+    }>();
+
+    gyms.forEach(gym => {
+      const themeAssets = gymAssetMap.get(gym.id) || [];
+      const firstThemeAsset = themeAssets[0];
+      const themeUrl = firstThemeAsset?.assignment.file_url || firstThemeAsset?.asset.file_url || "";
+      const fallbackLogo = gym.logos.find(logo => logo.is_main_logo) || gym.logos[0];
+      const fallbackUrl = fallbackLogo?.file_url || "";
+      const fileUrl = themeUrl || fallbackUrl;
+
+      map.set(gym.id, {
+        themeAssets,
+        hasThemeAsset: themeAssets.length > 0,
+        fileUrl,
+        fileName: firstThemeAsset?.asset.filename || fallbackLogo?.filename || "",
+        isFallback: !themeUrl && !!fallbackUrl,
+      });
+    });
+
+    return map;
+  }, [gyms, gymAssetMap]);
+
   const selectedGymIds = useMemo(() => {
     return new Set(
       gyms
@@ -75,17 +104,21 @@ const ThemeDetail = () => {
 
   // Selected URLs for bulk actions
   const allUrls = useMemo(() => {
-    const urls: string[] = [];
-    gymAssetMap.forEach((gAssets, gymId) => {
-      if (!selectedGymIds.has(gymId)) return;
+    return gyms
+      .filter(gym => selectedGymIds.has(gym.id))
+      .flatMap(gym => {
+        const gymInfo = gymDisplayMap.get(gym.id);
+        if (!gymInfo?.fileUrl) return [];
 
-      gAssets.forEach(a => {
-        const url = a.assignment.file_url || a.asset.file_url;
-        if (url) urls.push(url);
+        if (gymInfo.hasThemeAsset) {
+          return gymInfo.themeAssets
+            .map(a => a.assignment.file_url || a.asset.file_url)
+            .filter((url): url is string => Boolean(url));
+        }
+
+        return [gymInfo.fileUrl];
       });
-    });
-    return urls;
-  }, [gymAssetMap, selectedGymIds]);
+  }, [gyms, selectedGymIds, gymDisplayMap]);
 
   const copyTextToClipboard = async (text: string) => {
     try {
