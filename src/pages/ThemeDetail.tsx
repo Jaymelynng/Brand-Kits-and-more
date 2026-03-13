@@ -483,8 +483,8 @@ const ThemeDetail = () => {
                       placeholder="No asset URL..."
                       className="flex-1 text-sm h-9 font-mono border-2"
                       style={{
-                        background: hasAsset ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.5)',
-                        borderColor: hasAsset ? 'hsl(var(--brand-navy) / 0.2)' : 'hsl(var(--border))'
+                        background: hasAsset || isFallback ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.5)',
+                        borderColor: hasAsset || isFallback ? 'hsl(var(--brand-navy) / 0.2)' : 'hsl(var(--border))'
                       }}
                     />
 
@@ -492,14 +492,21 @@ const ThemeDetail = () => {
                     <span className={cn(
                       "px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 flex items-center gap-1",
                     )} style={{
-                      background: hasAsset ? 'hsl(142 76% 36% / 0.12)' : 'hsl(32 95% 44% / 0.12)',
-                      color: hasAsset ? 'hsl(142 76% 36%)' : 'hsl(32 95% 44%)',
+                      background: hasAsset
+                        ? 'hsl(142 76% 36% / 0.12)'
+                        : (isFallback ? 'hsl(var(--brand-blue-gray) / 0.2)' : 'hsl(32 95% 44% / 0.12)'),
+                      color: hasAsset
+                        ? 'hsl(142 76% 36%)'
+                        : (isFallback ? 'hsl(var(--brand-navy))' : 'hsl(32 95% 44%)'),
                     }}>
                       {hasAsset ? (
                         <><Check className="w-3.5 h-3.5" />COMPLETE</>
+                      ) : isFallback ? (
+                        <><Check className="w-3.5 h-3.5" />FALLBACK</>
                       ) : (
                         <><AlertTriangle className="w-3.5 h-3.5" />MISSING</>
                       )}
+                    </span>
                     </span>
 
                     {/* Copy URL */}
