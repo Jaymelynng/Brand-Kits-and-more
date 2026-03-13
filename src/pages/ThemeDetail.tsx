@@ -610,7 +610,9 @@ const ThemeDetail = () => {
                       "flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-colors",
                       hasAsset ? "hover:bg-accent" : "opacity-50"
                     )} style={hasAsset ? { background: `${primaryColor}08` } : {}}>
-                      <Checkbox checked={hasAsset} disabled className="shrink-0" />
+                      <div className={cn("w-4 h-4 rounded-sm border-2 shrink-0 flex items-center justify-center", hasAsset ? "border-primary bg-primary" : "border-muted-foreground/30")}>
+                        {hasAsset && <Check className="w-3 h-3 text-primary-foreground" />}
+                      </div>
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold text-white shrink-0"
                         style={{ backgroundColor: primaryColor }}
                       >
