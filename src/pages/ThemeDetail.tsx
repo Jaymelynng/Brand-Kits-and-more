@@ -382,7 +382,6 @@ const ThemeDetail = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (!hasAsset) return;
                         setExcludedGymIds(prev => {
                           const next = new Set(prev);
                           if (isSelectedForBulk) {
@@ -396,8 +395,7 @@ const ThemeDetail = () => {
                       aria-pressed={isSelectedForBulk}
                       aria-label={`${isSelectedForBulk ? "Exclude" : "Include"} ${gym.code} in bulk actions`}
                       className={cn(
-                        "shrink-0 h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all",
-                        hasAsset ? "cursor-pointer" : "cursor-default opacity-60",
+                        "shrink-0 h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer",
                         isSelectedForBulk
                           ? "bg-primary border-primary text-primary-foreground shadow-sm"
                           : "bg-background border-border text-transparent"
