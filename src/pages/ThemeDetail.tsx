@@ -604,7 +604,7 @@ const ThemeDetail = () => {
               <div className="space-y-1 max-h-[280px] overflow-y-auto rounded-lg border p-1.5" style={{ borderColor: 'hsl(var(--border))' }}>
                 {gyms.map(gym => {
                   const hasAsset = gymAssetMap.has(gym.id);
-                  const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
+                  const primaryColor = gym.colors[0]?.color_hex || 'hsl(var(--muted-foreground))';
                   return (
                     <div key={gym.id} className={cn(
                       "flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-colors",
