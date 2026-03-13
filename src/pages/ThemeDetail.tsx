@@ -379,7 +379,7 @@ const ThemeDetail = () => {
                   {/* Top row: checkbox, badge, URL input, status, actions */}
                   <div className="flex items-center gap-3">
                     <Checkbox
-                      checked={hasAsset && !excludedGymIds.has(gym.id)}
+                      checked={isSelectedForBulk}
                       disabled={!hasAsset}
                       onCheckedChange={(checked) => {
                         setExcludedGymIds(prev => {
