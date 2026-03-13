@@ -311,16 +311,20 @@ const ThemeDetail = () => {
           <div className="flex items-center gap-2 shrink-0">
             <Button size="sm" variant="outline"
               className="bg-primary-foreground/10 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 text-sm"
+              style={{ boxShadow: '0 8px 18px -10px hsl(var(--brand-navy) / 0.8)' }}
               onClick={handleCopyAllUrls} disabled={allUrls.length === 0 || bulkActionLoading === "copy"}
             >
-              <Copy className="w-4 h-4 mr-1" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy All"}
+              <Copy className="w-4 h-4 mr-1" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy Selected"}
             </Button>
             <Button size="sm" onClick={handleDownloadAll}
               disabled={allUrls.length === 0 || downloading}
               className="text-sm text-primary-foreground"
-              style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}
+              style={{
+                background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))',
+                boxShadow: '0 10px 22px -12px hsl(var(--brand-rose-gold) / 0.9)',
+              }}
             >
-              <Download className="w-4 h-4 mr-1" /> {downloading ? 'Zipping...' : 'Download All'}
+              <Download className="w-4 h-4 mr-1" /> {downloading ? 'Zipping...' : 'Download Selected'}
             </Button>
           </div>
         </div>
