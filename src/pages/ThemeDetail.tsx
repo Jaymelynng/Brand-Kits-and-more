@@ -427,8 +427,11 @@ const ThemeDetail = () => {
                       value={fileUrl}
                       readOnly
                       placeholder="No asset URL..."
-                      className="flex-1 text-sm h-9 font-mono"
-                      style={{ background: hasAsset ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.3)' }}
+                      className="flex-1 text-sm h-9 font-mono border-2"
+                      style={{
+                        background: hasAsset ? 'hsl(var(--background))' : 'hsl(var(--muted) / 0.5)',
+                        borderColor: hasAsset ? 'hsl(var(--brand-navy) / 0.2)' : 'hsl(var(--border))'
+                      }}
                     />
 
                     {/* Status Badge */}
