@@ -378,14 +378,14 @@ const ThemeDetail = () => {
                   !hasAsset && "opacity-70",
                   hasAsset && !isSelectedForBulk && "opacity-75"
                 )} style={{
-                  borderColor: 'hsl(var(--border) / 0.6)',
+                  borderColor: 'hsl(var(--brand-navy) / 0.2)',
                   background: hasAsset
                     ? (isSelectedForBulk
-                        ? 'linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.12))'
-                        : 'hsl(var(--muted) / 0.26)')
-                    : 'hsl(var(--muted) / 0.2)',
+                        ? 'linear-gradient(180deg, hsl(var(--background)), hsl(var(--brand-blue-gray) / 0.18))'
+                        : 'hsl(var(--muted) / 0.72)')
+                    : 'hsl(var(--destructive) / 0.08)',
                   boxShadow: hasAsset && isSelectedForBulk
-                    ? 'inset 0 1px 0 hsl(var(--background)), 0 10px 20px -16px hsl(var(--brand-navy) / 0.5)'
+                    ? 'inset 0 1px 0 hsl(var(--background)), 0 14px 26px -20px hsl(var(--brand-navy) / 0.75)'
                     : 'none',
                 }}>
                   {/* Top row: checkbox, badge, URL input, status, actions */}
