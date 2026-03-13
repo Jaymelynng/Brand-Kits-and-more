@@ -77,44 +77,154 @@ const ThemeDetail = () => {
     return urls;
   }, [gymAssetMap]);
 
-  const handleCopyAllUrls = () => {
-    navigator.clipboard.writeText(allUrls.join('\n'));
-    toast({ description: `${allUrls.length} URL(s) copied!`, duration: 2000 });
+  const copyTextToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return copied;
+    }
+  };
+
+  const parseStoragePathFromUrl = (url: string) => {
+    try {
+      const parsed = new URL(url);
+      const marker = "/storage/v1/object/public/";
+      const markerIndex = parsed.pathname.indexOf(marker);
+      if (markerIndex === -1) return null;
+
+      const storagePath = parsed.pathname.slice(markerIndex + marker.length);
+      const [bucket, ...rest] = storagePath.split("/");
+      if (!bucket || rest.length === 0) return null;
+
+      return { bucket, filePath: rest.join("/") };
+    } catch {
+      return null;
+    }
+  };
+
+  const getFileExtension = (url: string, fallbackName: string) => {
+    const fromUrl = url.split(".").pop()?.split("?")[0]?.trim();
+    if (fromUrl && fromUrl.length <= 5) return fromUrl;
+
+    const fromName = fallbackName.split(".").pop()?.trim();
+    return fromName || "png";
+  };
+
+  const getAssetBlob = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Network fetch failed");
+      return await response.blob();
+    } catch {
+      const parsed = parseStoragePathFromUrl(url);
+      if (!parsed) throw new Error("Unable to parse storage path");
+
+      const { data, error } = await supabase.storage.from(parsed.bucket).download(parsed.filePath);
+      if (error || !data) throw error || new Error("Storage download failed");
+      return data;
+    }
+  };
+
+  const refreshAssetAssignments = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["all-assets-with-assignments"] });
+  };
+
+  const handleCopyAllUrls = async () => {
+    if (allUrls.length === 0) return;
+
+    setBulkActionLoading("copy");
+    const copied = await copyTextToClipboard(allUrls.join("\n"));
+    setBulkActionLoading(null);
+
+    toast({
+      description: copied ? `${allUrls.length} URL(s) copied!` : "Copy failed",
+      variant: copied ? "default" : "destructive",
+      duration: 2000,
+    });
   };
 
   const handleDownloadAll = async () => {
     if (allUrls.length === 0) return;
     setDownloading(true);
+    setBulkActionLoading("download");
+
     try {
       const zip = new JSZip();
-      const folder = zip.folder(tag?.name || 'theme');
+      const folder = zip.folder(tag?.name || "theme");
       const promises: Promise<void>[] = [];
+
       gymAssetMap.forEach((gymAssets, gymId) => {
         const gym = gyms.find(g => g.id === gymId);
-        gymAssets.forEach(ga => {
+
+        gymAssets.forEach((ga, index) => {
           const url = ga.assignment.file_url || ga.asset.file_url;
           if (!url) return;
+
           promises.push(
-            fetch(url).then(r => r.blob()).then(blob => {
-              const ext = url.split('.').pop()?.split('?')[0] || 'png';
-              folder!.file(`${gym?.code || 'unknown'}_${ga.asset.filename}.${ext}`, blob);
-            }).catch(() => {})
+            getAssetBlob(url)
+              .then(blob => {
+                const ext = getFileExtension(url, ga.asset.filename);
+                const safeName = `${gym?.code || "unknown"}_${ga.asset.filename}`.replace(/[^a-zA-Z0-9._-]/g, "_");
+                folder!.file(`${safeName}_${index + 1}.${ext}`, blob);
+              })
+              .catch(() => {
+                // Continue zipping other assets even if one fails
+              })
           );
         });
       });
+
       await Promise.all(promises);
-      const blob = await zip.generateAsync({ type: 'blob' });
+      const blob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `${tag?.name || 'theme'}_assets.zip`;
+      a.download = `${tag?.name || "theme"}_assets.zip`;
       a.click();
       URL.revokeObjectURL(url);
-      toast({ description: 'ZIP downloaded!' });
+      toast({ description: "ZIP downloaded!" });
     } catch {
-      toast({ description: 'Download failed', variant: 'destructive' });
+      toast({ description: "Download failed", variant: "destructive" });
     } finally {
       setDownloading(false);
+      setBulkActionLoading(null);
+    }
+  };
+
+  const handleRemoveGymFromTheme = async (gymId: string) => {
+    if (!isAdmin || !categoryId) return;
+
+    const assetIds = Array.from(taggedAssetIds);
+    if (assetIds.length === 0) return;
+
+    setRowMutationGymId(gymId);
+
+    try {
+      const { error } = await supabase
+        .from("gym_asset_assignments")
+        .delete()
+        .eq("gym_id", gymId)
+        .in("asset_id", assetIds);
+
+      if (error) throw error;
+
+      await refreshAssetAssignments();
+      const gym = gyms.find(g => g.id === gymId);
+      toast({ description: `Removed ${gym?.code || "gym"} assignment(s)` });
+    } catch {
+      toast({ description: "Failed to remove gym assignments", variant: "destructive" });
+    } finally {
+      setRowMutationGymId(null);
     }
   };
 
