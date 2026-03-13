@@ -628,7 +628,7 @@ const ThemeDetail = () => {
         </div>
 
         {/* RIGHT — Communication */}
-        <div className="w-[360px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--muted) / 0.15)' }}>
+        <div className="w-[380px] shrink-0 flex flex-col overflow-hidden" style={{ background: 'hsl(var(--card))', boxShadow: 'inset 0 1px 0 hsl(var(--background))' }}>>
           <div className="px-4 py-3 border-b shrink-0" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
