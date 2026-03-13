@@ -483,6 +483,7 @@ const ThemeDetail = () => {
                   if (error) throw error;
 
                   await refreshAssetAssignments();
+                  setExcludedGymIds(new Set());
                   toast({ description: "All gym assignments removed" });
                 } catch {
                   toast({ description: "Failed to remove all gym assignments", variant: "destructive" });
