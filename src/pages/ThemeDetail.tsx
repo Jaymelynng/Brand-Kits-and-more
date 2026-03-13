@@ -329,7 +329,7 @@ const ThemeDetail = () => {
       <div className="flex flex-1 overflow-hidden rounded-xl border" style={{ borderColor: 'hsl(var(--border))', boxShadow: '0 18px 42px -20px hsl(var(--brand-navy) / 0.45)' }}>
 
         {/* LEFT — Gym Asset Rows (Variable Info style) */}
-        <div className="flex-1 flex flex-col border-r overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
+        <div className="flex-1 flex flex-col border-r overflow-hidden" style={{ borderColor: 'hsl(var(--border))', background: 'hsl(var(--card))' }}>
           <div className="px-4 py-3 border-b shrink-0 flex items-center justify-between" style={{
             background: 'hsl(var(--muted) / 0.5)',
             borderColor: 'hsl(var(--border))',
