@@ -324,7 +324,7 @@ const ThemeDetail = () => {
       </div>
 
       {/* Three-Column Layout */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden rounded-xl border" style={{ borderColor: 'hsl(var(--border))', boxShadow: '0 18px 42px -20px hsl(var(--brand-navy) / 0.45)' }}>
 
         {/* LEFT — Gym Asset Rows (Variable Info style) */}
         <div className="flex-1 flex flex-col border-r overflow-hidden" style={{ borderColor: 'hsl(var(--border))' }}>
