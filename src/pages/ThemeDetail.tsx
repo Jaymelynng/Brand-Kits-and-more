@@ -343,11 +343,7 @@ const ThemeDetail = () => {
               <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))', textShadow: '0 1px 0 hsl(var(--background))' }}>
                 📋 Asset Info
               </span>
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                style={{ background: 'hsl(var(--brand-rose-gold) / 0.18)', color: 'hsl(var(--brand-navy))', boxShadow: 'inset 0 1px 0 hsl(var(--background))' }}
-              >
-                {selectedCount} selected
-              </span>
+              <span className="text-xs" style={{ color: 'hsl(var(--muted-foreground))' }}>Uncheck = exclude from bulk only</span>
             </div>
           </div>
 
