@@ -417,12 +417,14 @@ const ThemeDetail = () => {
 
           <div className="flex-1 overflow-y-auto">
             {gyms.map(gym => {
-              const gymAssets = gymAssetMap.get(gym.id) || [];
-              const hasAsset = gymAssets.length > 0;
+              const gymInfo = gymDisplayMap.get(gym.id);
+              const gymAssets = gymInfo?.themeAssets || [];
+              const hasAsset = gymInfo?.hasThemeAsset ?? false;
               const isSelectedForBulk = !excludedGymIds.has(gym.id);
               const primaryColor = gym.colors[0]?.color_hex || 'hsl(var(--muted-foreground))';
-              const firstAsset = gymAssets[0];
-              const fileUrl = firstAsset?.assignment?.file_url || firstAsset?.asset?.file_url || '';
+              const fileUrl = gymInfo?.fileUrl || '';
+              const fileName = gymInfo?.fileName || '';
+              const isFallback = gymInfo?.isFallback ?? false;
 
               return (
                 <div key={gym.id} className={cn(
