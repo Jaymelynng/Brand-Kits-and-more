@@ -648,7 +648,7 @@ const ThemeDetail = () => {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Add a comment... (type @ to tag a gym)"
-              className="text-xs h-9"
+              className="text-sm h-10"
               onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
             />
             <Button size="sm" variant="outline" onClick={handleAddComment}
