@@ -379,13 +379,13 @@ const ThemeDetail = () => {
                 }}>
                   {/* Top row: checkbox, badge, URL input, status, actions */}
                   <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={isSelectedForBulk}
-                      onCheckedChange={(checked) => {
+                    <button
+                      type="button"
+                      onClick={() => {
                         if (!hasAsset) return;
                         setExcludedGymIds(prev => {
                           const next = new Set(prev);
-                          if (checked === false) {
+                          if (isSelectedForBulk) {
                             next.add(gym.id);
                           } else {
                             next.delete(gym.id);
@@ -393,8 +393,18 @@ const ThemeDetail = () => {
                           return next;
                         });
                       }}
-                      className="shrink-0 cursor-pointer"
-                    />
+                      aria-pressed={isSelectedForBulk}
+                      aria-label={`${isSelectedForBulk ? "Exclude" : "Include"} ${gym.code} in bulk actions`}
+                      className={cn(
+                        "shrink-0 h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all",
+                        hasAsset ? "cursor-pointer" : "cursor-default opacity-60",
+                        isSelectedForBulk
+                          ? "bg-primary border-primary text-primary-foreground shadow-sm"
+                          : "bg-background border-border text-transparent"
+                      )}
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
 
                     {/* Gym Badge */}
                     <span className="px-2.5 py-1 rounded-md text-sm font-semibold text-primary-foreground shrink-0 min-w-[50px] text-center"
