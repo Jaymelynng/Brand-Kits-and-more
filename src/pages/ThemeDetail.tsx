@@ -284,7 +284,7 @@ const ThemeDetail = () => {
   const totalCount = gyms.length;
 
   return (
-    <div className="min-h-screen flex flex-col p-3 gap-3" style={{ background: 'hsl(var(--background))' }}>
+    <div className="min-h-screen flex flex-col p-3 gap-3" style={{ background: 'linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.35))' }}>
       {/* Header Bar */}
       <div className="shrink-0 rounded-xl border overflow-hidden" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.85))',
