@@ -206,25 +206,44 @@ const ThemeDetail = () => {
       const folder = zip.folder(tag?.name || "theme");
       const promises: Promise<void>[] = [];
 
-      gymAssetMap.forEach((gymAssets, gymId) => {
-        const gym = gyms.find(g => g.id === gymId);
+      gyms.forEach(gym => {
+        if (!selectedGymIds.has(gym.id)) return;
 
-        gymAssets.forEach((ga, index) => {
-          const url = ga.assignment.file_url || ga.asset.file_url;
-          if (!url) return;
+        const gymInfo = gymDisplayMap.get(gym.id);
+        if (!gymInfo?.fileUrl) return;
 
-          promises.push(
-            getAssetBlob(url)
-              .then(blob => {
-                const ext = getFileExtension(url, ga.asset.filename);
-                const safeName = `${gym?.code || "unknown"}_${ga.asset.filename}`.replace(/[^a-zA-Z0-9._-]/g, "_");
-                folder!.file(`${safeName}_${index + 1}.${ext}`, blob);
-              })
-              .catch(() => {
-                // Continue zipping other assets even if one fails
-              })
-          );
-        });
+        if (gymInfo.hasThemeAsset) {
+          gymInfo.themeAssets.forEach((ga, index) => {
+            const url = ga.assignment.file_url || ga.asset.file_url;
+            if (!url) return;
+
+            promises.push(
+              getAssetBlob(url)
+                .then(blob => {
+                  const ext = getFileExtension(url, ga.asset.filename);
+                  const safeName = `${gym.code}_${ga.asset.filename}`.replace(/[^a-zA-Z0-9._-]/g, "_");
+                  folder!.file(`${safeName}_${index + 1}.${ext}`, blob);
+                })
+                .catch(() => {
+                  // Continue zipping other assets even if one fails
+                })
+            );
+          });
+          return;
+        }
+
+        promises.push(
+          getAssetBlob(gymInfo.fileUrl)
+            .then(blob => {
+              const fallbackName = gymInfo.fileName || `${gym.code}_logo`;
+              const ext = getFileExtension(gymInfo.fileUrl, fallbackName);
+              const safeName = `${gym.code}_${fallbackName}`.replace(/[^a-zA-Z0-9._-]/g, "_");
+              folder!.file(`${safeName}.${ext}`, blob);
+            })
+            .catch(() => {
+              // Continue zipping other assets even if one fails
+            })
+        );
       });
 
       await Promise.all(promises);
