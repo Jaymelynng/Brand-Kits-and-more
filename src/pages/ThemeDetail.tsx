@@ -429,16 +429,16 @@ const ThemeDetail = () => {
               return (
                 <div key={gym.id} className={cn(
                   "px-4 py-4 border-b flex flex-col gap-2 transition-all",
-                  !hasAsset && "opacity-70",
-                  hasAsset && !isSelectedForBulk && "opacity-75"
+                  !hasAsset && !isFallback && "opacity-70",
+                  (hasAsset || isFallback) && !isSelectedForBulk && "opacity-75"
                 )} style={{
                   borderColor: 'hsl(var(--brand-navy) / 0.2)',
                   background: hasAsset
                     ? (isSelectedForBulk
                         ? 'linear-gradient(180deg, hsl(var(--background)), hsl(var(--brand-blue-gray) / 0.18))'
                         : 'hsl(var(--muted) / 0.72)')
-                    : 'hsl(var(--destructive) / 0.08)',
-                  boxShadow: hasAsset && isSelectedForBulk
+                    : (isFallback ? 'hsl(var(--brand-blue-gray) / 0.22)' : 'hsl(var(--destructive) / 0.08)'),
+                  boxShadow: (hasAsset || isFallback) && isSelectedForBulk
                     ? 'inset 0 1px 0 hsl(var(--background)), 0 14px 26px -20px hsl(var(--brand-navy) / 0.75)'
                     : 'none',
                 }}>
