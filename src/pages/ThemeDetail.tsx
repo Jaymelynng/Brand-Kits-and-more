@@ -357,8 +357,12 @@ const ThemeDetail = () => {
               return (
                 <div key={gym.id} className={cn(
                   "px-4 py-4 border-b flex flex-col gap-2 transition-all",
-                  !hasAsset && "opacity-60"
-                )} style={{ borderColor: 'hsl(var(--border) / 0.5)' }}>
+                  !hasAsset && "opacity-70"
+                )} style={{
+                  borderColor: 'hsl(var(--border) / 0.6)',
+                  background: hasAsset ? 'linear-gradient(180deg, hsl(var(--card)), hsl(var(--muted) / 0.15))' : 'hsl(var(--muted) / 0.2)',
+                  boxShadow: hasAsset ? 'inset 0 1px 0 hsl(var(--background)), 0 10px 20px -16px hsl(var(--brand-navy) / 0.5)' : 'none',
+                }}>
                   {/* Top row: checkbox, badge, URL input, status, actions */}
                   <div className="flex items-center gap-3">
                     <Checkbox
