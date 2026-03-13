@@ -431,36 +431,50 @@ const ThemeDetail = () => {
 
           {/* Bottom Bulk Actions */}
           <div className="shrink-0 border-t flex" style={{ borderColor: 'hsl(var(--border))' }}>
-            <button className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent"
+            <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent disabled:opacity-50"
               style={{ color: 'hsl(var(--brand-navy))' }}
-              onClick={handleCopyAllUrls}
+              onClick={() => void handleCopyAllUrls()}
+              disabled={allUrls.length === 0 || bulkActionLoading === "copy"}
             >
-              <Copy className="w-3.5 h-3.5" /> Copy All
+              <Copy className="w-4 h-4" /> {bulkActionLoading === "copy" ? "Copying..." : "Copy All"}
             </button>
             <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
-            <button className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent"
+            <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-accent disabled:opacity-50"
               style={{ color: 'hsl(var(--brand-navy))' }}
-              onClick={handleDownloadAll}
-              disabled={downloading}
+              onClick={() => void handleDownloadAll()}
+              disabled={allUrls.length === 0 || downloading}
             >
-              <Download className="w-3.5 h-3.5" /> {downloading ? 'Zipping...' : 'Download All'}
+              <Download className="w-4 h-4" /> {downloading ? 'Zipping...' : 'Download All'}
             </button>
             <div className="w-px" style={{ background: 'hsl(var(--border))' }} />
-            <button className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-red-50"
+            <button className="flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-destructive/10 disabled:opacity-50"
               style={{ color: 'hsl(var(--destructive))' }}
-              disabled={!isAdmin}
+              disabled={!isAdmin || deleteAllLoading}
               onClick={async () => {
                 if (!categoryId) return;
-                // Delete all assignments for assets in this theme
                 const assetIds = Array.from(taggedAssetIds);
-                for (const aid of assetIds) {
-                  await supabase.from('gym_asset_assignments').delete().eq('asset_id', aid);
+                if (assetIds.length === 0) return;
+
+                setDeleteAllLoading(true);
+
+                try {
+                  const { error } = await supabase
+                    .from("gym_asset_assignments")
+                    .delete()
+                    .in("asset_id", assetIds);
+
+                  if (error) throw error;
+
+                  await refreshAssetAssignments();
+                  toast({ description: "All gym assignments removed" });
+                } catch {
+                  toast({ description: "Failed to remove all gym assignments", variant: "destructive" });
+                } finally {
+                  setDeleteAllLoading(false);
                 }
-                queryClient.invalidateQueries({ queryKey: ['all-assets-with-assignments'] });
-                toast({ description: "All gym assignments removed" });
               }}
             >
-              <Trash2 className="w-3.5 h-3.5" /> Delete All Gyms
+              <Trash2 className="w-4 h-4" /> {deleteAllLoading ? "Deleting..." : "Delete All Gyms"}
             </button>
           </div>
         </div>
