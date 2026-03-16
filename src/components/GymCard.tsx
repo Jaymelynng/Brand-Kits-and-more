@@ -21,6 +21,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   const [uploadProgress, setUploadProgress] = useState<{ total: number; completed: number } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const updateColorMutation = useUpdateGymColor();
@@ -84,7 +85,48 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   };
 
   const triggerFileUpload = () => {
-    fileInputRef.current?.click();
+    // If a main logo exists, use the replace input (which will swap the logo)
+    if (mainLogo) {
+      replaceInputRef.current?.click();
+    } else {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleReplaceMainLogo = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    
+    const file = files[0]; // Only take first file for replacement
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Invalid File", description: `"${file.name}" is not a valid image file.`, variant: "destructive" });
+      event.target.value = '';
+      return;
+    }
+
+    if (!mainLogo) return;
+
+    // Delete old main logo, then upload new one as main
+    deleteLogoMutation.mutate(mainLogo.id, {
+      onSuccess: () => {
+        uploadLogoMutation.mutate(
+          { gymId: gym.id, file, isMain: true },
+          {
+            onSuccess: () => {
+              toast({ description: `Logo replaced with "${file.name}"!`, duration: 2000 });
+            },
+            onError: (error: any) => {
+              toast({ title: "Upload Failed", description: error?.message || "Failed to upload replacement logo.", variant: "destructive" });
+            },
+          }
+        );
+      },
+      onError: (error: any) => {
+        toast({ title: "Delete Failed", description: "Could not remove old logo before replacing.", variant: "destructive" });
+      },
+    });
+
+    event.target.value = '';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -282,12 +324,13 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
 
           {/* Profile Button — directly under logo */}
           <Link to={`/gym/${gym.code}`} className="block w-full mb-2">
-            <Button className="w-full h-11 text-sm text-white font-bold"
+            <Button className="w-full h-14 text-base text-white font-extrabold tracking-wide uppercase"
                     style={{
-                      background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 90%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 75%, black))`,
-                      boxShadow: `0 3px 6px ${primaryColor}44, inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.15)`
+                      background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 85%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 65%, black))`,
+                      boxShadow: `0 4px 12px ${primaryColor}66, inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 0 rgba(0,0,0,0.2)`,
+                      letterSpacing: '0.08em',
                     }}>
-              <Eye className="w-4 h-4 mr-1.5" />
+              <Eye className="w-5 h-5 mr-2" />
               Profile
             </Button>
           </Link>
@@ -478,6 +521,13 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             multiple
             accept="image/*"
             onChange={handleFileUpload}
+            className="hidden"
+          />
+          <Input
+            ref={replaceInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleReplaceMainLogo}
             className="hidden"
           />
         </BrandCardContent>
