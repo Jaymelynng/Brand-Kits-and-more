@@ -21,6 +21,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   const [uploadProgress, setUploadProgress] = useState<{ total: number; completed: number } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const updateColorMutation = useUpdateGymColor();
