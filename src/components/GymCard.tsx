@@ -338,7 +338,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           <div className="w-full space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <Button
-                onClick={() => copyGymColors(true)}
+                onClick={copyColorsWithName}
                 variant="outline"
                 size="sm"
                 className="h-9 text-xs text-white font-semibold"
@@ -349,10 +349,10 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 }}
               >
                 <Copy className="w-3 h-3 mr-1" />
-                Copy #
+                w/ Name
               </Button>
               <Button
-                onClick={() => copyGymColors(false)}
+                onClick={copyColorsHexOnly}
                 variant="outline"
                 size="sm"
                 className="h-9 text-xs font-semibold"
@@ -364,7 +364,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 }}
               >
                 <Copy className="w-3 h-3 mr-1" />
-                Copy HEX
+                HEX Only
               </Button>
             </div>
 
