@@ -523,6 +523,13 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             onChange={handleFileUpload}
             className="hidden"
           />
+          <Input
+            ref={replaceInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleReplaceMainLogo}
+            className="hidden"
+          />
         </BrandCardContent>
       </BrandCard>
     </GymColorProvider>
