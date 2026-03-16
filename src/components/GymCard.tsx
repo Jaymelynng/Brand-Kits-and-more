@@ -41,23 +41,19 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
     }, 2000);
   };
 
-  const copyColor = (colorCode: string, includeHash: boolean = true) => {
-    const textToCopy = includeHash ? colorCode : colorCode.replace('#', '');
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      const message = includeHash ? 'Copied with #!' : 'Copied HEX!';
-      showCopyFeedback(`${colorCode}-${includeHash}`, message);
+  const copyColorsWithName = () => {
+    const colors = gym.colors.map(color => color.color_hex);
+    const colorText = `${gym.name} (${gym.code}):\n${colors.join('\n')}`;
+    navigator.clipboard.writeText(colorText).then(() => {
+      showCopyFeedback(`gym-${gym.code}-name`, `${gym.code} colors copied with name!`);
     });
   };
 
-  const copyGymColors = (includeHash: boolean = true) => {
-    const colors = gym.colors.map(color => 
-      includeHash ? color.color_hex : color.color_hex.replace('#', '')
-    );
-    const colorText = `${gym.name} (${gym.code}):\n${colors.join('\n')}`;
-    
+  const copyColorsHexOnly = () => {
+    const colors = gym.colors.map(color => color.color_hex);
+    const colorText = colors.join('\n');
     navigator.clipboard.writeText(colorText).then(() => {
-      const message = includeHash ? `${gym.code} Colors Copied!` : `${gym.code} Colors Copied (No #)!`;
-      showCopyFeedback(`gym-${gym.code}-${includeHash}`, message);
+      showCopyFeedback(`gym-${gym.code}-hex`, `${gym.code} hex codes copied!`);
     });
   };
 
@@ -342,7 +338,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
           <div className="w-full space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <Button
-                onClick={() => copyGymColors(true)}
+                onClick={copyColorsWithName}
                 variant="outline"
                 size="sm"
                 className="h-9 text-xs text-white font-semibold"
@@ -353,10 +349,10 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 }}
               >
                 <Copy className="w-3 h-3 mr-1" />
-                Copy #
+                w/ Name
               </Button>
               <Button
-                onClick={() => copyGymColors(false)}
+                onClick={copyColorsHexOnly}
                 variant="outline"
                 size="sm"
                 className="h-9 text-xs font-semibold"
@@ -368,7 +364,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 }}
               >
                 <Copy className="w-3 h-3 mr-1" />
-                Copy HEX
+                HEX Only
               </Button>
             </div>
 
