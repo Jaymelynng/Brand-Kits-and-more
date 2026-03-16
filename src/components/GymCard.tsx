@@ -85,7 +85,48 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   };
 
   const triggerFileUpload = () => {
-    fileInputRef.current?.click();
+    // If a main logo exists, use the replace input (which will swap the logo)
+    if (mainLogo) {
+      replaceInputRef.current?.click();
+    } else {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleReplaceMainLogo = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    
+    const file = files[0]; // Only take first file for replacement
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Invalid File", description: `"${file.name}" is not a valid image file.`, variant: "destructive" });
+      event.target.value = '';
+      return;
+    }
+
+    if (!mainLogo) return;
+
+    // Delete old main logo, then upload new one as main
+    deleteLogoMutation.mutate(mainLogo.id, {
+      onSuccess: () => {
+        uploadLogoMutation.mutate(
+          { gymId: gym.id, file, isMain: true },
+          {
+            onSuccess: () => {
+              toast({ description: `Logo replaced with "${file.name}"!`, duration: 2000 });
+            },
+            onError: (error: any) => {
+              toast({ title: "Upload Failed", description: error?.message || "Failed to upload replacement logo.", variant: "destructive" });
+            },
+          }
+        );
+      },
+      onError: (error: any) => {
+        toast({ title: "Delete Failed", description: "Could not remove old logo before replacing.", variant: "destructive" });
+      },
+    });
+
+    event.target.value = '';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
