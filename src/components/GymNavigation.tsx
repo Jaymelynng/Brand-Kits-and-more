@@ -94,7 +94,7 @@ export const GymNavigation = ({
               boxShadow: '0 4px 14px rgba(180,143,143,0.5), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)',
             }}
           >
-            {selectedCount > 0 ? `Copy (${selectedCount})` : 'Copy All'}
+            {selectedCount > 0 ? `Copy Colors (${selectedCount})` : 'Copy All Colors'}
           </Button>
 
           {/* Separator */}
