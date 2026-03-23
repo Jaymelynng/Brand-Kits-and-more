@@ -92,24 +92,40 @@ export const GymNavigation = ({
           background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.25), hsl(var(--brand-rose-gold) / 0.15))',
           border: '1px solid hsl(var(--brand-rose-gold) / 0.3)'
         }}>
-          {/* Clear - only show when gyms are selected */}
-          {selectedCount > 0 && (
-            <Button
-              onClick={onDeselectAllGyms}
-              size="sm"
-              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
-              style={{
-                borderColor: '#94a3b8',
-                color: '#1e3a5f',
-                background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
-              }}
-            >
-              Clear
-            </Button>
-          )}
+          {/* Select All */}
+          <Button
+            onClick={onSelectAllGyms}
+            size="sm"
+            className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
+            style={{
+              borderColor: '#94a3b8',
+              color: '#1e3a5f',
+              background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
+            }}
+          >
+            Select All
+          </Button>
 
-          {/* Smart Copy Button - shows "Copy All" or "Copy (X)" based on selection */}
+          {/* Clear All */}
+          <Button
+            onClick={onDeselectAllGyms}
+            size="sm"
+            className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
+            style={{
+              borderColor: '#94a3b8',
+              color: '#1e3a5f',
+              background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
+            }}
+          >
+            Clear All
+          </Button>
+
+          {/* Separator */}
+          <div className="h-8 w-px" style={{ background: 'hsl(var(--brand-rose-gold) / 0.4)' }} />
+
+          {/* Smart Copy Button */}
           <Button
             onClick={selectedCount > 0 ? onCopySelected : onCopyAll}
             size="sm"
