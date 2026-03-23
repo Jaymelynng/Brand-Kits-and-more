@@ -146,39 +146,63 @@ export const GymNavigation = ({
           {gyms.map((gym) => {
             const isSelected = selectedGyms.has(gym.code);
             const primaryColor = gym.colors[0]?.color_hex || '#667eea';
+            const mainLogo = gym.logos.find(l => l.is_main_logo);
+            const logoUrl = mainLogo?.file_url || gym.logos[0]?.file_url;
 
             return (
               <div
                 key={gym.id}
+                onClick={() => onToggleGymSelection(gym.code)}
                 className={cn(
-                  "flex flex-col items-center gap-1.5 px-4 py-2",
-                  "rounded-xl border-2 transition-all duration-300",
-                  "backdrop-blur-sm"
+                  "flex flex-col items-center gap-1 px-2 py-2 cursor-pointer",
+                  "rounded-xl transition-all duration-300 relative",
+                  isSelected ? "scale-105" : "opacity-70 hover:opacity-100"
                 )}
                 style={{
-                  borderColor: isSelected ? primaryColor : 'hsl(var(--brand-rose-gold) / 0.4)',
+                  border: isSelected ? `3px solid ${primaryColor}` : '2px solid hsl(var(--brand-rose-gold) / 0.3)',
                   background: '#ffffff',
                   boxShadow: isSelected 
-                    ? `0 4px 15px ${primaryColor}35, 0 2px 6px rgba(0,0,0,0.12)` 
-                    : '0 3px 10px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.08)'
+                    ? `0 4px 15px ${primaryColor}40, 0 2px 6px rgba(0,0,0,0.15)` 
+                    : '0 2px 8px rgba(0,0,0,0.08)',
+                  minWidth: '56px'
                 }}
+                title={`${isSelected ? 'Deselect' : 'Select'} ${gym.name}`}
               >
-                {/* Gym code - click to navigate to profile */}
-                <button
-                  onClick={() => navigate(`/gym/${gym.code}`)}
-                  className="text-xs font-bold tracking-wider hover:underline hover:scale-105 transition-all"
-                  style={{ color: primaryColor }}
+                {/* Checkmark badge */}
+                {isSelected && (
+                  <div
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center z-10"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    <Check className="w-3 h-3 text-white" />
+                  </div>
+                )}
+
+                {/* Logo thumbnail */}
+                <div className="w-10 h-10 flex items-center justify-center rounded-lg overflow-hidden">
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt={gym.code}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center rounded-lg text-xs font-bold text-white"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      {gym.code}
+                    </div>
+                  )}
+                </div>
+
+                {/* Gym code */}
+                <span
+                  className="text-[10px] font-bold tracking-wider"
+                  style={{ color: isSelected ? primaryColor : 'hsl(var(--brand-navy) / 0.6)' }}
                 >
                   {gym.code}
-                </button>
-
-                {/* Diamond - click to toggle selection */}
-                <DiamondSelector
-                  gymCode={gym.code}
-                  isSelected={isSelected}
-                  primaryColor={primaryColor}
-                  onToggle={() => onToggleGymSelection(gym.code)}
-                />
+                </span>
               </div>
             );
           })}
