@@ -46,11 +46,12 @@ export const GymNavigation = ({
         background: 'linear-gradient(to bottom, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.12))',
         borderBottom: '2px solid hsl(var(--brand-rose-gold) / 0.25)'
       }}>
-        <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--brand-navy))' }}>
-          🏆 Gym Brand Kit Database
+        <h1 className="text-xl font-bold flex items-center justify-center gap-2" style={{ color: 'hsl(var(--brand-navy))' }}>
+          <Palette className="w-5 h-5" />
+          Bulk Color Copy Station
         </h1>
         <p className="text-xs" style={{ color: 'hsl(var(--brand-navy) / 0.7)' }}>
-          Select gyms to copy their brand info
+          Select gyms below, then copy their brand colors
         </p>
       </div>
 
