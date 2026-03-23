@@ -42,17 +42,44 @@ export const GymNavigation = ({
   return (
     <>
       {/* Main Title Section */}
-      <div className="text-center py-2 px-6 shadow-sm" style={{ 
+      <div className="flex items-center justify-between py-2 px-6 shadow-sm" style={{ 
         background: 'linear-gradient(to bottom, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.12))',
         borderBottom: '2px solid hsl(var(--brand-rose-gold) / 0.25)'
       }}>
-        <h1 className="text-xl font-bold flex items-center justify-center gap-2" style={{ color: 'hsl(var(--brand-navy))' }}>
-          <Palette className="w-5 h-5" />
-          Bulk Color Copy Station
-        </h1>
-        <p className="text-xs" style={{ color: 'hsl(var(--brand-navy) / 0.7)' }}>
-          Select gyms below, then copy their brand colors
-        </p>
+        <div className="flex-1" />
+        <div className="text-center">
+          <h1 className="text-xl font-bold flex items-center justify-center gap-2" style={{ color: 'hsl(var(--brand-navy))' }}>
+            <Palette className="w-5 h-5" />
+            Bulk Color Copy Station
+          </h1>
+          <p className="text-xs" style={{ color: 'hsl(var(--brand-navy) / 0.7)' }}>
+            Select gyms below, then copy their brand colors
+          </p>
+        </div>
+        <div className="flex-1 flex items-center justify-end gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => navigate('/themes')}
+            className="text-xs px-2 py-1 h-7 opacity-60 hover:opacity-100"
+            style={{ color: 'hsl(var(--brand-navy))' }}
+          >
+            <Layers className="w-3.5 h-3.5 mr-1" />
+            Themes
+          </Button>
+          {isAdmin && <SecretAdminButton onClick={onAdminClick} />}
+          {user && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onSignOut}
+              className="text-xs px-2 py-1 h-7 opacity-60 hover:opacity-100"
+              style={{ color: 'hsl(var(--brand-navy))' }}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Selection Dashboard */}
