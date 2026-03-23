@@ -157,7 +157,7 @@ export const GymNavigation = ({
                 key={gym.id}
                 onClick={() => onToggleGymSelection(gym.code)}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-2 py-2 cursor-pointer",
+                  "group flex flex-col items-center gap-1 px-2 py-2 cursor-pointer",
                   "rounded-xl transition-all duration-300 relative",
                   isSelected ? "scale-105" : "opacity-70 hover:opacity-100"
                 )}
@@ -181,6 +181,19 @@ export const GymNavigation = ({
                   </div>
                 )}
 
+                {/* Profile link overlay */}
+                <div
+                  className="absolute bottom-6 right-0.5 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 cursor-pointer"
+                  style={{ backgroundColor: primaryColor }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/gym/${gym.code}`);
+                  }}
+                  title={`Go to ${gym.name} profile`}
+                >
+                  <ExternalLink className="w-3 h-3 text-white" />
+                </div>
+
                 {/* Logo thumbnail */}
                 <div className="w-10 h-10 flex items-center justify-center rounded-lg overflow-hidden">
                   {logoUrl ? (
@@ -199,10 +212,15 @@ export const GymNavigation = ({
                   )}
                 </div>
 
-                {/* Gym code */}
+                {/* Gym code - clicks to scroll */}
                 <span
-                  className="text-[10px] font-bold tracking-wider"
+                  className="text-[10px] font-bold tracking-wider cursor-pointer hover:underline"
                   style={{ color: isSelected ? primaryColor : 'hsl(var(--brand-navy) / 0.6)' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onScrollToGym(gym.code);
+                  }}
+                  title={`Scroll to ${gym.code} card`}
                 >
                   {gym.code}
                 </span>
