@@ -42,17 +42,44 @@ export const GymNavigation = ({
   return (
     <>
       {/* Main Title Section */}
-      <div className="text-center py-2 px-6 shadow-sm" style={{ 
+      <div className="flex items-center justify-between py-2 px-6 shadow-sm" style={{ 
         background: 'linear-gradient(to bottom, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.12))',
         borderBottom: '2px solid hsl(var(--brand-rose-gold) / 0.25)'
       }}>
-        <h1 className="text-xl font-bold flex items-center justify-center gap-2" style={{ color: 'hsl(var(--brand-navy))' }}>
-          <Palette className="w-5 h-5" />
-          Bulk Color Copy Station
-        </h1>
-        <p className="text-xs" style={{ color: 'hsl(var(--brand-navy) / 0.7)' }}>
-          Select gyms below, then copy their brand colors
-        </p>
+        <div className="flex-1" />
+        <div className="text-center">
+          <h1 className="text-xl font-bold flex items-center justify-center gap-2" style={{ color: 'hsl(var(--brand-navy))' }}>
+            <Palette className="w-5 h-5" />
+            Bulk Color Copy Station
+          </h1>
+          <p className="text-xs" style={{ color: 'hsl(var(--brand-navy) / 0.7)' }}>
+            Select gyms below, then copy their brand colors
+          </p>
+        </div>
+        <div className="flex-1 flex items-center justify-end gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => navigate('/themes')}
+            className="text-xs px-2 py-1 h-7 opacity-60 hover:opacity-100"
+            style={{ color: 'hsl(var(--brand-navy))' }}
+          >
+            <Layers className="w-3.5 h-3.5 mr-1" />
+            Themes
+          </Button>
+          {isAdmin && <SecretAdminButton onClick={onAdminClick} />}
+          {user && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onSignOut}
+              className="text-xs px-2 py-1 h-7 opacity-60 hover:opacity-100"
+              style={{ color: 'hsl(var(--brand-navy))' }}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Selection Dashboard */}
@@ -96,46 +123,6 @@ export const GymNavigation = ({
           >
             {selectedCount > 0 ? `Copy Colors (${selectedCount})` : 'Copy All Colors'}
           </Button>
-
-          {/* Separator */}
-          <div className="h-8 w-px" style={{ background: 'hsl(var(--brand-rose-gold) / 0.4)' }} />
-
-          {/* Navigation Group */}
-          <div className="flex items-center gap-3">
-            <Button
-              size="sm"
-              onClick={() => navigate('/themes')}
-              className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
-              style={{
-                borderColor: 'hsl(var(--brand-blue-gray))',
-                color: 'hsl(var(--brand-navy))',
-                background: 'linear-gradient(135deg, #f8fafc, hsl(var(--brand-blue-gray) / 0.2))',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-              }}
-            >
-              <Layers className="w-4 h-4 mr-1" />
-              Themes
-            </Button>
-            {isAdmin && <SecretAdminButton onClick={onAdminClick} />}
-            
-            {user && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onSignOut}
-                className="px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02]"
-                style={{
-                  borderColor: 'hsl(var(--brand-navy) / 0.25)',
-                  color: 'hsl(var(--brand-navy))',
-                  background: 'linear-gradient(135deg, white, hsl(var(--brand-blue-gray) / 0.1))',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
-                }}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
-            )}
-          </div>
         </div>
 
         {/* Gym Navigation Grid */}
