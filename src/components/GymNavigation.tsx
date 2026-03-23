@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { SecretAdminButton } from "./SecretAdminButton";
-import { LogOut, Layers, Palette, Check } from "lucide-react";
+import { LogOut, Layers, Palette, Check, ExternalLink } from "lucide-react";
 import { GymWithColors } from "@/hooks/useGyms";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
