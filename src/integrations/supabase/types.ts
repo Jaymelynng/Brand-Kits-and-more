@@ -453,6 +453,63 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_brand_colors: {
+        Row: {
+          color_hex: string
+          color_name: string | null
+          created_at: string | null
+          id: string
+          order_index: number
+        }
+        Insert: {
+          color_hex: string
+          color_name?: string | null
+          created_at?: string | null
+          id?: string
+          order_index?: number
+        }
+        Update: {
+          color_hex?: string
+          color_name?: string | null
+          created_at?: string | null
+          id?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
+      personal_brand_info: {
+        Row: {
+          body_font: string | null
+          brand_name: string | null
+          heading_font: string | null
+          id: string
+          notes: string | null
+          subheading_font: string | null
+          tagline: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          body_font?: string | null
+          brand_name?: string | null
+          heading_font?: string | null
+          id?: string
+          notes?: string | null
+          subheading_font?: string | null
+          tagline?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          body_font?: string | null
+          brand_name?: string | null
+          heading_font?: string | null
+          id?: string
+          notes?: string | null
+          subheading_font?: string | null
+          tagline?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       theme_tags: {
         Row: {
           created_at: string | null

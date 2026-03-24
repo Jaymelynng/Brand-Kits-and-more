@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Users, Building2, Database, Shield, Pencil, Check, X,
-  MapPin, Phone, Mail, Globe, ExternalLink, PlusCircle, Trash2, Search
+  MapPin, Phone, Mail, Globe, ExternalLink, PlusCircle, Trash2, Search, Sparkles
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { AddGymModal } from "@/components/AddGymModal";
@@ -186,6 +186,14 @@ const Admin = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/my-brand')}
+            className="border-[#b48f8f]/40 text-[#b48f8f] hover:bg-[#b48f8f]/10"
+          >
+            <Sparkles className="w-4 h-4 mr-1" /> My Brand
+          </Button>
           {tabs.map(tab => (
             <Button
               key={tab.id}
