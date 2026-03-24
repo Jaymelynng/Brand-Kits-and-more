@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Themes from "./pages/Themes";
 import ThemeDetail from "./pages/ThemeDetail";
 import Admin from "./pages/Admin";
+import MyBrand from "./pages/MyBrand";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
