@@ -458,6 +458,24 @@ export const useUpdateHeroVideo = () => {
   });
 };
 
+export const useUpdateGymInfo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ gymId, updates }: { gymId: string; updates: { address?: string | null; phone?: string | null; email?: string | null; website?: string | null } }) => {
+      const { error } = await supabase
+        .from('gyms')
+        .update(updates)
+        .eq('id', gymId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
 export const useUploadHeroVideo = () => {
   const queryClient = useQueryClient();
 
