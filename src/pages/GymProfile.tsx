@@ -1,10 +1,10 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo } from "@/hooks/useGyms";
 import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Settings } from "lucide-react";
+import { Settings, MapPin, Phone, Mail, Globe, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser } from "lucide-react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser, Check } from "lucide-react";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -79,6 +79,9 @@ const GymProfile = () => {
   const [removingBgLogoId, setRemovingBgLogoId] = useState<string | null>(null);
   const [assetModalOpen, setAssetModalOpen] = useState(false);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editingFieldValue, setEditingFieldValue] = useState('');
+  const updateGymInfoMutation = useUpdateGymInfo();
 
   // Find the gym_asset id for a gym_logo by matching file_url
   const openAssetModal = (logoFileUrl: string) => {
@@ -885,6 +888,179 @@ const GymProfile = () => {
               </div>
             </SheetContent>
           </Sheet>
+
+          {/* Gym Info Card */}
+          <div className="max-w-6xl mx-auto mb-8">
+            <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35` }}>
+              <BrandCardContent className="p-5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Address */}
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Address</div>
+                      {editingField === 'address' ? (
+                        <div className="flex gap-1">
+                          <Input 
+                            value={editingFieldValue} 
+                            onChange={(e) => setEditingFieldValue(e.target.value)}
+                            className="h-7 text-xs"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                updateGymInfoMutation.mutate({ gymId: gym.id, updates: { address: editingFieldValue || null } }, {
+                                  onSuccess: () => { setEditingField(null); toast({ description: 'Address updated!' }); }
+                                });
+                              }
+                              if (e.key === 'Escape') setEditingField(null);
+                            }}
+                          />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                            updateGymInfoMutation.mutate({ gymId: gym.id, updates: { address: editingFieldValue || null } }, {
+                              onSuccess: () => { setEditingField(null); toast({ description: 'Address updated!' }); }
+                            });
+                          }}><Check className="w-3 h-3" /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 group">
+                          {gym.address ? (
+                            <a href={`https://maps.google.com/?q=${encodeURIComponent(gym.address)}`} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground hover:underline truncate">{gym.address}</a>
+                          ) : (
+                            <span className="text-sm text-muted-foreground/50">Not set</span>
+                          )}
+                          {isAdmin && <button onClick={() => { setEditingField('address'); setEditingFieldValue(gym.address || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Phone */}
+                  <div className="flex items-start gap-2">
+                    <Phone className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Phone</div>
+                      {editingField === 'phone' ? (
+                        <div className="flex gap-1">
+                          <Input 
+                            value={editingFieldValue} 
+                            onChange={(e) => setEditingFieldValue(e.target.value)}
+                            className="h-7 text-xs"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                updateGymInfoMutation.mutate({ gymId: gym.id, updates: { phone: editingFieldValue || null } }, {
+                                  onSuccess: () => { setEditingField(null); toast({ description: 'Phone updated!' }); }
+                                });
+                              }
+                              if (e.key === 'Escape') setEditingField(null);
+                            }}
+                          />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                            updateGymInfoMutation.mutate({ gymId: gym.id, updates: { phone: editingFieldValue || null } }, {
+                              onSuccess: () => { setEditingField(null); toast({ description: 'Phone updated!' }); }
+                            });
+                          }}><Check className="w-3 h-3" /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 group">
+                          {gym.phone ? (
+                            <a href={`tel:${gym.phone}`} className="text-sm text-foreground hover:underline">{gym.phone}</a>
+                          ) : (
+                            <span className="text-sm text-muted-foreground/50">Not set</span>
+                          )}
+                          {isAdmin && <button onClick={() => { setEditingField('phone'); setEditingFieldValue(gym.phone || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div className="flex items-start gap-2">
+                    <Mail className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Email</div>
+                      {editingField === 'email' ? (
+                        <div className="flex gap-1">
+                          <Input 
+                            value={editingFieldValue} 
+                            onChange={(e) => setEditingFieldValue(e.target.value)}
+                            className="h-7 text-xs"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                updateGymInfoMutation.mutate({ gymId: gym.id, updates: { email: editingFieldValue || null } }, {
+                                  onSuccess: () => { setEditingField(null); toast({ description: 'Email updated!' }); }
+                                });
+                              }
+                              if (e.key === 'Escape') setEditingField(null);
+                            }}
+                          />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                            updateGymInfoMutation.mutate({ gymId: gym.id, updates: { email: editingFieldValue || null } }, {
+                              onSuccess: () => { setEditingField(null); toast({ description: 'Email updated!' }); }
+                            });
+                          }}><Check className="w-3 h-3" /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 group">
+                          {gym.email ? (
+                            <a href={`mailto:${gym.email}`} className="text-sm text-foreground hover:underline truncate">{gym.email}</a>
+                          ) : (
+                            <span className="text-sm text-muted-foreground/50">Not set</span>
+                          )}
+                          {isAdmin && <button onClick={() => { setEditingField('email'); setEditingFieldValue(gym.email || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Website */}
+                  <div className="flex items-start gap-2">
+                    <Globe className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Website</div>
+                      {editingField === 'website' ? (
+                        <div className="flex gap-1">
+                          <Input 
+                            value={editingFieldValue} 
+                            onChange={(e) => setEditingFieldValue(e.target.value)}
+                            className="h-7 text-xs"
+                            placeholder="https://..."
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                updateGymInfoMutation.mutate({ gymId: gym.id, updates: { website: editingFieldValue || null } }, {
+                                  onSuccess: () => { setEditingField(null); toast({ description: 'Website updated!' }); }
+                                });
+                              }
+                              if (e.key === 'Escape') setEditingField(null);
+                            }}
+                          />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                            updateGymInfoMutation.mutate({ gymId: gym.id, updates: { website: editingFieldValue || null } }, {
+                              onSuccess: () => { setEditingField(null); toast({ description: 'Website updated!' }); }
+                            });
+                          }}><Check className="w-3 h-3" /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 group">
+                          {gym.website ? (
+                            <a href={gym.website.startsWith('http') ? gym.website : `https://${gym.website}`} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground hover:underline truncate flex items-center gap-1">
+                              {gym.website.replace(/^https?:\/\//, '')}
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                            </a>
+                          ) : (
+                            <span className="text-sm text-muted-foreground/50">Not set</span>
+                          )}
+                          {isAdmin && <button onClick={() => { setEditingField('website'); setEditingFieldValue(gym.website || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </BrandCardContent>
+            </BrandCard>
+          </div>
 
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
