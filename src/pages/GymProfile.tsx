@@ -79,6 +79,9 @@ const GymProfile = () => {
   const [removingBgLogoId, setRemovingBgLogoId] = useState<string | null>(null);
   const [assetModalOpen, setAssetModalOpen] = useState(false);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editingFieldValue, setEditingFieldValue] = useState('');
+  const updateGymInfoMutation = useUpdateGymInfo();
 
   // Find the gym_asset id for a gym_logo by matching file_url
   const openAssetModal = (logoFileUrl: string) => {
