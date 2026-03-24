@@ -1006,9 +1006,9 @@ const GymProfile = () => {
                           {gym.email ? (
                             <a href={`mailto:${gym.email}`} className="text-sm text-foreground hover:underline truncate">{gym.email}</a>
                           ) : (
-                            <span className="text-sm text-muted-foreground/50">Not set</span>
+                            <button onClick={() => isAdmin && (() => { setEditingField('email'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add email' : 'Not set'}</button>
                           )}
-                          {isAdmin && <button onClick={() => { setEditingField('email'); setEditingFieldValue(gym.email || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                          {isAdmin && gym.email && <button onClick={() => { setEditingField('email'); setEditingFieldValue(gym.email || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
                         </div>
                       )}
                     </div>
