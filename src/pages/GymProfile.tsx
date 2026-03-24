@@ -926,9 +926,9 @@ const GymProfile = () => {
                           {gym.address ? (
                             <a href={`https://maps.google.com/?q=${encodeURIComponent(gym.address)}`} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground hover:underline truncate">{gym.address}</a>
                           ) : (
-                            <span className="text-sm text-muted-foreground/50">Not set</span>
+                            <button onClick={() => isAdmin && (() => { setEditingField('address'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add address' : 'Not set'}</button>
                           )}
-                          {isAdmin && <button onClick={() => { setEditingField('address'); setEditingFieldValue(gym.address || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                          {isAdmin && gym.address && <button onClick={() => { setEditingField('address'); setEditingFieldValue(gym.address || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
                         </div>
                       )}
                     </div>
