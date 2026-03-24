@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Users, Building2, Database, Shield, Pencil, Check, X,
-  MapPin, Phone, Mail, Globe, ExternalLink, PlusCircle, Trash2, Search
+  MapPin, Phone, Mail, Globe, ExternalLink, PlusCircle, Trash2, Search, Sparkles
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { AddGymModal } from "@/components/AddGymModal";
