@@ -1050,9 +1050,9 @@ const GymProfile = () => {
                               <ExternalLink className="w-3 h-3 shrink-0" />
                             </a>
                           ) : (
-                            <span className="text-sm text-muted-foreground/50">Not set</span>
+                            <button onClick={() => isAdmin && (() => { setEditingField('website'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add website' : 'Not set'}</button>
                           )}
-                          {isAdmin && <button onClick={() => { setEditingField('website'); setEditingFieldValue(gym.website || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                          {isAdmin && gym.website && <button onClick={() => { setEditingField('website'); setEditingFieldValue(gym.website || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
                         </div>
                       )}
                     </div>
