@@ -53,24 +53,24 @@ export const AdminToolkit = ({
         </SheetHeader>
 
         <div className="mt-8 space-y-6">
-          {/* Grant Admin Access Section */}
+          {/* Admin Dashboard Link */}
           <div className="p-4 border rounded-lg" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.3)' }}>
             <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
               <Shield className="w-5 h-5" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
-              Grant Admin Access
+              Admin Dashboard
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Admin privileges are managed via PIN authentication
+              Full admin area to manage gyms, users, and bulk data
             </p>
             <Button 
-              onClick={handleGrantAdmin}
+              onClick={() => { navigate('/admin'); onClose(); }}
               className="w-full"
               style={{ 
                 background: 'hsl(var(--brand-rose-gold))',
                 color: 'white'
               }}
             >
-              Contact Administrator
+              Open Admin Dashboard
             </Button>
           </div>
 
