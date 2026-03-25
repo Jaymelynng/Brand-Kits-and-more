@@ -4,7 +4,7 @@ import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Settings, MapPin, Phone, Mail, Globe, ExternalLink, ClipboardList } from "lucide-react";
+import { Settings, MapPin, Phone, Mail, Globe, ExternalLink, ClipboardList, Facebook, Instagram } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -893,7 +893,7 @@ const GymProfile = () => {
           <div className="max-w-6xl mx-auto mb-8">
             <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35` }}>
               <BrandCardContent className="p-5">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {/* Address */}
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
@@ -1053,6 +1053,94 @@ const GymProfile = () => {
                             <button onClick={() => isAdmin && (() => { setEditingField('website'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add website' : 'Not set'}</button>
                           )}
                           {isAdmin && gym.website && <button onClick={() => { setEditingField('website'); setEditingFieldValue(gym.website || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Facebook */}
+                  <div className="flex items-start gap-2">
+                    <Facebook className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Facebook</div>
+                      {editingField === 'facebook_url' ? (
+                        <div className="flex gap-1">
+                          <Input 
+                            value={editingFieldValue} 
+                            onChange={(e) => setEditingFieldValue(e.target.value)}
+                            className="h-7 text-xs"
+                            placeholder="https://facebook.com/..."
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                updateGymInfoMutation.mutate({ gymId: gym.id, updates: { facebook_url: editingFieldValue || null } }, {
+                                  onSuccess: () => { setEditingField(null); toast({ description: 'Facebook updated!' }); }
+                                });
+                              }
+                              if (e.key === 'Escape') setEditingField(null);
+                            }}
+                          />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                            updateGymInfoMutation.mutate({ gymId: gym.id, updates: { facebook_url: editingFieldValue || null } }, {
+                              onSuccess: () => { setEditingField(null); toast({ description: 'Facebook updated!' }); }
+                            });
+                          }}><Check className="w-3 h-3" /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 group">
+                          {(gym as any).facebook_url ? (
+                            <a href={(gym as any).facebook_url.startsWith('http') ? (gym as any).facebook_url : `https://${(gym as any).facebook_url}`} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground hover:underline truncate flex items-center gap-1">
+                              {(gym as any).facebook_url.replace(/^https?:\/\/(www\.)?facebook\.com\//, '')}
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                            </a>
+                          ) : (
+                            <button onClick={() => isAdmin && (() => { setEditingField('facebook_url'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add Facebook' : 'Not set'}</button>
+                          )}
+                          {isAdmin && (gym as any).facebook_url && <button onClick={() => { setEditingField('facebook_url'); setEditingFieldValue((gym as any).facebook_url || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Instagram */}
+                  <div className="flex items-start gap-2">
+                    <Instagram className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Instagram</div>
+                      {editingField === 'instagram_url' ? (
+                        <div className="flex gap-1">
+                          <Input 
+                            value={editingFieldValue} 
+                            onChange={(e) => setEditingFieldValue(e.target.value)}
+                            className="h-7 text-xs"
+                            placeholder="https://instagram.com/..."
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                updateGymInfoMutation.mutate({ gymId: gym.id, updates: { instagram_url: editingFieldValue || null } }, {
+                                  onSuccess: () => { setEditingField(null); toast({ description: 'Instagram updated!' }); }
+                                });
+                              }
+                              if (e.key === 'Escape') setEditingField(null);
+                            }}
+                          />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                            updateGymInfoMutation.mutate({ gymId: gym.id, updates: { instagram_url: editingFieldValue || null } }, {
+                              onSuccess: () => { setEditingField(null); toast({ description: 'Instagram updated!' }); }
+                            });
+                          }}><Check className="w-3 h-3" /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 group">
+                          {(gym as any).instagram_url ? (
+                            <a href={(gym as any).instagram_url.startsWith('http') ? (gym as any).instagram_url : `https://${(gym as any).instagram_url}`} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground hover:underline truncate flex items-center gap-1">
+                              {(gym as any).instagram_url.replace(/^https?:\/\/(www\.)?instagram\.com\//, '@')}
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                            </a>
+                          ) : (
+                            <button onClick={() => isAdmin && (() => { setEditingField('instagram_url'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add Instagram' : 'Not set'}</button>
+                          )}
+                          {isAdmin && (gym as any).instagram_url && <button onClick={() => { setEditingField('instagram_url'); setEditingFieldValue((gym as any).instagram_url || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
                         </div>
                       )}
                     </div>

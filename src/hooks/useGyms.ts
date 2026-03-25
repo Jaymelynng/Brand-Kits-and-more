@@ -10,6 +10,8 @@ export interface Gym {
   phone?: string | null;
   email?: string | null;
   website?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -462,7 +464,7 @@ export const useUpdateGymInfo = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ gymId, updates }: { gymId: string; updates: { address?: string | null; phone?: string | null; email?: string | null; website?: string | null; programs_offered?: string | null } }) => {
+    mutationFn: async ({ gymId, updates }: { gymId: string; updates: { address?: string | null; phone?: string | null; email?: string | null; website?: string | null; programs_offered?: string | null; facebook_url?: string | null; instagram_url?: string | null } }) => {
       const { error } = await supabase
         .from('gyms')
         .update(updates)
