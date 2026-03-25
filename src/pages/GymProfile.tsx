@@ -1057,6 +1057,47 @@ const GymProfile = () => {
                       )}
                     </div>
                   </div>
+
+                  {/* Programs Offered */}
+                  <div className="flex items-start gap-2">
+                    <ClipboardList className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Programs</div>
+                      {editingField === 'programs_offered' ? (
+                        <div className="flex gap-1">
+                          <Input 
+                            value={editingFieldValue} 
+                            onChange={(e) => setEditingFieldValue(e.target.value)}
+                            className="h-7 text-xs"
+                            placeholder="e.g. Personal Training, Group Classes"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                updateGymInfoMutation.mutate({ gymId: gym.id, updates: { programs_offered: editingFieldValue || null } }, {
+                                  onSuccess: () => { setEditingField(null); toast({ description: 'Programs updated!' }); }
+                                });
+                              }
+                              if (e.key === 'Escape') setEditingField(null);
+                            }}
+                          />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                            updateGymInfoMutation.mutate({ gymId: gym.id, updates: { programs_offered: editingFieldValue || null } }, {
+                              onSuccess: () => { setEditingField(null); toast({ description: 'Programs updated!' }); }
+                            });
+                          }}><Check className="w-3 h-3" /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 group">
+                          {(gym as any).programs_offered ? (
+                            <span className="text-sm text-foreground">{(gym as any).programs_offered}</span>
+                          ) : (
+                            <button onClick={() => isAdmin && (() => { setEditingField('programs_offered'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add programs' : 'Not set'}</button>
+                          )}
+                          {isAdmin && (gym as any).programs_offered && <button onClick={() => { setEditingField('programs_offered'); setEditingFieldValue((gym as any).programs_offered || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </BrandCardContent>
             </BrandCard>
