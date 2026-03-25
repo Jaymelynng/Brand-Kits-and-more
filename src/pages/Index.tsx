@@ -233,17 +233,6 @@ const Index = () => {
               <p className="text-sm leading-relaxed max-w-4xl mx-auto" style={{ color: 'hsl(var(--brand-text-primary) / 0.8)' }}>
                 Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
               </p>
-              
-              {/* Admin Access Button - always visible, handles login redirect */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4 text-xs opacity-60 hover:opacity-100 transition-opacity"
-                onClick={handleAdminClick}
-              >
-                <Shield className="w-3 h-3 mr-1" />
-                {isAdmin ? 'Admin Toolkit' : 'Admin Access'}
-              </Button>
             </div>
           </div>
         </div>
