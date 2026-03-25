@@ -53,7 +53,7 @@ export const GymNavigation = ({
             Bulk Brand Center
           </h1>
           <p className="text-xs" style={{ color: 'hsl(var(--brand-navy) / 0.7)' }}>
-            Select gyms below, then copy their brand colors
+            Select gyms, copy colors, and manage your brand portfolio
           </p>
         </div>
         <div className="flex-1 flex items-center justify-end gap-2">
