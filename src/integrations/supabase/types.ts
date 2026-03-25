@@ -424,6 +424,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          programs_offered: string | null
           updated_at: string | null
           website: string | null
         }
@@ -436,6 +437,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          programs_offered?: string | null
           updated_at?: string | null
           website?: string | null
         }
@@ -448,6 +450,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          programs_offered?: string | null
           updated_at?: string | null
           website?: string | null
         }

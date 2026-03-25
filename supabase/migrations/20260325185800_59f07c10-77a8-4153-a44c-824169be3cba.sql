@@ -1,0 +1,1 @@
+ALTER TABLE public.gyms ADD COLUMN programs_offered text NULL;

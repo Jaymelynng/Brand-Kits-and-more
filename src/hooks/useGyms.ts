@@ -462,7 +462,7 @@ export const useUpdateGymInfo = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ gymId, updates }: { gymId: string; updates: { address?: string | null; phone?: string | null; email?: string | null; website?: string | null } }) => {
+    mutationFn: async ({ gymId, updates }: { gymId: string; updates: { address?: string | null; phone?: string | null; email?: string | null; website?: string | null; programs_offered?: string | null } }) => {
       const { error } = await supabase
         .from('gyms')
         .update(updates)

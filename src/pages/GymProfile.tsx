@@ -4,7 +4,7 @@ import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Settings, MapPin, Phone, Mail, Globe, ExternalLink } from "lucide-react";
+import { Settings, MapPin, Phone, Mail, Globe, ExternalLink, ClipboardList } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
