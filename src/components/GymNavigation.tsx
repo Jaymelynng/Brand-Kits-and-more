@@ -50,10 +50,10 @@ export const GymNavigation = ({
         <div className="text-center">
           <h1 className="text-xl font-bold flex items-center justify-center gap-2" style={{ color: 'hsl(var(--brand-navy))' }}>
             <Palette className="w-5 h-5" />
-            Bulk Color Copy Station
+            Bulk Brand Center
           </h1>
           <p className="text-xs" style={{ color: 'hsl(var(--brand-navy) / 0.7)' }}>
-            Select gyms below, then copy their brand colors
+            Select gyms, copy colors, and manage your brand portfolio
           </p>
         </div>
         <div className="flex-1 flex items-center justify-end gap-2">
