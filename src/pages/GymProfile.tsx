@@ -893,7 +893,7 @@ const GymProfile = () => {
           <div className="max-w-6xl mx-auto mb-8">
             <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35` }}>
               <BrandCardContent className="p-5">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {/* Address */}
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
