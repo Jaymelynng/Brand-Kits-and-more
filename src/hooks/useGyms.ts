@@ -10,6 +10,8 @@ export interface Gym {
   phone?: string | null;
   email?: string | null;
   website?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
   created_at?: string;
   updated_at?: string;
 }
