@@ -893,7 +893,7 @@ const GymProfile = () => {
           <div className="max-w-6xl mx-auto mb-8">
             <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35` }}>
               <BrandCardContent className="p-5">
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Address */}
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
@@ -1057,43 +1057,45 @@ const GymProfile = () => {
                       )}
                     </div>
                   </div>
+                </div>
 
-                  {/* Programs Offered */}
+                {/* Programs Offered - Full width below contact info */}
+                <div className="mt-4 pt-4 border-t border-border/50">
                   <div className="flex items-start gap-2">
                     <ClipboardList className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Programs</div>
+                      <div className="text-xs font-medium text-muted-foreground mb-1">Programs Offered</div>
                       {editingField === 'programs_offered' ? (
                         <div className="flex gap-1">
-                          <Input 
+                          <textarea 
                             value={editingFieldValue} 
                             onChange={(e) => setEditingFieldValue(e.target.value)}
-                            className="h-7 text-xs"
-                            placeholder="e.g. Personal Training, Group Classes"
+                            className="flex-1 min-h-[80px] text-xs rounded-md border border-input bg-background px-2 py-1.5 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            placeholder="e.g. Gymnastics: Mini Movers, Rec Girls • Dance: Ballet, Jazz, Hip Hop"
                             autoFocus
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                updateGymInfoMutation.mutate({ gymId: gym.id, updates: { programs_offered: editingFieldValue || null } }, {
-                                  onSuccess: () => { setEditingField(null); toast({ description: 'Programs updated!' }); }
-                                });
-                              }
                               if (e.key === 'Escape') setEditingField(null);
                             }}
                           />
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 shrink-0" onClick={() => {
                             updateGymInfoMutation.mutate({ gymId: gym.id, updates: { programs_offered: editingFieldValue || null } }, {
                               onSuccess: () => { setEditingField(null); toast({ description: 'Programs updated!' }); }
                             });
                           }}><Check className="w-3 h-3" /></Button>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1 group">
+                        <div className="flex items-start gap-1 group">
                           {(gym as any).programs_offered ? (
-                            <span className="text-sm text-foreground">{(gym as any).programs_offered}</span>
+                            <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{(gym as any).programs_offered.split('•').map((section: string, i: number) => (
+                              <span key={i}>
+                                {i > 0 && <><br /><span className="inline-block w-2 h-2 rounded-full mr-1.5 align-middle" style={{ background: primaryColor }} /></>}
+                                {section.trim()}
+                              </span>
+                            ))}</p>
                           ) : (
                             <button onClick={() => isAdmin && (() => { setEditingField('programs_offered'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add programs' : 'Not set'}</button>
                           )}
-                          {isAdmin && (gym as any).programs_offered && <button onClick={() => { setEditingField('programs_offered'); setEditingFieldValue((gym as any).programs_offered || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                          {isAdmin && (gym as any).programs_offered && <button onClick={() => { setEditingField('programs_offered'); setEditingFieldValue((gym as any).programs_offered || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
                         </div>
                       )}
                     </div>
