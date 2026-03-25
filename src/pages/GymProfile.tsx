@@ -4,7 +4,7 @@ import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Settings, MapPin, Phone, Mail, Globe, ExternalLink } from "lucide-react";
+import { Settings, MapPin, Phone, Mail, Globe, ExternalLink, ClipboardList } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -893,7 +893,7 @@ const GymProfile = () => {
           <div className="max-w-6xl mx-auto mb-8">
             <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35` }}>
               <BrandCardContent className="p-5">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {/* Address */}
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
@@ -1053,6 +1053,47 @@ const GymProfile = () => {
                             <button onClick={() => isAdmin && (() => { setEditingField('website'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add website' : 'Not set'}</button>
                           )}
                           {isAdmin && gym.website && <button onClick={() => { setEditingField('website'); setEditingFieldValue(gym.website || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Programs Offered */}
+                  <div className="flex items-start gap-2">
+                    <ClipboardList className="w-4 h-4 mt-0.5 shrink-0" style={{ color: primaryColor }} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Programs</div>
+                      {editingField === 'programs_offered' ? (
+                        <div className="flex gap-1">
+                          <Input 
+                            value={editingFieldValue} 
+                            onChange={(e) => setEditingFieldValue(e.target.value)}
+                            className="h-7 text-xs"
+                            placeholder="e.g. Personal Training, Group Classes"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                updateGymInfoMutation.mutate({ gymId: gym.id, updates: { programs_offered: editingFieldValue || null } }, {
+                                  onSuccess: () => { setEditingField(null); toast({ description: 'Programs updated!' }); }
+                                });
+                              }
+                              if (e.key === 'Escape') setEditingField(null);
+                            }}
+                          />
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                            updateGymInfoMutation.mutate({ gymId: gym.id, updates: { programs_offered: editingFieldValue || null } }, {
+                              onSuccess: () => { setEditingField(null); toast({ description: 'Programs updated!' }); }
+                            });
+                          }}><Check className="w-3 h-3" /></Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 group">
+                          {(gym as any).programs_offered ? (
+                            <span className="text-sm text-foreground">{(gym as any).programs_offered}</span>
+                          ) : (
+                            <button onClick={() => isAdmin && (() => { setEditingField('programs_offered'); setEditingFieldValue(''); })()} className={cn("text-sm text-muted-foreground/50", isAdmin && "hover:text-foreground cursor-pointer hover:underline")}>{isAdmin ? '+ Add programs' : 'Not set'}</button>
+                          )}
+                          {isAdmin && (gym as any).programs_offered && <button onClick={() => { setEditingField('programs_offered'); setEditingFieldValue((gym as any).programs_offered || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity"><Pencil className="w-3 h-3 text-muted-foreground" /></button>}
                         </div>
                       )}
                     </div>
