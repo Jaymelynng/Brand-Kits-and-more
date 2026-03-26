@@ -59,6 +59,34 @@ const BrandMoodboard = () => {
     toast({ description: "URL copied!" });
   };
 
+  const copyImage = async (url: string, id: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const pngBlob = blob.type === "image/png" ? blob : await convertToPng(blob);
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": pngBlob })]);
+      setCopiedId(id + "-img");
+      setTimeout(() => setCopiedId(null), 1500);
+      toast({ description: "Image copied to clipboard!" });
+    } catch {
+      toast({ description: "Couldn't copy image — try downloading instead", variant: "destructive" });
+    }
+  };
+
+  const convertToPng = (blob: Blob): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.getContext("2d")!.drawImage(img, 0, 0);
+        canvas.toBlob((b) => resolve(b!), "image/png");
+      };
+      img.src = URL.createObjectURL(blob);
+    });
+  };
+
   const downloadImage = async (url: string, filename: string) => {
     try {
       const res = await fetch(url);
