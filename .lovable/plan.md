@@ -1,18 +1,15 @@
 
 
-## Fix QR Studio Layout Issues
+## Fix: Labels Off by Default
 
-### Problems
-1. Gym logo grid is left-aligned instead of centered
-2. Placeholder text says "Gift Certificates December 2024" — confusing and irrelevant
-3. Overall content not centered on page
+The label toggle (`showBulkLabel` and `showSingleLabel`) both default to `true`, which bakes text into every QR code image. When you put these on a flyer, you'd have to edit all of them to remove the text.
 
-### Changes
+### Change
 
 **File: `src/components/qr-studio/QRGenerator.tsx`**
 
-1. **Center the gym logo grid** — Change the flex container from `flex-wrap` to `flex flex-wrap justify-center` (line 66)
-2. **Fix placeholder text** — Change batch title placeholder from `"e.g. Gift Certificates December 2024"` to `"e.g. Waiver Links March 2026"` (line 423)
-3. **Center the bulk card** — Add `max-w-3xl mx-auto` to the Card wrapper so the form is centered on the page instead of stretching full width (line 402)
-4. **Center single mode** — Add `max-w-4xl mx-auto` to the single tab grid container (line 541)
+1. Change `showBulkLabel` default from `true` to `false` (line 132)
+2. Change `showSingleLabel` default from `true` to `false` (wherever it's defined)
+
+Labels remain available via the toggle switch — you just flip it on when you actually want text on the QR code.
 
