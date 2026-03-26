@@ -366,6 +366,9 @@ const MyBrand = () => {
           </CardContent>
         </Card>
 
+        {/* Moodboard */}
+        <BrandMoodboard />
+
         {/* Design Elements - Color Rows */}
         <Card className="bg-white/10 backdrop-blur-sm border-white/15 shadow-xl">
           <CardHeader className="pb-2">
