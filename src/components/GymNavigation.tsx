@@ -67,7 +67,7 @@ export const GymNavigation = ({
             <Layers className="w-3.5 h-3.5 mr-1" />
             Themes
           </Button>
-          {user && <SecretAdminButton onClick={onAdminClick} isAdmin={isAdmin} />}
+          <SecretAdminButton onClick={onAdminClick} isAdmin={isAdmin} />
           {user && (
             <Button
               size="sm"
