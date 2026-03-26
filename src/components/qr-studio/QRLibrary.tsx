@@ -49,7 +49,7 @@ export const QRLibrary = () => {
     try {
       const [scanned, generated] = await Promise.all([getScannedQRHistory(), getGeneratedQRHistory()]);
       setScannedQRs(scanned || []);
-      setGeneratedQRs((generated || []) as GeneratedQR[]);
+      setGeneratedQRs((generated || []) as unknown as GeneratedQR[]);
     } catch {
       toast({ title: "Error loading history", variant: "destructive" });
     } finally {
