@@ -158,7 +158,10 @@ const BrandMoodboard = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {images.map((img) => (
               <div key={img.id} className="group relative">
-                <div className="aspect-square rounded-lg overflow-hidden bg-black/20 border border-white/10">
+                <div
+                  className="aspect-square rounded-lg overflow-hidden bg-black/20 border border-white/10 cursor-pointer"
+                  onClick={() => setViewingImage({ url: img.file_url, label: img.label || img.filename })}
+                >
                   <img
                     src={img.file_url}
                     alt={img.label || img.filename}
@@ -168,35 +171,51 @@ const BrandMoodboard = () => {
                 </div>
 
                 {/* Hover overlay with actions */}
-                <div className="absolute inset-0 rounded-lg bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
-                  <button
-                    className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30"
-                    onClick={() => copyUrl(img.file_url, img.id)}
-                    title="Copy URL"
-                  >
-                    {copiedId === img.id ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 text-white" />}
-                  </button>
-                  <button
-                    className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30"
-                    onClick={() => downloadImage(img.file_url, img.filename)}
-                    title="Download"
-                  >
-                    <Download className="w-3.5 h-3.5 text-white" />
-                  </button>
-                  <button
-                    className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30"
-                    onClick={() => startEdit(img.id, img.label)}
-                    title="Edit label"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-white" />
-                  </button>
-                  <button
-                    className="w-7 h-7 rounded-full bg-red-600/60 flex items-center justify-center hover:bg-red-600/80"
-                    onClick={() => handleDelete(img.id, img.file_url)}
-                    title="Delete"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-white" />
-                  </button>
+                <div className="absolute inset-0 rounded-lg bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 pointer-events-none">
+                  <div className="flex items-center gap-1.5 pointer-events-auto">
+                    <button
+                      className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30"
+                      onClick={(e) => { e.stopPropagation(); setViewingImage({ url: img.file_url, label: img.label || img.filename }); }}
+                      title="View full size"
+                    >
+                      <Maximize2 className="w-3.5 h-3.5 text-white" />
+                    </button>
+                    <button
+                      className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30"
+                      onClick={(e) => { e.stopPropagation(); copyImage(img.file_url, img.id); }}
+                      title="Copy image"
+                    >
+                      {copiedId === img.id + "-img" ? <Check className="w-3.5 h-3.5 text-green-400" /> : <ImageIcon className="w-3.5 h-3.5 text-white" />}
+                    </button>
+                    <button
+                      className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30"
+                      onClick={(e) => { e.stopPropagation(); copyUrl(img.file_url, img.id); }}
+                      title="Copy URL"
+                    >
+                      {copiedId === img.id ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 text-white" />}
+                    </button>
+                    <button
+                      className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30"
+                      onClick={(e) => { e.stopPropagation(); downloadImage(img.file_url, img.filename); }}
+                      title="Download"
+                    >
+                      <Download className="w-3.5 h-3.5 text-white" />
+                    </button>
+                    <button
+                      className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30"
+                      onClick={(e) => { e.stopPropagation(); startEdit(img.id, img.label); }}
+                      title="Edit label"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-white" />
+                    </button>
+                    <button
+                      className="w-7 h-7 rounded-full bg-red-600/60 flex items-center justify-center hover:bg-red-600/80"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(img.id, img.file_url); }}
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-white" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Label */}
