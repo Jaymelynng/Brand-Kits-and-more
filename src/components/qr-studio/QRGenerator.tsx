@@ -399,7 +399,7 @@ export const QRGenerator = () => {
 
       {/* ━━━ BULK TAB ━━━ */}
       <TabsContent value="bulk" className="mt-4 space-y-4">
-        <Card className="p-4 space-y-4" style={{
+        <Card className="p-4 space-y-4 max-w-3xl mx-auto" style={{
           border: '2px solid hsl(var(--brand-rose-gold) / 0.2)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05)',
         }}>
