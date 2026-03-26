@@ -420,7 +420,7 @@ export const QRGenerator = () => {
           <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
             <div>
               <Label htmlFor="batchTitle" className="text-xs font-semibold">Batch Title</Label>
-              <Input id="batchTitle" placeholder="e.g. Gift Certificates December 2024" value={batchTitle}
+              <Input id="batchTitle" placeholder="e.g. Waiver Links March 2026" value={batchTitle}
                 onChange={(e) => setBatchTitle(e.target.value)} className="mt-1 h-9 text-sm" />
             </div>
             <div className="flex items-center gap-2 pb-1">
