@@ -247,7 +247,31 @@ const BrandMoodboard = () => {
         )}
       </CardContent>
     </Card>
+
+    {/* Lightbox viewer */}
+    {viewingImage && (
+      <div
+        className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+        onClick={() => setViewingImage(null)}
+      >
+        <button
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 z-10"
+          onClick={() => setViewingImage(null)}
+        >
+          <X className="w-5 h-5 text-white" />
+        </button>
+        <img
+          src={viewingImage.url}
+          alt={viewingImage.label}
+          className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        />
+        <p className="absolute bottom-6 text-white/60 text-sm">{viewingImage.label}</p>
+      </div>
+    )}
+    </>
   );
+};
 };
 
 export default BrandMoodboard;
