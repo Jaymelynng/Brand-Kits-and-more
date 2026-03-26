@@ -122,14 +122,14 @@ export const QRGenerator = () => {
   const [singleLogo, setSingleLogo] = useState<Logo | null>(null);
   const [singleGymId, setSingleGymId] = useState<string>("");
   const [destinationType, setDestinationType] = useState("");
-  const [showSingleLabel, setShowSingleLabel] = useState(true);
+  const [showSingleLabel, setShowSingleLabel] = useState(false);
 
   // Bulk mode state
   const [batchTitle, setBatchTitle] = useState("");
   const [bulkContent, setBulkContent] = useState("");
   const [generatedQRs, setGeneratedQRs] = useState<GeneratedQR[]>([]);
   const [selectedBulkGyms, setSelectedBulkGyms] = useState<Set<string>>(new Set());
-  const [showBulkLabel, setShowBulkLabel] = useState(true);
+  const [showBulkLabel, setShowBulkLabel] = useState(false);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [gyms, setGyms] = useState<GymWithLogo[]>([]);
