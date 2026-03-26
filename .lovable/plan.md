@@ -1,15 +1,18 @@
 
 
-## Fix: Labels Off by Default
+## Fix: Include Gym Name in Bulk Download Filenames
 
-The label toggle (`showBulkLabel` and `showSingleLabel`) both default to `true`, which bakes text into every QR code image. When you put these on a flyer, you'd have to edit all of them to remove the text.
+### Problem
+Bulk-downloaded QR codes only include the destination type and label in the filename (e.g., `booking_booking-(events).png`) but not the gym name. The single-mode download already includes the gym name correctly.
 
 ### Change
 
-**File: `src/components/qr-studio/QRGenerator.tsx`**
+**File: `src/components/qr-studio/QRGenerator.tsx`** — `handleDownloadAll` function (line 375)
 
-1. Change `showBulkLabel` default from `true` to `false` (line 132)
-2. Change `showSingleLabel` default from `true` to `false` (wherever it's defined)
+Update the filename construction to include the gym name(s):
+- If exactly 1 gym is selected in `selectedBulkGyms`, prepend that gym's name to every filename
+- If multiple gyms are selected, prepend all selected gym codes joined by a dash
+- Result: `crunch-fitness_booking_booking-events.png` instead of `booking_booking-(events).png`
 
-Labels remain available via the toggle switch — you just flip it on when you actually want text on the QR code.
+The filename parts order will be: **gym name → destination type → QR label** (matching the single-mode convention).
 
