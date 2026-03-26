@@ -1,33 +1,51 @@
 
 
-## Problem
+## Build QR Studio Inside Bulk Brand Center
 
-The admin diamond button only renders when `isAdmin` is `true` (line 70 of `GymNavigation.tsx`). The `useAuth` hook checks admin status asynchronously from the `user_roles` table, but it may fail silently or have a timing issue where:
+Rebuild the QR Studio tool from the separate project directly into this project as a `/qr-studio` route, with improved UI and integration with the existing gym data.
 
-1. The auth state listener fires, but the `checkAdminStatus` query fails or returns no data
-2. The `isAdmin` flag never becomes `true`, so the diamond never appears
+### What Gets Built
 
-Additionally, the diamond is **only visible to admins** — there's no way for a logged-in non-admin user to even attempt access (they'd get a toast). But from the `Index.tsx` code, `handleAdminClick` already handles all three cases (not logged in, not admin, admin). The diamond is just hidden entirely for non-admins.
+**1. Database Tables** (migration)
+- `qr_generated` -- stores generated QR codes (content, qr_type, qr_image_url, title, batch_id, batch_name, gym_id, destination_type, tags, notes, created_at)
+- `qr_scans` -- stores scanned QR codes (file_name, qr_data, qr_type, is_url, preview_image, notes, tags, created_at)
+- RLS: public read, admin insert/update/delete (same pattern as existing tables)
 
-## Plan
+**2. New Package**
+- Add `@zxing/library` for QR code scanning/decoding (project already has `qrcode` for generation)
 
-### 1. Always show the admin diamond for logged-in users
-Change line 70 in `GymNavigation.tsx` from `{isAdmin && ...}` to `{user && ...}` so any authenticated user can click it. The access control in `handleAdminClick` (Index.tsx) already handles denying non-admins with a toast.
+**3. Pages & Components**
 
-### 2. Add visual distinction for admins
-Keep the enhanced styling on the diamond when the user is an admin (pass `isAdmin` as a prop to `SecretAdminButton` for the glow/size effect), but show a simpler version for regular authenticated users.
+| File | Purpose |
+|------|---------|
+| `src/pages/QRStudio.tsx` | Main page with top nav (Scan / Generate / Library tabs) |
+| `src/components/qr-studio/QRStudioLayout.tsx` | Layout wrapper with header nav, styled to match existing app aesthetic |
+| `src/components/qr-studio/QRScanner.tsx` | Upload images, decode QR codes, show results with image preview |
+| `src/components/qr-studio/QRGenerator.tsx` | Single + Bulk tabs, logo upload, label toggle, live preview, gym selector dropdown |
+| `src/components/qr-studio/QRLibrary.tsx` | History with search, filters by gym/destination type/batch, batch grouping, collapsible batches |
+| `src/utils/qrGenerator.ts` | QR generation with canvas rendering, logo overlay, label strips (ported from existing) |
+| `src/utils/qrScanner.ts` | ZXing-based scanner with sub-region scanning (ported from existing) |
+| `src/services/qrService.ts` | Supabase CRUD for qr_generated and qr_scans tables |
 
-### 3. Ensure admin check doesn't fail silently
-Add a `console.log` or improve error handling in `checkAdminStatus` in `useAuth.ts` to surface any issues with the role query. Also ensure the loading state is properly handled so the navigation doesn't render before the admin check completes.
+**4. Gym Integration (Enhancement Over V1)**
+- Gym selector dropdown pulls from existing `gyms` table -- auto-populates logo from `gym_logos`
+- Destination type selector: Classes, Waiver, Login, Trial, Camp, Event, Registration
+- Bulk mode can auto-match gym logos by name (existing logic preserved)
 
-### Technical Details
+**5. UI Enhancements Over V1**
+- Soft blush/rose accent matching existing app style
+- Parse preview table with green/yellow/red row states for URL validation
+- QR cards show gym name, destination badge, URL, and quick actions
+- Batch summary bar (title, count, date, status)
+- Library: search bar, filter chips, batch grouping, download/copy actions
 
-**File: `src/components/GymNavigation.tsx`** (line 70)
-- Change condition from `isAdmin &&` to `user &&`
+**6. Route + Navigation**
+- Add `/qr-studio` route in `App.tsx`
+- The page is standalone (has its own nav header) but accessible from the main app
+- Back link to home page in the header
 
-**File: `src/components/SecretAdminButton.tsx`**
-- Add optional `isAdmin` prop to control enhanced vs. subtle styling
-
-**File: `src/hooks/useAuth.ts`**
-- No structural changes needed, but add logging to `checkAdminStatus` catch block to help debug if the query is failing
+### Technical Notes
+- Ports all core logic from the `qr-match-spot` project (QR generation, scanning, bulk parsing, history)
+- Uses same Supabase instance -- no syncing needed, reads `gyms` and `gym_logos` directly
+- Adds `gym_id` and `destination_type` fields to `qr_generated` for gym-aware QR management
 
