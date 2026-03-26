@@ -538,7 +538,7 @@ export const QRGenerator = () => {
 
       {/* ━━━ SINGLE TAB ━━━ */}
       <TabsContent value="single" className="mt-4">
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
           <Card className="p-4 space-y-3" style={{
             border: '2px solid hsl(var(--brand-rose-gold) / 0.2)',
             boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
