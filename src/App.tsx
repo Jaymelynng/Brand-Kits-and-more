@@ -8,6 +8,7 @@ import GymProfile from "./pages/GymProfile";
 import Auth from "./pages/Auth";
 import Themes from "./pages/Themes";
 import ThemeDetail from "./pages/ThemeDetail";
+import AssetHub from "./pages/AssetHub";
 import Admin from "./pages/Admin";
 import MyBrand from "./pages/MyBrand";
 import NotFound from "./pages/NotFound";

@@ -561,7 +561,7 @@ const AssetHub = () => {
                     {gymAssets.map((a, i) => (
                       <a key={i} href={a.url} target="_blank" rel="noopener noreferrer"
                         className="w-20 h-20 rounded-lg overflow-hidden border hover:ring-2 transition-all"
-                        style={{ borderColor: 'hsl(var(--border))', ringColor: primaryColor }}>
+                        style={{ borderColor: 'hsl(var(--border))', ['--tw-ring-color' as string]: primaryColor }}>
                         <img src={a.url} alt={a.filename} className="w-full h-full object-cover" />
                       </a>
                     ))}

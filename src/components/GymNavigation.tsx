@@ -70,12 +70,12 @@ export const GymNavigation = ({
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => navigate('/themes')}
+            onClick={() => navigate('/assets')}
             className="text-xs px-2 py-1 h-7 opacity-60 hover:opacity-100"
             style={{ color: 'hsl(var(--brand-navy))' }}
           >
             <Layers className="w-3.5 h-3.5 mr-1" />
-            Themes
+            Assets
           </Button>
           <SecretAdminButton onClick={onAdminClick} isAdmin={isAdmin} />
           {user && (
