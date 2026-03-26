@@ -396,18 +396,14 @@ export const QRGenerator = () => {
   const handleDownloadAll = () => {
     const selectedGyms = gyms.filter(g => selectedBulkGyms.has(g.id));
     const selectedGymFallback = selectedGyms.length === 1
-      ? selectedGyms[0].name
-      : selectedGyms.length > 1
-        ? selectedGyms.map(g => g.code).join('-')
-        : null;
+      ? selectedGyms[0].code
+      : null;
 
     generatedQRs.forEach((qr, index) => {
       const link = document.createElement("a");
-      const gymPrefix = slugifyFilenamePart(qr.matchedGymName || qr.matchedGymCode || selectedGymFallback);
       const label = slugifyFilenamePart(qr.title) || `qr-${index + 1}`;
-      const dest = slugifyFilenamePart(destinationType);
-      const parts = [gymPrefix, dest, label].filter(Boolean);
-      link.download = `${parts.join('_')}.png`;
+      const gymCode = (qr.matchedGymCode || selectedGymFallback || "").trim().toUpperCase();
+      link.download = gymCode ? `(${gymCode})-_${label}.png` : `${label}.png`;
       link.href = qr.imageUrl;
       link.click();
     });
