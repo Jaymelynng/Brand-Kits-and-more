@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ImagePlus, Trash2, Copy, Check, Download, Pencil, X, Camera } from "lucide-react";
+import { ImagePlus, Trash2, Copy, Check, Download, Pencil, X, Camera, Maximize2, Image as ImageIcon } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 
 const BrandMoodboard = () => {
