@@ -122,6 +122,7 @@ const BrandMoodboard = () => {
   };
 
   return (
+    <>
     <Card className="bg-white/10 backdrop-blur-sm border-white/15 shadow-xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-white/90 text-sm uppercase tracking-widest flex items-center gap-2">
