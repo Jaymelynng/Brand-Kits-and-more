@@ -8,6 +8,7 @@ import GymProfile from "./pages/GymProfile";
 import Auth from "./pages/Auth";
 import Themes from "./pages/Themes";
 import ThemeDetail from "./pages/ThemeDetail";
+import AssetHub from "./pages/AssetHub";
 import Admin from "./pages/Admin";
 import MyBrand from "./pages/MyBrand";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/gym/:gymCode" element={<GymProfile />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/assets" element={<AssetHub />} />
           <Route path="/themes" element={<Themes />} />
           <Route path="/themes/:categoryId" element={<ThemeDetail />} />
           <Route path="/admin" element={<Admin />} />
