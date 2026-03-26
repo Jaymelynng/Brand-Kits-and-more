@@ -316,7 +316,9 @@ export const QRGenerator = () => {
   const handleDownload = () => {
     if (!qrImage) return;
     const link = document.createElement("a");
-    link.download = `qr-${title || "code"}-${Date.now()}.png`;
+    const gymName = singleGymId ? gyms.find(g => g.id === singleGymId)?.name : null;
+    const parts = [gymName, destinationType, title].filter(Boolean).map(p => p!.toLowerCase().replace(/\s+/g, '-'));
+    link.download = parts.length > 0 ? `${parts.join('_')}.png` : `qr-code-${Date.now()}.png`;
     link.href = qrImage;
     link.click();
   };
