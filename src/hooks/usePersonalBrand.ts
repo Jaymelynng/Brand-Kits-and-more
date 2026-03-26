@@ -88,3 +88,61 @@ export const useUpdatePersonalBrandInfo = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["personal-brand-info"] }),
   });
 };
+
+// --- Personal Brand Images ---
+
+export interface PersonalBrandImage {
+  id: string;
+  file_url: string;
+  filename: string;
+  label: string | null;
+  order_index: number;
+  created_at: string | null;
+}
+
+export const usePersonalBrandImages = () =>
+  useQuery({
+    queryKey: ["personal-brand-images"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("personal_brand_images")
+        .select("*")
+        .order("order_index");
+      if (error) throw error;
+      return data as PersonalBrandImage[];
+    },
+  });
+
+export const useAddPersonalBrandImage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ file_url, filename, label, order_index }: { file_url: string; filename: string; label?: string; order_index: number }) => {
+      const { error } = await supabase.from("personal_brand_images").insert({ file_url, filename, label: label || null, order_index });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["personal-brand-images"] }),
+  });
+};
+
+export const useDeletePersonalBrandImage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, filePath }: { id: string; filePath: string }) => {
+      await supabase.storage.from("personal-brand").remove([filePath]);
+      const { error } = await supabase.from("personal_brand_images").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["personal-brand-images"] }),
+  });
+};
+
+export const useUpdatePersonalBrandImage = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<PersonalBrandImage> }) => {
+      const { error } = await supabase.from("personal_brand_images").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["personal-brand-images"] }),
+  });
+};
