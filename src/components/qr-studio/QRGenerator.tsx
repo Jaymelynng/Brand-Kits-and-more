@@ -63,7 +63,7 @@ const GymLogoGrid = ({
           {selected.size} selected
         </span>
       </div>
-      <div className="flex flex-wrap gap-2 p-3 rounded-xl" style={{
+      <div className="flex flex-wrap justify-center gap-2 p-3 rounded-xl" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.08), hsl(var(--brand-rose-gold) / 0.04))',
         border: '1px solid hsl(var(--brand-rose-gold) / 0.2)',
       }}>
