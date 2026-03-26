@@ -1,71 +1,92 @@
 
-Use the gym code, not the gym name, in bulk download filenames.
+Fix the bulk workflow so gym identity is explicit, not guessed.
 
-## What’s wrong now
-The current bulk download code in `src/components/qr-studio/QRGenerator.tsx` builds filenames like:
+## Why it is still failing
+Right now `src/components/qr-studio/QRGenerator.tsx` only puts a gym code in the filename when one of these is true:
+- the label text itself matches a selected gym, or
+- exactly one gym is selected
 
-```text
-[gym-name-or-guessed-match]_[destinationType]_[label].png
-```
-
-Specifically:
-- it prefers `matchedGymName`
-- then falls back to `matchedGymCode`
-- then a guessed selection fallback
-- and it also inserts `destinationType` as a separate middle segment
-
-That is why you’re getting things like `crunch-fitness_...` instead of the format you asked for.
+So with labels like `classes-page` and multiple gyms selected, there is no reliable match, `matchedGymCode` stays empty, and the download falls back to `classes-page.png`.
 
 ## What to change
-Update `handleDownloadAll` so bulk filenames use this exact structure:
 
+### 1. Stop relying on label guessing for filenames
+Refactor bulk row handling so each parsed entry gets a resolved gym assignment before generation/download.
+
+Rules:
+- If **1 gym** is selected: assign that gym to every pasted row
+- If **multiple gyms** are selected: only assign a gym when the row explicitly identifies it
+- If a row has no resolved gym: mark it invalid instead of silently generating a nameless file
+
+### 2. Add explicit bulk row gym resolution
+Update the parser in `QRGenerator.tsx` to support a gym-aware bulk format for multi-gym batches, for example:
 ```text
-(CCP)-_classes-page.png
+CCP - Classes Page - https://...
+EOS - Classes Page - https://...
+```
+or another simple structured format using gym code first.
+
+Each parsed row should carry:
+- `resolvedGymId`
+- `resolvedGymCode`
+- `resolvedGymName`
+- `title`
+- `content`
+
+### 3. Show the gym before anything is generated
+Update the preview table to include:
+- Gym
+- Page/label
+- URL
+- Final filename preview
+
+Example preview:
+```text
+CCP | Classes Page | https://... | (CCP)-_classes-page.png
 ```
 
-Meaning:
-- first segment = selected/matched gym code in parentheses
-- then `-_`
-- then the page/label slug
-- no gym full name
-- no extra destination segment unless you explicitly want it later
+If a row has no gym:
+- highlight it
+- show “Gym required”
+- disable Generate All until fixed
 
-## Implementation plan
-1. In `src/components/qr-studio/QRGenerator.tsx`, change the bulk filename builder in `handleDownloadAll`.
-2. Stop using `matchedGymName` for the filename.
-3. Use the QR’s `matchedGymCode` first; if missing, fall back to the single selected bulk gym’s `code`.
-4. Format the gym prefix as:
-   ```text
-   (${gymCode})-
-   ```
-5. Append the page name from `qr.title` as the slugged filename body:
-   ```text
-   (${gymCode})-_${slugifiedTitle}.png
-   ```
-6. If no gym code is available, fall back to:
-   ```text
-   ${slugifiedTitle || `qr-${index + 1}`}.png
-   ```
+### 4. Make downloads use only the resolved gym code
+Refactor `handleBulkGenerate` and `handleDownloadAll` so filenames are built from the resolved row data, not from heuristic matching.
 
-## Expected result
-Examples after the fix:
+Target format:
+```text
+(${resolvedGymCode})-_${slugifiedTitle}.png
+```
 
+Examples:
 ```text
 (CCP)-_classes-page.png
 (EOS)-_join-now.png
 (HP)-_free-pass.png
 ```
 
-## Technical detail
-The current code around lines `396-410` should be refactored from:
+### 5. Keep single QR mode unchanged
+Single mode can stay simple. This fix is mainly for the bulk workflow where you need to know which gym each file belongs to while placing them into print/design files.
 
+## Files to update
+- `src/components/qr-studio/QRGenerator.tsx`
+
+## Technical notes
+- Remove the current “best guess” dependency from `findMatchingGym` for filename correctness
+- Keep gym logo matching as a convenience, but do not let it control naming
+- No database changes needed for this fix
+- Add a generated-row shape that stores the final resolved gym code directly so the download step is deterministic
+
+## Result
+After this change, bulk downloads will not silently save generic files like:
 ```text
-[gymPrefix, dest, label].join('_')
+classes-page.png
 ```
 
-to a direct custom formatter based on:
-- `qr.matchedGymCode`
-- selected gym `code`
-- `qr.title`
-
-So this is not a parsing problem anymore; it is a filename-formatting problem in `handleDownloadAll`.
+They will either:
+- download correctly as:
+```text
+(CCP)-_classes-page.png
+```
+or
+- be blocked in preview until a gym is explicitly assigned
