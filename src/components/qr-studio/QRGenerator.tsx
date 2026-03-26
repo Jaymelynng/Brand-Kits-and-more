@@ -33,6 +33,8 @@ interface ParsedBulkEntry {
   resolvedGymCode?: string;
   isGymResolved: boolean;
   validationMessage?: string;
+  detectedGymCode?: string;
+  detectedGymName?: string;
 }
 
 interface Logo {
@@ -243,29 +245,76 @@ export const QRGenerator = () => {
 
   const cleanUrl = (url: string): string => url.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
+  const isSeparatorLine = (line: string) => /^[═─━─\-=_*]{3,}$/.test(line.trim()) || /^[\s═─━─\-=_*│|]+$/.test(line.trim());
+  const isCategoryHeader = (line: string) => {
+    const t = line.trim();
+    if (!t || t.length < 3) return false;
+    // All-caps lines like "ICLASS – REGISTRATION" or "ONLINE REGISTRATION"
+    return /^[A-Z][A-Z\s–—\-:&/|,]+$/.test(t) && !/^https?:\/\//i.test(t);
+  };
+  const detectGymHeader = (line: string): { name: string; code: string } | null => {
+    const t = line.trim();
+    // Match "Gym Name (CODE)" pattern
+    const match = t.match(/^(.+?)\s*\(([A-Z0-9]{2,8})\)\s*$/i);
+    if (match) return { name: match[1].trim(), code: match[2].toUpperCase() };
+    return null;
+  };
+
   const parseMultiLineEntries = (text: string) => {
-    const lines = text.split('\n').filter(line => line.trim());
-    const entries: { label?: string; sublabel?: string; content: string }[] = [];
+    const rawLines = text.split('\n');
+    const entries: { label?: string; sublabel?: string; content: string; detectedGymCode?: string; detectedGymName?: string }[] = [];
     const isUrl = (s: string) => /^https?:\/\//i.test(cleanUrl(s)) || /^(mailto|tel):/i.test(cleanUrl(s));
+
+    // Filter keeping track of current gym context from section headers
+    let currentGymCode: string | undefined;
+    let currentGymName: string | undefined;
+    const lines: string[] = [];
+    const lineGymContext: { code?: string; name?: string }[] = [];
+
+    for (const rawLine of rawLines) {
+      const trimmed = rawLine.trim();
+      if (!trimmed) continue;
+      if (isSeparatorLine(trimmed)) continue;
+
+      // Check if this line is a gym header like "Scottsdale Gymnastics (SGT)"
+      const gymHeader = detectGymHeader(trimmed);
+      if (gymHeader) {
+        currentGymCode = gymHeader.code;
+        currentGymName = gymHeader.name;
+        continue;
+      }
+
+      // Skip category headers like "ICLASS – REGISTRATION"
+      if (isCategoryHeader(trimmed)) continue;
+
+      // Remove emoji/icon prefixes (📋, 🎯, etc.)
+      const cleaned = trimmed.replace(/^[\u{1F300}-\u{1FAF8}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}]+\s*/u, '');
+      if (!cleaned) continue;
+
+      lines.push(cleaned);
+      lineGymContext.push({ code: currentGymCode, name: currentGymName });
+    }
+
     let i = 0;
     while (i < lines.length) {
       const current = lines[i].trim();
       const next = i + 1 < lines.length ? lines[i + 1].trim() : null;
       const third = i + 2 < lines.length ? lines[i + 2].trim() : null;
+      const ctx = lineGymContext[i];
       if (!isUrl(current) && next && !isUrl(next) && third && isUrl(third)) {
-        entries.push({ label: current, sublabel: next, content: cleanUrl(third) });
+        entries.push({ label: current, sublabel: next, content: cleanUrl(third), detectedGymCode: ctx.code, detectedGymName: ctx.name });
         i += 3; continue;
       }
       if (!isUrl(current) && next && isUrl(next)) {
-        entries.push({ label: current, content: cleanUrl(next) });
+        entries.push({ label: current, content: cleanUrl(next), detectedGymCode: ctx.code, detectedGymName: ctx.name });
         i += 2; continue;
       }
       const singleLine = parseLine(current);
       if (singleLine && isUrl(singleLine.content)) {
-        entries.push({ ...singleLine, content: cleanUrl(singleLine.content) });
+        entries.push({ ...singleLine, content: cleanUrl(singleLine.content), detectedGymCode: ctx.code, detectedGymName: ctx.name });
         i++; continue;
       }
-      if (isUrl(current)) { entries.push({ content: cleanUrl(current) }); i++; continue; }
+      if (isUrl(current)) { entries.push({ content: cleanUrl(current), detectedGymCode: ctx.code, detectedGymName: ctx.name }); i++; continue; }
       i++;
     }
     return entries;
@@ -311,8 +360,35 @@ export const QRGenerator = () => {
     return undefined;
   };
 
-  const resolveBulkEntry = (entry: { label?: string; sublabel?: string; content: string }): ParsedBulkEntry => {
+  const resolveBulkEntry = (entry: { label?: string; sublabel?: string; content: string; detectedGymCode?: string; detectedGymName?: string }): ParsedBulkEntry => {
     const singleSelectedGym = selectedBulkGymRecords.length === 1 ? selectedBulkGymRecords[0] : undefined;
+
+    // If the parser detected a gym code from a section header, try to match it to a selected gym
+    if (entry.detectedGymCode) {
+      const matchedGym = selectedBulkGymRecords.find(
+        (g) => g.code.toUpperCase() === entry.detectedGymCode!.toUpperCase()
+      ) || gyms.find(
+        (g) => g.code.toUpperCase() === entry.detectedGymCode!.toUpperCase()
+      );
+
+      if (matchedGym) {
+        return {
+          ...entry,
+          resolvedGymId: matchedGym.id,
+          resolvedGymName: matchedGym.name,
+          resolvedGymCode: matchedGym.code,
+          isGymResolved: true,
+        };
+      }
+
+      // Even if not in selected list, use the detected code
+      return {
+        ...entry,
+        resolvedGymCode: entry.detectedGymCode,
+        resolvedGymName: entry.detectedGymName,
+        isGymResolved: true,
+      };
+    }
 
     if (singleSelectedGym) {
       const explicitMatch = entry.label ? resolveGymPrefix(entry.label, [singleSelectedGym]) : undefined;
