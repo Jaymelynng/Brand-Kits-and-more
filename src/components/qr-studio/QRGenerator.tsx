@@ -19,8 +19,20 @@ interface GeneratedQR {
   imageUrl: string;
   title?: string;
   sublabel?: string;
-  matchedGymName?: string;
-  matchedGymCode?: string;
+  resolvedGymId?: string;
+  resolvedGymName?: string;
+  resolvedGymCode?: string;
+}
+
+interface ParsedBulkEntry {
+  content: string;
+  label?: string;
+  sublabel?: string;
+  resolvedGymId?: string;
+  resolvedGymName?: string;
+  resolvedGymCode?: string;
+  isGymResolved: boolean;
+  validationMessage?: string;
 }
 
 interface Logo {
@@ -43,6 +55,15 @@ const slugifyFilenamePart = (value?: string | null) => value
   .trim()
   .replace(/[^a-z0-9]+/g, '-')
   .replace(/^-+|-+$/g, '');
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const buildBulkFilename = (gymCode?: string | null, title?: string | null, index = 0) => {
+  const label = slugifyFilenamePart(title) || `qr-${index + 1}`;
+  const normalizedGymCode = gymCode?.trim().toUpperCase();
+
+  return normalizedGymCode ? `(${normalizedGymCode})-_${label}.png` : `${label}.png`;
+};
 
 const DESTINATION_TYPES = [
   'Classes', 'Waiver', 'Login', 'Trial', 'Camp', 'Event', 'Registration', 'Website', 'Other'
@@ -260,29 +281,90 @@ export const QRGenerator = () => {
     } catch { return false; }
   };
 
-  const findMatchingGym = (label: string): GymWithLogo | undefined => {
-    if (!label || selectedBulkGyms.size === 0) return undefined;
-    const keywords = label.toLowerCase().split(/[\s-]+/).filter(k => k.length > 2);
-    for (const gymId of selectedBulkGyms) {
-      const gym = gyms.find(g => g.id === gymId);
-      if (!gym) continue;
-      const gymWords = [...gym.name.toLowerCase().split(/[\s-]+/), gym.code.toLowerCase()];
-      for (const keyword of keywords) {
-        if (gymWords.some(w => w.includes(keyword) || keyword.includes(w))) {
-          return gym;
-        }
+  const selectedBulkGymRecords = useMemo(
+    () => gyms.filter((gym) => selectedBulkGyms.has(gym.id)),
+    [gyms, selectedBulkGyms],
+  );
+
+  const resolveGymPrefix = (rawLabel: string, availableGyms: GymWithLogo[]) => {
+    const label = rawLabel.trim();
+
+    for (const gym of availableGyms) {
+      const patterns = [
+        new RegExp(`^\\(\\s*${escapeRegExp(gym.code)}\\s*\\)\\s*[-–—:|]?\\s*(.*)$`, 'i'),
+        new RegExp(`^${escapeRegExp(gym.code)}\\s*[-–—:|]\\s*(.*)$`, 'i'),
+        new RegExp(`^${escapeRegExp(gym.name)}\\s*\\(${escapeRegExp(gym.code)}\\)\\s*[-–—:|]?\\s*(.*)$`, 'i'),
+        new RegExp(`^${escapeRegExp(gym.name)}\\s*[-–—:|]\\s*(.*)$`, 'i'),
+      ];
+
+      for (const pattern of patterns) {
+        const match = label.match(pattern);
+        if (!match) continue;
+
+        return {
+          gym,
+          title: match[1]?.trim() || undefined,
+        };
       }
     }
+
     return undefined;
   };
 
-  const findMatchingGymLogo = (label: string): HTMLImageElement | undefined => {
-    const matchedGym = findMatchingGym(label);
-    return matchedGym ? gymLogoImages.get(matchedGym.id) : undefined;
+  const resolveBulkEntry = (entry: { label?: string; sublabel?: string; content: string }): ParsedBulkEntry => {
+    const singleSelectedGym = selectedBulkGymRecords.length === 1 ? selectedBulkGymRecords[0] : undefined;
+
+    if (singleSelectedGym) {
+      const explicitMatch = entry.label ? resolveGymPrefix(entry.label, [singleSelectedGym]) : undefined;
+
+      return {
+        ...entry,
+        label: explicitMatch?.title || entry.label,
+        resolvedGymId: singleSelectedGym.id,
+        resolvedGymName: singleSelectedGym.name,
+        resolvedGymCode: singleSelectedGym.code,
+        isGymResolved: true,
+      };
+    }
+
+    if (selectedBulkGymRecords.length > 1 && entry.label) {
+      const explicitMatch = resolveGymPrefix(entry.label, selectedBulkGymRecords);
+
+      if (explicitMatch) {
+        return {
+          ...entry,
+          label: explicitMatch.title || entry.label,
+          resolvedGymId: explicitMatch.gym.id,
+          resolvedGymName: explicitMatch.gym.name,
+          resolvedGymCode: explicitMatch.gym.code,
+          isGymResolved: true,
+        };
+      }
+    }
+
+    return {
+      ...entry,
+      isGymResolved: false,
+      validationMessage: selectedBulkGymRecords.length === 0
+        ? 'Select a gym first'
+        : 'Gym required',
+    };
   };
 
-  const parsedPreview = useMemo(() => parseMultiLineEntries(bulkContent), [bulkContent]);
-  const mismatchCount = useMemo(() => parsedPreview.filter(e => checkMismatch(e.label, e.content)).length, [parsedPreview]);
+  const parsedPreview = useMemo(
+    () => parseMultiLineEntries(bulkContent).map(resolveBulkEntry),
+    [bulkContent, selectedBulkGymRecords],
+  );
+
+  const mismatchCount = useMemo(
+    () => parsedPreview.filter((entry) => checkMismatch(entry.label, entry.content)).length,
+    [parsedPreview],
+  );
+
+  const unresolvedPreviewCount = useMemo(
+    () => parsedPreview.filter((entry) => !entry.isGymResolved).length,
+    [parsedPreview],
+  );
 
   // ─── Actions ───────────────────────────────────────────────────────
   const clearSingle = () => {
@@ -348,15 +430,18 @@ export const QRGenerator = () => {
   };
 
   const handleBulkGenerate = async () => {
-    const entries = parseMultiLineEntries(bulkContent);
-    if (entries.length === 0) { toast({ title: "Content required", variant: "destructive" }); return; }
+    if (parsedPreview.length === 0) { toast({ title: "Content required", variant: "destructive" }); return; }
+    if (unresolvedPreviewCount > 0) {
+      toast({ title: "Every row needs a gym", description: "Add a gym code prefix or select exactly one gym.", variant: "destructive" });
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const generated: GeneratedQR[] = [];
-      for (const entry of entries) {
+      for (const entry of parsedPreview) {
         const { label, sublabel, content } = entry;
-        const matchedGym = label ? findMatchingGym(label) : undefined;
-        const matchedLogo = label ? findMatchingGymLogo(label) : undefined;
+        const matchedLogo = entry.resolvedGymId ? gymLogoImages.get(entry.resolvedGymId) : undefined;
         const resolvedSublabel = sublabel || batchTitle.trim() || undefined;
         const imageUrl = await generateQRCode({
           content,
@@ -369,8 +454,9 @@ export const QRGenerator = () => {
           imageUrl,
           title: label,
           sublabel: resolvedSublabel,
-          matchedGymName: matchedGym?.name,
-          matchedGymCode: matchedGym?.code,
+          resolvedGymId: entry.resolvedGymId,
+          resolvedGymName: entry.resolvedGymName,
+          resolvedGymCode: entry.resolvedGymCode,
         });
       }
       setGeneratedQRs(generated);
@@ -394,16 +480,9 @@ export const QRGenerator = () => {
   };
 
   const handleDownloadAll = () => {
-    const selectedGyms = gyms.filter(g => selectedBulkGyms.has(g.id));
-    const selectedGymFallback = selectedGyms.length === 1
-      ? selectedGyms[0].code
-      : null;
-
     generatedQRs.forEach((qr, index) => {
       const link = document.createElement("a");
-      const label = slugifyFilenamePart(qr.title) || `qr-${index + 1}`;
-      const gymCode = (qr.matchedGymCode || selectedGymFallback || "").trim().toUpperCase();
-      link.download = gymCode ? `(${gymCode})-_${label}.png` : `${label}.png`;
+      link.download = buildBulkFilename(qr.resolvedGymCode, qr.title, index);
       link.href = qr.imageUrl;
       link.click();
     });
@@ -460,21 +539,26 @@ export const QRGenerator = () => {
           <div>
             <Label htmlFor="bulkContent" className="text-xs font-semibold">Paste URLs</Label>
             <p className="text-[10px] mb-1" style={{ color: 'hsl(var(--brand-navy) / 0.5)' }}>
-              Supports: "Name - URL", "Name: URL", or name + URL on separate lines
+              Use "CCP - Classes Page - URL" for multi-gym batches, or select one gym to apply it to every row
             </p>
             <Textarea id="bulkContent"
-              placeholder={"Gym Name\nhttps://example.com/login\n\nAnother Gym - https://example.com/waiver"}
+              placeholder={"CCP - Classes Page - https://example.com/classes\nEOS - Waiver - https://example.com/waiver"}
               value={bulkContent} onChange={(e) => setBulkContent(e.target.value)}
               rows={8} className="text-sm font-mono" />
           </div>
 
           {/* Parse Preview Table */}
-          {parsedPreview.length >= 2 && (
+          {parsedPreview.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs font-semibold" style={{ color: 'hsl(var(--brand-navy))' }}>
                 {parsedPreview.length} entries detected
                 {mismatchCount > 0 && (
                   <span className="ml-2 text-yellow-600">({mismatchCount} potential mismatch{mismatchCount > 1 ? 'es' : ''})</span>
+                )}
+                {unresolvedPreviewCount > 0 && (
+                  <span className="ml-2" style={{ color: 'hsl(var(--destructive))' }}>
+                    ({unresolvedPreviewCount} need gym assignment)
+                  </span>
                 )}
               </p>
               <div className="max-h-48 overflow-y-auto rounded-lg" style={{
@@ -485,19 +569,39 @@ export const QRGenerator = () => {
                   <thead className="sticky top-0" style={{ background: 'hsl(var(--brand-rose-gold) / 0.1)' }}>
                     <tr>
                       <th className="px-2 py-1.5 text-left w-8 font-semibold">#</th>
-                      <th className="px-2 py-1.5 text-left font-semibold">Label</th>
+                      <th className="px-2 py-1.5 text-left font-semibold">Gym</th>
+                      <th className="px-2 py-1.5 text-left font-semibold">Page</th>
                       <th className="px-2 py-1.5 text-left font-semibold">URL</th>
+                      <th className="px-2 py-1.5 text-left font-semibold">Filename</th>
                     </tr>
                   </thead>
                   <tbody>
                     {parsedPreview.map((entry, i) => {
                       const isMismatch = checkMismatch(entry.label, entry.content);
                       return (
-                        <tr key={i} className={isMismatch ? "bg-yellow-500/10" : i % 2 === 0 ? "bg-white" : "bg-muted/30"}>
+                        <tr
+                          key={i}
+                          className={cn(
+                            !entry.isGymResolved && "bg-destructive/10",
+                            entry.isGymResolved && isMismatch && "bg-yellow-500/10",
+                            entry.isGymResolved && !isMismatch && (i % 2 === 0 ? "bg-white" : "bg-muted/30"),
+                          )}
+                        >
                           <td className="px-2 py-1 text-muted-foreground">{i + 1}</td>
                           <td className="px-2 py-1">
                             <div className="flex items-center gap-1">
-                              {isMismatch && <AlertTriangle className="h-3 w-3 text-yellow-600 shrink-0" />}
+                              {!entry.isGymResolved ? (
+                                <AlertTriangle className="h-3 w-3 shrink-0" style={{ color: 'hsl(var(--destructive))' }} />
+                              ) : null}
+                              <div>
+                                <div className="font-medium">{entry.resolvedGymCode || '—'}</div>
+                                <div className="text-muted-foreground">{entry.resolvedGymName || entry.validationMessage}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-2 py-1">
+                            <div className="flex items-center gap-1">
+                              {entry.isGymResolved && isMismatch && <AlertTriangle className="h-3 w-3 text-yellow-600 shrink-0" />}
                               {entry.label ? (
                                 <div>
                                   <div className="font-medium">{entry.label}</div>
@@ -507,6 +611,7 @@ export const QRGenerator = () => {
                             </div>
                           </td>
                           <td className="px-2 py-1 text-muted-foreground truncate max-w-[250px]">{entry.content}</td>
+                          <td className="px-2 py-1 font-mono text-[11px]">{buildBulkFilename(entry.resolvedGymCode, entry.label, i)}</td>
                         </tr>
                       );
                     })}
@@ -517,7 +622,7 @@ export const QRGenerator = () => {
           )}
 
           {/* Generate Button */}
-          <Button onClick={handleBulkGenerate} disabled={isGenerating} className="w-full h-10 text-sm font-semibold" style={{
+          <Button onClick={handleBulkGenerate} disabled={isGenerating || parsedPreview.length === 0 || unresolvedPreviewCount > 0} className="w-full h-10 text-sm font-semibold" style={{
             background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))',
             color: 'white',
             boxShadow: '0 4px 14px hsl(var(--brand-rose-gold) / 0.4)',
