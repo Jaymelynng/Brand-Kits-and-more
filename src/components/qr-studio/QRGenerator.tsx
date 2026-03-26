@@ -122,7 +122,7 @@ export const QRGenerator = () => {
   const [singleLogo, setSingleLogo] = useState<Logo | null>(null);
   const [singleGymId, setSingleGymId] = useState<string>("");
   const [destinationType, setDestinationType] = useState("");
-  const [showSingleLabel, setShowSingleLabel] = useState(true);
+  const [showSingleLabel, setShowSingleLabel] = useState(false);
 
   // Bulk mode state
   const [batchTitle, setBatchTitle] = useState("");
