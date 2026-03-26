@@ -375,10 +375,12 @@ export const QRGenerator = () => {
   const handleDownloadAll = () => {
     generatedQRs.forEach((qr, index) => {
       const link = document.createElement("a");
-      const gymName = qr.title?.toLowerCase().replace(/\s+/g, '-') || `qr-${index + 1}`;
+      const label = qr.title?.toLowerCase().replace(/\s+/g, '-') || `qr-${index + 1}`;
+      const dest = destinationType ? destinationType.toLowerCase().replace(/\s+/g, '-') : null;
+      const parts = [label, dest].filter(Boolean);
       link.download = batchTitle.trim()
-        ? `${batchTitle.trim().toLowerCase().replace(/\s+/g, '-')}_${gymName}.png`
-        : `${gymName}.png`;
+        ? `${batchTitle.trim().toLowerCase().replace(/\s+/g, '-')}_${parts.join('_')}.png`
+        : `${parts.join('_')}.png`;
       link.href = qr.imageUrl;
       link.click();
     });
