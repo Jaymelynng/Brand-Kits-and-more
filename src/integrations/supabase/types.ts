@@ -486,6 +486,33 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_brand_images: {
+        Row: {
+          created_at: string | null
+          file_url: string
+          filename: string
+          id: string
+          label: string | null
+          order_index: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_url: string
+          filename: string
+          id?: string
+          label?: string | null
+          order_index?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          file_url?: string
+          filename?: string
+          id?: string
+          label?: string | null
+          order_index?: number | null
+        }
+        Relationships: []
+      }
       personal_brand_info: {
         Row: {
           body_font: string | null
