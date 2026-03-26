@@ -23,6 +23,7 @@ const BrandMoodboard = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
+  const [viewingImage, setViewingImage] = useState<{ url: string; label: string } | null>(null);
 
   const onDrop = useCallback(async (files: File[]) => {
     setUploading(true);
