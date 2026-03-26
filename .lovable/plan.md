@@ -1,51 +1,51 @@
 
 
-## Build QR Studio Inside Bulk Brand Center
+## Redesign QR Studio Generator — Logo Grid + Bulk-First Layout
 
-Rebuild the QR Studio tool from the separate project directly into this project as a `/qr-studio` route, with improved UI and integration with the existing gym data.
+### Problem
+The current QR Generator uses a dropdown for gym selection and has a generic form-heavy UI. You want the same clickable gym logo grid from the Bulk Brand Center homepage, with bulk paste as the primary workflow.
 
-### What Gets Built
+### What Changes
 
-**1. Database Tables** (migration)
-- `qr_generated` -- stores generated QR codes (content, qr_type, qr_image_url, title, batch_id, batch_name, gym_id, destination_type, tags, notes, created_at)
-- `qr_scans` -- stores scanned QR codes (file_name, qr_data, qr_type, is_url, preview_image, notes, tags, created_at)
-- RLS: public read, admin insert/update/delete (same pattern as existing tables)
+**1. Replace gym dropdown with clickable logo grid**
+- Reuse the same gym logo thumbnail pattern from GymNavigation: 40x40px logos, click to select, highlighted border + checkmark when active
+- In single mode: click one gym to select it (auto-loads logo)
+- In bulk mode: select multiple gyms to auto-match logos to pasted entries
+- Grid sits at the top of the page, always visible
 
-**2. New Package**
-- Add `@zxing/library` for QR code scanning/decoding (project already has `qrcode` for generation)
+**2. Flip tab order: Bulk first, Single second**
+- "Bulk Generate" becomes the default/first tab since that's the primary workflow
+- "Single QR Code" becomes the secondary tab
 
-**3. Pages & Components**
+**3. Redesign bulk workflow layout**
+- Top: gym logo selector grid
+- Middle: large paste area for bulk content (name + URL pairs)
+- Below paste: parse preview table with validation states
+- Bottom: generated QR cards grid with batch actions
+- Remove the manual logo upload from bulk (gym logos auto-populate from selection)
 
-| File | Purpose |
-|------|---------|
-| `src/pages/QRStudio.tsx` | Main page with top nav (Scan / Generate / Library tabs) |
-| `src/components/qr-studio/QRStudioLayout.tsx` | Layout wrapper with header nav, styled to match existing app aesthetic |
-| `src/components/qr-studio/QRScanner.tsx` | Upload images, decode QR codes, show results with image preview |
-| `src/components/qr-studio/QRGenerator.tsx` | Single + Bulk tabs, logo upload, label toggle, live preview, gym selector dropdown |
-| `src/components/qr-studio/QRLibrary.tsx` | History with search, filters by gym/destination type/batch, batch grouping, collapsible batches |
-| `src/utils/qrGenerator.ts` | QR generation with canvas rendering, logo overlay, label strips (ported from existing) |
-| `src/utils/qrScanner.ts` | ZXing-based scanner with sub-region scanning (ported from existing) |
-| `src/services/qrService.ts` | Supabase CRUD for qr_generated and qr_scans tables |
+**4. Clean up single mode**
+- Top: gym logo selector grid (click one)
+- Below: compact form — URL input, title, destination type, label toggle
+- Right panel: QR preview (keep existing two-panel layout)
+- Keep manual logo upload as fallback
 
-**4. Gym Integration (Enhancement Over V1)**
-- Gym selector dropdown pulls from existing `gyms` table -- auto-populates logo from `gym_logos`
-- Destination type selector: Classes, Waiver, Login, Trial, Camp, Event, Registration
-- Bulk mode can auto-match gym logos by name (existing logic preserved)
+**5. Style improvements**
+- Match the soft blush/rose accent from the main app
+- Stronger card shadows and borders per user preference
+- Denser layout, less whitespace
+- Better visual hierarchy between input and output areas
 
-**5. UI Enhancements Over V1**
-- Soft blush/rose accent matching existing app style
-- Parse preview table with green/yellow/red row states for URL validation
-- QR cards show gym name, destination badge, URL, and quick actions
-- Batch summary bar (title, count, date, status)
-- Library: search bar, filter chips, batch grouping, download/copy actions
+### Files Modified
 
-**6. Route + Navigation**
-- Add `/qr-studio` route in `App.tsx`
-- The page is standalone (has its own nav header) but accessible from the main app
-- Back link to home page in the header
+| File | Change |
+|------|--------|
+| `src/components/qr-studio/QRGenerator.tsx` | Major rewrite: add gym logo grid, flip tabs, redesign layout, remove dropdown |
+| `src/components/qr-studio/QRStudioLayout.tsx` | Minor style tweaks to match brand aesthetic |
 
-### Technical Notes
-- Ports all core logic from the `qr-match-spot` project (QR generation, scanning, bulk parsing, history)
-- Uses same Supabase instance -- no syncing needed, reads `gyms` and `gym_logos` directly
-- Adds `gym_id` and `destination_type` fields to `qr_generated` for gym-aware QR management
+### Technical Details
+- Fetch gyms with logos via same query pattern as Index.tsx (`gyms` + `gym_logos` join)
+- Selected gym state: `Set<string>` for bulk, single `string` for single mode
+- Auto-match in bulk: when gyms are selected, their logos overlay onto QR codes whose parsed label matches the gym name/code
+- No database changes needed
 
