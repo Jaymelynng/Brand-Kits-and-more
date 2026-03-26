@@ -63,7 +63,7 @@ const GymLogoGrid = ({
           {selected.size} selected
         </span>
       </div>
-      <div className="flex flex-wrap gap-2 p-3 rounded-xl" style={{
+      <div className="flex flex-wrap justify-center gap-2 p-3 rounded-xl" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.08), hsl(var(--brand-rose-gold) / 0.04))',
         border: '1px solid hsl(var(--brand-rose-gold) / 0.2)',
       }}>
@@ -399,7 +399,7 @@ export const QRGenerator = () => {
 
       {/* ━━━ BULK TAB ━━━ */}
       <TabsContent value="bulk" className="mt-4 space-y-4">
-        <Card className="p-4 space-y-4" style={{
+        <Card className="p-4 space-y-4 max-w-3xl mx-auto" style={{
           border: '2px solid hsl(var(--brand-rose-gold) / 0.2)',
           boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05)',
         }}>
@@ -420,7 +420,7 @@ export const QRGenerator = () => {
           <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
             <div>
               <Label htmlFor="batchTitle" className="text-xs font-semibold">Batch Title</Label>
-              <Input id="batchTitle" placeholder="e.g. Gift Certificates December 2024" value={batchTitle}
+              <Input id="batchTitle" placeholder="e.g. Waiver Links March 2026" value={batchTitle}
                 onChange={(e) => setBatchTitle(e.target.value)} className="mt-1 h-9 text-sm" />
             </div>
             <div className="flex items-center gap-2 pb-1">
@@ -538,7 +538,7 @@ export const QRGenerator = () => {
 
       {/* ━━━ SINGLE TAB ━━━ */}
       <TabsContent value="single" className="mt-4">
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
           <Card className="p-4 space-y-3" style={{
             border: '2px solid hsl(var(--brand-rose-gold) / 0.2)',
             boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
