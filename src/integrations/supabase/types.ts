@@ -546,6 +546,102 @@ export type Database = {
         }
         Relationships: []
       }
+      qr_generated: {
+        Row: {
+          batch_id: string | null
+          batch_name: string | null
+          content: string
+          created_at: string | null
+          destination_type: string | null
+          gym_id: string | null
+          id: string
+          notes: string | null
+          qr_image_url: string
+          qr_type: string
+          tags: string[] | null
+          title: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          batch_name?: string | null
+          content: string
+          created_at?: string | null
+          destination_type?: string | null
+          gym_id?: string | null
+          id?: string
+          notes?: string | null
+          qr_image_url: string
+          qr_type?: string
+          tags?: string[] | null
+          title?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          batch_name?: string | null
+          content?: string
+          created_at?: string | null
+          destination_type?: string | null
+          gym_id?: string | null
+          id?: string
+          notes?: string | null
+          qr_image_url?: string
+          qr_type?: string
+          tags?: string[] | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_generated_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "qr_generated_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qr_scans: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          id: string
+          is_url: boolean | null
+          notes: string | null
+          preview_image: string | null
+          qr_data: string
+          qr_type: string
+          tags: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          id?: string
+          is_url?: boolean | null
+          notes?: string | null
+          preview_image?: string | null
+          qr_data: string
+          qr_type?: string
+          tags?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          id?: string
+          is_url?: boolean | null
+          notes?: string | null
+          preview_image?: string | null
+          qr_data?: string
+          qr_type?: string
+          tags?: string[] | null
+        }
+        Relationships: []
+      }
       theme_tags: {
         Row: {
           created_at: string | null
