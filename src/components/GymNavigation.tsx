@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { SecretAdminButton } from "./SecretAdminButton";
-import { LogOut, Layers, Palette, Check, ExternalLink } from "lucide-react";
+import { LogOut, Layers, Palette, Check, ExternalLink, QrCode } from "lucide-react";
 import { GymWithColors } from "@/hooks/useGyms";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -57,6 +57,16 @@ export const GymNavigation = ({
           </p>
         </div>
         <div className="flex-1 flex items-center justify-end gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => navigate('/qr-studio')}
+            className="text-xs px-2 py-1 h-7 opacity-60 hover:opacity-100"
+            style={{ color: 'hsl(var(--brand-navy))' }}
+          >
+            <QrCode className="w-3.5 h-3.5 mr-1" />
+            QR Studio
+          </Button>
           <Button
             size="sm"
             variant="ghost"
