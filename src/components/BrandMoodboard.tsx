@@ -273,6 +273,5 @@ const BrandMoodboard = () => {
     </>
   );
 };
-};
 
 export default BrandMoodboard;
