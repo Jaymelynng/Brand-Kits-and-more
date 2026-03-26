@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Shield, Palette, Type, Sparkles, Plus, Trash2, Copy, Check, Pencil, X, Save
 } from "lucide-react";
+import BrandMoodboard from "@/components/BrandMoodboard";
 
 const MyBrand = () => {
   const { user, isAdmin, loading } = useAuth();
