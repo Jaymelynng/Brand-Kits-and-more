@@ -60,6 +60,16 @@ export const GymNavigation = ({
           <Button
             size="sm"
             variant="ghost"
+            onClick={() => navigate('/qr-studio')}
+            className="text-xs px-2 py-1 h-7 opacity-60 hover:opacity-100"
+            style={{ color: 'hsl(var(--brand-navy))' }}
+          >
+            <QrCode className="w-3.5 h-3.5 mr-1" />
+            QR Studio
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
             onClick={() => navigate('/themes')}
             className="text-xs px-2 py-1 h-7 opacity-60 hover:opacity-100"
             style={{ color: 'hsl(var(--brand-navy))' }}
