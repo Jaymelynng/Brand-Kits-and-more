@@ -19,6 +19,8 @@ interface GeneratedQR {
   imageUrl: string;
   title?: string;
   sublabel?: string;
+  matchedGymName?: string;
+  matchedGymCode?: string;
 }
 
 interface Logo {
@@ -35,6 +37,12 @@ interface GymWithLogo {
   logoUrl?: string;
   primaryColor?: string;
 }
+
+const slugifyFilenamePart = (value?: string | null) => value
+  ?.toLowerCase()
+  .trim()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '');
 
 const DESTINATION_TYPES = [
   'Classes', 'Waiver', 'Login', 'Trial', 'Camp', 'Event', 'Registration', 'Website', 'Other'
@@ -252,7 +260,7 @@ export const QRGenerator = () => {
     } catch { return false; }
   };
 
-  const findMatchingGymLogo = (label: string): HTMLImageElement | undefined => {
+  const findMatchingGym = (label: string): GymWithLogo | undefined => {
     if (!label || selectedBulkGyms.size === 0) return undefined;
     const keywords = label.toLowerCase().split(/[\s-]+/).filter(k => k.length > 2);
     for (const gymId of selectedBulkGyms) {
@@ -261,11 +269,16 @@ export const QRGenerator = () => {
       const gymWords = [...gym.name.toLowerCase().split(/[\s-]+/), gym.code.toLowerCase()];
       for (const keyword of keywords) {
         if (gymWords.some(w => w.includes(keyword) || keyword.includes(w))) {
-          return gymLogoImages.get(gymId);
+          return gym;
         }
       }
     }
     return undefined;
+  };
+
+  const findMatchingGymLogo = (label: string): HTMLImageElement | undefined => {
+    const matchedGym = findMatchingGym(label);
+    return matchedGym ? gymLogoImages.get(matchedGym.id) : undefined;
   };
 
   const parsedPreview = useMemo(() => parseMultiLineEntries(bulkContent), [bulkContent]);
@@ -317,7 +330,7 @@ export const QRGenerator = () => {
     if (!qrImage) return;
     const link = document.createElement("a");
     const gymName = singleGymId ? gyms.find(g => g.id === singleGymId)?.name : null;
-    const parts = [gymName, destinationType, title].filter(Boolean).map(p => p!.toLowerCase().replace(/\s+/g, '-'));
+    const parts = [gymName, destinationType, title].map(slugifyFilenamePart).filter(Boolean);
     link.download = parts.length > 0 ? `${parts.join('_')}.png` : `qr-code-${Date.now()}.png`;
     link.href = qrImage;
     link.click();
@@ -342,6 +355,7 @@ export const QRGenerator = () => {
       const generated: GeneratedQR[] = [];
       for (const entry of entries) {
         const { label, sublabel, content } = entry;
+        const matchedGym = label ? findMatchingGym(label) : undefined;
         const matchedLogo = label ? findMatchingGymLogo(label) : undefined;
         const resolvedSublabel = sublabel || batchTitle.trim() || undefined;
         const imageUrl = await generateQRCode({
@@ -350,7 +364,14 @@ export const QRGenerator = () => {
           label: showBulkLabel && label ? label : undefined,
           sublabel: showBulkLabel ? resolvedSublabel : undefined,
         });
-        generated.push({ content, imageUrl, title: label, sublabel: resolvedSublabel });
+        generated.push({
+          content,
+          imageUrl,
+          title: label,
+          sublabel: resolvedSublabel,
+          matchedGymName: matchedGym?.name,
+          matchedGymCode: matchedGym?.code,
+        });
       }
       setGeneratedQRs(generated);
       toast({ title: `Generated ${generated.length} QR codes` });
@@ -373,16 +394,18 @@ export const QRGenerator = () => {
   };
 
   const handleDownloadAll = () => {
-    // Build gym name prefix from selected gyms
-    const selectedGymNames = gyms
-      .filter(g => selectedBulkGyms.has(g.id))
-      .map(g => g.name.toLowerCase().replace(/\s+/g, '-'));
-    const gymPrefix = selectedGymNames.length > 0 ? selectedGymNames.join('-') : null;
+    const selectedGyms = gyms.filter(g => selectedBulkGyms.has(g.id));
+    const selectedGymFallback = selectedGyms.length === 1
+      ? selectedGyms[0].name
+      : selectedGyms.length > 1
+        ? selectedGyms.map(g => g.code).join('-')
+        : null;
 
     generatedQRs.forEach((qr, index) => {
       const link = document.createElement("a");
-      const label = qr.title?.toLowerCase().replace(/\s+/g, '-') || `qr-${index + 1}`;
-      const dest = destinationType ? destinationType.toLowerCase().replace(/\s+/g, '-') : null;
+      const gymPrefix = slugifyFilenamePart(qr.matchedGymName || qr.matchedGymCode || selectedGymFallback);
+      const label = slugifyFilenamePart(qr.title) || `qr-${index + 1}`;
+      const dest = slugifyFilenamePart(destinationType);
       const parts = [gymPrefix, dest, label].filter(Boolean);
       link.download = `${parts.join('_')}.png`;
       link.href = qr.imageUrl;
