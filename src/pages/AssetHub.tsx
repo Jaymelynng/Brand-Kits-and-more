@@ -57,13 +57,13 @@ const RotatingAssetCard = ({ asset, imageUrls, coverage, onSelect, onCopy }: Rot
       style={{ borderColor: 'hsl(var(--border))' }}
     >
       {/* ─ DOMINANT THUMBNAIL ─ */}
-      <div className="aspect-[3/4] w-full overflow-hidden relative bg-muted">
+      <div className="aspect-square w-full overflow-hidden relative bg-slate-900/90">
         {/* Background (next) image for crossfade */}
         {hasMultiple && (
           <img
             src={nextImage.url}
             alt=""
-            className="absolute inset-0 w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-cover"
             loading="lazy"
           />
         )}
@@ -72,7 +72,7 @@ const RotatingAssetCard = ({ asset, imageUrls, coverage, onSelect, onCopy }: Rot
           src={currentImage.url}
           alt={asset.filename}
           className={cn(
-            "absolute inset-0 w-full h-full object-contain transition-opacity duration-700",
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-700",
             "group-hover:scale-105 transition-all"
           )}
           loading="lazy"
@@ -646,18 +646,21 @@ const AssetHub = () => {
                   {/* Section Header */}
                   <button
                     onClick={() => toggleSection(type.id)}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30"
-                    style={{ background: 'hsl(var(--card))' }}
+                    className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-muted/50 border-l-4"
+                    style={{
+                      background: 'hsl(var(--brand-navy) / 0.06)',
+                      borderLeftColor: 'hsl(var(--brand-navy))',
+                    }}
                   >
                     {isCollapsed ? (
-                      <ChevronRight className="w-4 h-4 shrink-0 text-muted-foreground" />
+                      <ChevronRight className="w-5 h-5 shrink-0" style={{ color: 'hsl(var(--brand-navy))' }} />
                     ) : (
-                      <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground" />
+                      <ChevronDown className="w-5 h-5 shrink-0" style={{ color: 'hsl(var(--brand-navy))' }} />
                     )}
-                    <span className="text-base font-bold" style={{ color: 'hsl(var(--brand-navy))' }}>
+                    <span className="text-sm font-extrabold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
                       {type.name}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs font-semibold text-muted-foreground">
                       {stats.total} asset{stats.total !== 1 ? 's' : ''}
                     </span>
 
@@ -685,7 +688,7 @@ const AssetHub = () => {
                           <p className="text-sm text-muted-foreground">No {type.name.toLowerCase()} yet</p>
                         </div>
                       ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                           {sectionAssets.map(asset => {
                             const coverage = getCoverage(asset);
                             const imageUrls = getAssetImageUrls(asset);
@@ -705,7 +708,7 @@ const AssetHub = () => {
                           {/* + ADD card (admin only) */}
                           {isAdmin && (
                             <button
-                              className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center aspect-[3/4] text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
+                              className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center aspect-square text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
                               style={{ borderColor: 'hsl(var(--border))' }}
                               onClick={() => {
                                 toast({ description: "Asset upload coming soon!" });
