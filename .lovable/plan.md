@@ -1,86 +1,72 @@
 
 
-## Rebuild Asset Hub: Category + Sub-Category Structure
+## Rebuild Asset Hub: Section-Based Card Grid with Category Sidebar
 
-### Current State
-- 4 asset types exist: **Logo** (81 assets), **Email Asset** (0), **Social Media** (0), **Marketing** (0)
-- 4 theme tags: Standard (80), Holiday (1), Halloween (0), Summer Camp (0)
-- Current page shows theme tags as cards -- not useful. You want to browse by **what the asset IS** (logo, email hero, icon), not by campaign tag
+### What's Wrong Now
+The current layout is a flat thumbnail grid filtered by one asset type tab at a time. Your wireframe shows a completely different structure: **all asset type sections visible at once** on the main content area (like a scrollable page), with a left sidebar that has both a gym selector AND a collapsible category tree for quick-jumping.
 
-### What You Want
-Main categories = asset types. Sub-categories = specific kinds within each type. Theme tags (Holiday, Summer Camp) become cross-cutting filters you can apply on top.
+### Target Layout
 
 ```text
-┌─────────┬──────────────────────────────────────────────┐
-│  GYM    │  [Logos] [Email] [Social] [Marketing]  ← tabs│
-│  LIST   ├──────────────────────────────────────────────┤
-│         │  Sub-tabs: [All] [Standard] [Holiday] [Dark] │
-│ ● CCP   ├──────────────────────────────────────────────┤
-│ ● CPF   │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐       │
-│ ● CRR   │  │ img  │ │ img  │ │ img  │ │ img  │       │
-│ ● EST   │  │ CCP  │ │ CPF  │ │ CRR  │ │ EST  │       │
-│ ...     │  └──────┘ └──────┘ └──────┘ └──────┘       │
-│         │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐       │
-│         │  │ img  │ │ img  │ │ img  │ │ img  │       │
-│ [All]   │  └──────┘ └──────┘ └──────┘ └──────┘       │
-└─────────┴──────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│  ASSET MANAGEMENT                    [+ Add Asset]  [All Gyms ▼]      │
+│  12 total · 2 missing · 10 complete                                   │
+├── [Logos] [Email] [Social] [Print] [All]          🔍 Search...  ──────┤
+└────────────────────────────────────────────────────────────────────────┘
+
+LEFT SIDEBAR                     │  MAIN CONTENT (scrollable)
+─────────────────────────────────┤
+GYMS                             │  ┌─ LOGOS ─────────── 3 assets · ⚠️ 1 missing ┐
+  ● All Gyms                     │  │  ┌────────┐ ┌────────┐ ┌────────┐          │
+  ● CCP  Capital Cedar Park      │  │  │ [IMG]  │ │ [IMG]  │ │ + ADD  │          │
+  ● CPF  Capital Pflugerville    │  │  │Main Log│ │Holiday │ │White V │          │
+  ● ...                          │  │  │13/13 ✓ │ │ 4/13 ⚠️│ │ 0/13   │          │
+                                 │  │  │[Copy]  │ │[Copy]  │ │        │          │
+CATEGORIES                       │  │  │[Downld]│ │[Downld]│ │        │          │
+  ▼ Logos (3)                    │  │  └────────┘ └────────┘ └────────┘          │
+  ▼ Email Assets (6)             │  └────────────────────────────────────────────┘
+    · Hero Images                │
+    · Dividers                   │  ┌─ EMAIL ASSETS ──────── 6 assets · ✓ all set ┐
+    · Icons                      │  │  [same card grid pattern...]                 │
+  ▼ Social Media (4)             │  └──────────────────────────────────────────────┘
+    · Posts                      │
+    · Stories                    │  ┌─ SOCIAL MEDIA ─────────────────────────────── ┐
+  ▼ Print (2)                    │  │  [same card grid pattern...]                 │
+    · Flyers                     │  └──────────────────────────────────────────────┘
+    · Banners                    │
 ```
 
-### The Plan
+### Key Differences from Current
 
-**1. Add email sub-categories to the database**
+1. **Sections, not tabs**: All asset types render as collapsible sections on one scrollable page. Top bar tabs become quick-jump filters (click "Logos" scrolls to that section; click "All" shows everything).
+2. **Category tree in sidebar**: Below gyms, a collapsible tree shows asset types with their sub-categories. Clicking a sub-category filters the main view to just that sub-category.
+3. **Section headers with status**: Each section shows asset count + missing count + completion badge ("✓ all set" or "⚠️ 1 missing").
+4. **Richer asset cards**: Each card shows thumbnail, asset name, coverage fraction (e.g. "13/13 ✓"), and inline Copy URL + Download buttons directly on the card.
+5. **"+ ADD" card**: An add-asset placeholder card at the end of each section (admin only).
+6. **Detail modal**: Clicking a card opens the existing Sheet drawer with full preview, gym coverage list, per-gym thumbnails, Copy/Download/Open per gym, MISSING badges, and bulk select checkboxes.
+7. **Top summary bar**: "12 total assets · 2 missing · 10 complete" global stats.
 
-Currently `asset_categories` has only universal theme-style entries (Standard, Holiday). We need asset-type-specific sub-categories. New migration to seed:
+### Plan
 
-| Category | Scoped to Asset Type |
-|----------|---------------------|
-| Hero Images | Email Asset |
-| Icons | Email Asset |
-| Dividers | Email Asset |
-| In-Gym Shots | Marketing |
-| Flyers | Marketing |
-| Posts | Social Media |
-| Stories | Social Media |
+**File: `src/pages/AssetHub.tsx`** -- Full rebuild:
 
-These use the existing `asset_categories.asset_type_id` foreign key that's already built for this purpose.
+- Remove the tab-based single-type filtering. Replace with a scrollable page that renders one section per asset type.
+- Each section: collapsible header (type name, count, status badge) + responsive card grid inside.
+- Each card: square thumbnail, asset name below, coverage badge (X/13), warning icon if incomplete, Copy URL and Download buttons on hover or always visible.
+- Admin "+" card at end of each section.
+- Sidebar: keep gym list as-is, add a "CATEGORIES" section below with collapsible groups per asset type showing sub-categories. Clicking a sub-category sets a URL param filter.
+- Top tabs become anchor links that scroll to sections, or filter to show only that section. "All" shows all sections.
+- Top bar gets global stats (total/missing/complete counts).
+- Detail drawer stays mostly the same but add Download button per gym row, and bulk select checkboxes at bottom.
 
-**2. Rebuild `AssetHub.tsx` layout**
-
-Replace the current theme-tag-card grid with:
-
-- **Top tabs**: One tab per asset type (Logos, Email, Social, Marketing). Dynamically generated from `asset_types` table. Shows count badge per type.
-- **Sub-filter row**: Below the main tabs, show pill chips for sub-categories scoped to the selected asset type, plus universal theme tags (Holiday, etc.). Click to filter.
-- **Thumbnail grid**: Dense gallery of actual asset images. Each thumbnail shows the gym code badge, asset name on hover. Click opens the detail drawer (already built).
-- **Gym sidebar**: Stays as-is -- click a gym to filter the grid to only that gym's assets.
-
-**3. Detail drawer upgrade**
-
-When clicking an asset thumbnail, the existing Sheet drawer opens showing:
-- Full-size preview
-- Which gyms have this asset (thumbnail strip with gym code badges)
-- Coverage status (e.g., "10/13 gyms")
-- Copy URL / Download actions
-- Theme tag pills (editable by admin)
-
-**4. Admin management**
-
-- Admin can add/edit/delete sub-categories from a small management section (gear icon or inline)
-- Admin can create new asset types if needed
-- All manageable from frontend, no SQL needed
-
-### Files to Change
-
-| File | Change |
-|------|--------|
-| `supabase/migrations/[new].sql` | Seed email/social/marketing sub-categories |
-| `src/pages/AssetHub.tsx` | Full rebuild -- tabs + sub-filters + thumbnail grid |
-| `src/hooks/useAssets.ts` | Add `useAssetCategoriesByType` hook for scoped queries |
+**No database changes needed.** All data is already available through existing hooks.
 
 ### Technical Notes
-- Asset types = main tabs (already in DB)
-- `asset_categories.asset_type_id` = sub-category scoping (column already exists, just needs data)
-- Theme tags (Holiday, Summer Camp) = cross-cutting filters shown as additional pills alongside sub-categories
-- Gym sidebar filtering unchanged
-- URL state: `?type=logo&category=standard&gym=xyz` for bookmarkable views
-- No breaking changes to gym profile pages
+- Use `useRef` per section for scroll-into-view when clicking top tabs
+- Collapsible category tree uses existing `Collapsible` component
+- Card grid: `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6`
+- Coverage calculation: count assignments per asset vs total gym count
+- Missing count per section: assets where assignment count < total gyms
+- Keep all existing URL param logic for gym/category/tag filtering
+- Keep the Sheet detail drawer, enhance with download buttons and select-all checkbox
 
