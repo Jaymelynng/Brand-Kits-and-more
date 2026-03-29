@@ -57,7 +57,7 @@ const RotatingAssetCard = ({ asset, imageUrls, coverage, onSelect, onCopy }: Rot
       style={{ borderColor: 'hsl(var(--border))' }}
     >
       {/* ─ DOMINANT THUMBNAIL ─ */}
-      <div className="aspect-[3/4] w-full overflow-hidden relative bg-muted">
+      <div className="aspect-square w-full overflow-hidden relative bg-slate-900/90">
         {/* Background (next) image for crossfade */}
         {hasMultiple && (
           <img
