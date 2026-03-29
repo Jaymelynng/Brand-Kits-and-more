@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useGyms } from "@/hooks/useGyms";
 import { useThemeTags, useAllAssetThemeTags, useCreateThemeTag } from "@/hooks/useThemeTags";
