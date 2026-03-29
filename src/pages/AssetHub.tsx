@@ -705,7 +705,7 @@ const AssetHub = () => {
                           {/* + ADD card (admin only) */}
                           {isAdmin && (
                             <button
-                              className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center aspect-[3/4] text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
+                              className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center aspect-square text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
                               style={{ borderColor: 'hsl(var(--border))' }}
                               onClick={() => {
                                 toast({ description: "Asset upload coming soon!" });
