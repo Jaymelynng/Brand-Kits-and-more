@@ -547,97 +547,34 @@ const AssetHub = () => {
                           <p className="text-sm text-muted-foreground">No {type.name.toLowerCase()} yet</p>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                           {sectionAssets.map(asset => {
-                            const displayUrl = getAssetDisplayUrl(asset);
                             const coverage = getCoverage(asset);
+                            const imageUrls = getAssetImageUrls(asset);
 
                             return (
-                              <button
+                              <RotatingAssetCard
                                 key={asset.id}
-                                onClick={() => setSelectedAssetId(asset.id)}
-                                className="group text-left rounded-lg border overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02] relative bg-card"
-                                style={{ borderColor: 'hsl(var(--border))' }}
-                              >
-                                {/* Thumbnail */}
-                                <div className="aspect-square w-full overflow-hidden flex items-center justify-center bg-muted">
-                                  {displayUrl ? (
-                                    <img
-                                      src={displayUrl}
-                                      alt={asset.filename}
-                                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-                                      loading="lazy"
-                                    />
-                                  ) : (
-                                    <ImageIcon className="w-8 h-8 text-muted-foreground/30" />
-                                  )}
-                                </div>
-
-                                {/* Coverage badge */}
-                                <div className={cn(
-                                  "absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold",
-                                  coverage.complete
-                                    ? "text-white"
-                                    : "text-white"
-                                )} style={{
-                                  background: coverage.complete
-                                    ? 'hsl(var(--brand-gold))'
-                                    : coverage.count > 0
-                                      ? 'hsl(var(--brand-navy) / 0.8)'
-                                      : 'hsl(var(--destructive) / 0.8)',
-                                }}>
-                                  {coverage.count}/{coverage.total}
-                                  {coverage.complete && ' ✓'}
-                                  {!coverage.complete && coverage.count === 0 && ' ⚠️'}
-                                </div>
-
-                                {/* ALL badge */}
-                                {asset.is_all_gyms && (
-                                  <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold"
-                                    style={{ background: 'hsl(var(--brand-gold))', color: 'hsl(var(--brand-navy))' }}>
-                                    ALL
-                                  </div>
-                                )}
-
-                                {/* Footer */}
-                                <div className="p-2 space-y-1.5">
-                                  <div className="text-xs font-semibold truncate" style={{ color: 'hsl(var(--brand-navy))' }}>
-                                    {asset.filename}
-                                  </div>
-
-                                  {/* Inline actions */}
-                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); copyUrl(displayUrl || asset.file_url); }}
-                                      className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-muted hover:bg-muted-foreground/20 transition-colors"
-                                    >
-                                      <Copy className="w-2.5 h-2.5" /> Copy
-                                    </button>
-                                    <a
-                                      href={displayUrl || asset.file_url}
-                                      download
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-muted hover:bg-muted-foreground/20 transition-colors"
-                                    >
-                                      <Download className="w-2.5 h-2.5" /> Save
-                                    </a>
-                                  </div>
-                                </div>
-                              </button>
+                                asset={asset}
+                                imageUrls={imageUrls}
+                                coverage={coverage}
+                                onSelect={() => setSelectedAssetId(asset.id)}
+                                onCopy={(url) => copyUrl(url)}
+                              />
                             );
                           })}
 
                           {/* + ADD card (admin only) */}
                           {isAdmin && (
                             <button
-                              className="rounded-lg border-2 border-dashed flex flex-col items-center justify-center aspect-square text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
+                              className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center aspect-[3/4] text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
                               style={{ borderColor: 'hsl(var(--border))' }}
                               onClick={() => {
                                 toast({ description: "Asset upload coming soon!" });
                               }}
                             >
-                              <Plus className="w-8 h-8 mb-1" />
-                              <span className="text-xs font-semibold">Add</span>
+                              <Plus className="w-10 h-10 mb-2" />
+                              <span className="text-sm font-semibold">Add Asset</span>
                             </button>
                           )}
                         </div>
