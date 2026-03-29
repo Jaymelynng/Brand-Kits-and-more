@@ -18,6 +18,144 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
+// ─── Rotating Asset Card Component ───
+interface RotatingAssetCardProps {
+  asset: GymAsset;
+  imageUrls: { url: string; gymCode?: string }[];
+  coverage: { count: number; total: number; complete: boolean };
+  onSelect: () => void;
+  onCopy: (url: string) => void;
+}
+
+const RotatingAssetCard = ({ asset, imageUrls, coverage, onSelect, onCopy }: RotatingAssetCardProps) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasMultiple = imageUrls.length > 1;
+
+  useEffect(() => {
+    if (!hasMultiple || isHovered) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex(prev => (prev + 1) % imageUrls.length);
+    }, 3000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [hasMultiple, isHovered, imageUrls.length]);
+
+  const currentImage = imageUrls[currentIndex];
+  const nextIndex = (currentIndex + 1) % imageUrls.length;
+  const nextImage = imageUrls[nextIndex];
+
+  return (
+    <button
+      onClick={onSelect}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group text-left rounded-xl border-2 overflow-hidden transition-all hover:shadow-xl hover:scale-[1.02] relative bg-card"
+      style={{ borderColor: 'hsl(var(--border))' }}
+    >
+      {/* ─ DOMINANT THUMBNAIL ─ */}
+      <div className="aspect-[3/4] w-full overflow-hidden relative bg-muted">
+        {/* Background (next) image for crossfade */}
+        {hasMultiple && (
+          <img
+            src={nextImage.url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain"
+            loading="lazy"
+          />
+        )}
+        {/* Foreground (current) image */}
+        <img
+          src={currentImage.url}
+          alt={asset.filename}
+          className={cn(
+            "absolute inset-0 w-full h-full object-contain transition-opacity duration-700",
+            "group-hover:scale-105 transition-all"
+          )}
+          loading="lazy"
+        />
+
+        {/* Gym code badge (during rotation) */}
+        {hasMultiple && currentImage.gymCode && (
+          <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-bold text-white backdrop-blur-sm transition-all"
+            style={{ background: 'hsl(var(--brand-navy) / 0.75)' }}>
+            {currentImage.gymCode}
+          </div>
+        )}
+
+        {/* Rotation dots indicator */}
+        {hasMultiple && (
+          <div className="absolute bottom-2 left-2 flex gap-1">
+            {imageUrls.map((_, i) => (
+              <div key={i} className={cn(
+                "w-1.5 h-1.5 rounded-full transition-all",
+                i === currentIndex ? "bg-white scale-125" : "bg-white/40"
+              )} />
+            ))}
+          </div>
+        )}
+
+        {/* Coverage badge */}
+        <div className="absolute top-2 right-2 px-2 py-1 rounded-lg text-[10px] font-bold text-white backdrop-blur-sm"
+          style={{
+            background: coverage.complete
+              ? 'hsl(var(--brand-gold) / 0.9)'
+              : coverage.count > 0
+                ? 'hsl(var(--brand-navy) / 0.8)'
+                : 'hsl(var(--destructive) / 0.85)',
+          }}>
+          {coverage.count}/{coverage.total}
+          {coverage.complete && ' ✓'}
+          {!coverage.complete && coverage.count === 0 && ' ⚠️'}
+        </div>
+
+        {/* ALL badge */}
+        {asset.is_all_gyms && (
+          <div className="absolute top-2 left-2 px-2 py-1 rounded-lg text-[10px] font-bold backdrop-blur-sm"
+            style={{ background: 'hsl(var(--brand-gold) / 0.9)', color: 'hsl(var(--brand-navy))' }}>
+            ALL GYMS
+          </div>
+        )}
+
+        {/* Hover overlay with actions */}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent pt-10 pb-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex gap-1.5">
+            <span
+              onClick={(e) => { e.stopPropagation(); onCopy(currentImage.url); }}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors cursor-pointer"
+            >
+              <Copy className="w-3 h-3" /> Copy
+            </span>
+            <a
+              href={currentImage.url}
+              download
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors"
+            >
+              <Download className="w-3 h-3" /> Save
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* ─ MINIMAL FOOTER ─ */}
+      <div className="px-3 py-2 flex items-center justify-between gap-2">
+        <span className="text-xs font-bold truncate" style={{ color: 'hsl(var(--brand-navy))' }}>
+          {asset.filename}
+        </span>
+        {hasMultiple && (
+          <span className="text-[9px] text-muted-foreground shrink-0">
+            {imageUrls.length} versions
+          </span>
+        )}
+      </div>
+    </button>
+  );
+};
+
 const AssetHub = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
