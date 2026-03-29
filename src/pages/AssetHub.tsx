@@ -63,7 +63,7 @@ const RotatingAssetCard = ({ asset, imageUrls, coverage, onSelect, onCopy }: Rot
           <img
             src={nextImage.url}
             alt=""
-            className="absolute inset-0 w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-cover"
             loading="lazy"
           />
         )}
@@ -72,7 +72,7 @@ const RotatingAssetCard = ({ asset, imageUrls, coverage, onSelect, onCopy }: Rot
           src={currentImage.url}
           alt={asset.filename}
           className={cn(
-            "absolute inset-0 w-full h-full object-contain transition-opacity duration-700",
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-700",
             "group-hover:scale-105 transition-all"
           )}
           loading="lazy"
