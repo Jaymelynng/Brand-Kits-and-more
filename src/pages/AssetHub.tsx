@@ -1,20 +1,21 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useGyms, GymWithColors } from "@/hooks/useGyms";
+import { useGyms } from "@/hooks/useGyms";
 import { useThemeTags, useAllAssetThemeTags, useCreateThemeTag } from "@/hooks/useThemeTags";
-import { useAllAssetsWithAssignments, useAssetTypes, useAssetCategories, GymAsset, GymAssetAssignment, AssetType, AssetCategory } from "@/hooks/useAssets";
+import { useAllAssetsWithAssignments, useAssetTypes, useAssetCategories, GymAsset, GymAssetAssignment } from "@/hooks/useAssets";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import {
-  ArrowLeft, Plus, Search, X, Check, ChevronRight,
-  Download, Copy, LayoutGrid, List, PanelLeftClose, PanelLeft,
-  Image as ImageIcon, AlertTriangle, ExternalLink
+  ArrowLeft, Plus, Search, X, Check, ChevronDown, ChevronRight,
+  Download, Copy, Image as ImageIcon, AlertTriangle, ExternalLink,
+  PanelLeftClose, PanelLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
 const AssetHub = () => {
@@ -37,9 +38,8 @@ const AssetHub = () => {
 
   // URL-driven state
   const activeGymId = searchParams.get("gym");
-  const activeTypeSlug = searchParams.get("type") || (assetTypes[0]?.slug ?? "logo");
+  const activeTypeFilter = searchParams.get("type"); // null = "All"
   const activeCategoryId = searchParams.get("category");
-  const activeThemeTagId = searchParams.get("tag");
 
   // Local state
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -47,41 +47,14 @@ const AssetHub = () => {
   const [showNewTheme, setShowNewTheme] = useState(false);
   const [newThemeName, setNewThemeName] = useState("");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
-  // Active asset type
-  const activeType = useMemo(
-    () => assetTypes.find(t => t.slug === activeTypeSlug) || assetTypes[0],
-    [assetTypes, activeTypeSlug]
-  );
+  // Section refs for scroll-into-view
+  const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
-  // Sub-categories scoped to active type
-  const scopedCategories = useMemo(() => {
-    if (!activeType) return [];
-    return assetCategories.filter(c => c.asset_type_id === activeType.id);
-  }, [assetCategories, activeType]);
+  const totalGyms = gyms.length;
 
-  // Universal theme tags (cross-cutting filters)
-  const universalTags = themeTags;
-
-  // Asset count per type
-  const typeCountMap = useMemo(() => {
-    const map = new Map<string, number>();
-    assets.forEach(a => {
-      map.set(a.asset_type_id, (map.get(a.asset_type_id) || 0) + 1);
-    });
-    return map;
-  }, [assets]);
-
-  // Gym asset count
-  const gymAssetCountMap = useMemo(() => {
-    const map = new Map<string, number>();
-    assignments.forEach(a => {
-      map.set(a.gym_id, (map.get(a.gym_id) || 0) + 1);
-    });
-    return map;
-  }, [assignments]);
-
-  // Build asset-to-theme-tag mapping
+  // Build maps
   const assetTagMap = useMemo(() => {
     const map = new Map<string, Set<string>>();
     allAssetThemeTags.forEach(att => {
@@ -91,7 +64,6 @@ const AssetHub = () => {
     return map;
   }, [allAssetThemeTags]);
 
-  // Build asset-to-gyms mapping
   const assetGymMap = useMemo(() => {
     const map = new Map<string, GymAssetAssignment[]>();
     assignments.forEach(a => {
@@ -101,35 +73,29 @@ const AssetHub = () => {
     return map;
   }, [assignments]);
 
-  // Filter assets
-  const filteredAssets = useMemo(() => {
+  const gymAssetCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    assignments.forEach(a => {
+      map.set(a.gym_id, (map.get(a.gym_id) || 0) + 1);
+    });
+    return map;
+  }, [assignments]);
+
+  // Filter assets based on gym + search
+  const baseFilteredAssets = useMemo(() => {
     let result = assets;
 
-    // Filter by asset type
-    if (activeType) {
-      result = result.filter(a => a.asset_type_id === activeType.id);
-    }
-
-    // Filter by sub-category
-    if (activeCategoryId) {
-      result = result.filter(a => a.category_id === activeCategoryId);
-    }
-
-    // Filter by theme tag
-    if (activeThemeTagId) {
-      result = result.filter(a => assetTagMap.get(a.id)?.has(activeThemeTagId));
-    }
-
-    // Filter by gym
     if (activeGymId) {
       const gymAssetIds = new Set(
         assignments.filter(a => a.gym_id === activeGymId).map(a => a.asset_id)
       );
-      // Include assets assigned to this gym OR marked as all_gyms/global
       result = result.filter(a => gymAssetIds.has(a.id) || a.is_all_gyms || a.is_global);
     }
 
-    // Search
+    if (activeCategoryId) {
+      result = result.filter(a => a.category_id === activeCategoryId);
+    }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(a =>
@@ -139,7 +105,46 @@ const AssetHub = () => {
     }
 
     return result;
-  }, [assets, activeType, activeCategoryId, activeThemeTagId, activeGymId, searchQuery, assetTagMap, assignments]);
+  }, [assets, activeGymId, activeCategoryId, searchQuery, assignments]);
+
+  // Group assets by type
+  const assetsByType = useMemo(() => {
+    const map = new Map<string, GymAsset[]>();
+    assetTypes.forEach(t => map.set(t.id, []));
+    baseFilteredAssets.forEach(a => {
+      const list = map.get(a.asset_type_id);
+      if (list) list.push(a);
+    });
+    return map;
+  }, [baseFilteredAssets, assetTypes]);
+
+  // Coverage calculation
+  const getCoverage = (asset: GymAsset) => {
+    if (asset.is_all_gyms) return { count: totalGyms, total: totalGyms, complete: true };
+    const count = (assetGymMap.get(asset.id) || []).length;
+    return { count, total: totalGyms, complete: count >= totalGyms };
+  };
+
+  // Section stats
+  const getSectionStats = (typeId: string) => {
+    const sectionAssets = assetsByType.get(typeId) || [];
+    const total = sectionAssets.length;
+    const missing = sectionAssets.filter(a => !getCoverage(a).complete).length;
+    const complete = total - missing;
+    return { total, missing, complete };
+  };
+
+  // Global stats
+  const globalStats = useMemo(() => {
+    let total = 0, missing = 0, complete = 0;
+    assetTypes.forEach(t => {
+      const s = getSectionStats(t.id);
+      total += s.total;
+      missing += s.missing;
+      complete += s.complete;
+    });
+    return { total, missing, complete };
+  }, [assetTypes, assetsByType]);
 
   // Selected asset detail
   const selectedAsset = selectedAssetId ? assets.find(a => a.id === selectedAssetId) : null;
@@ -153,13 +158,6 @@ const AssetHub = () => {
     const params = new URLSearchParams(searchParams);
     if (value) params.set(key, value);
     else params.delete(key);
-    setSearchParams(params);
-  };
-
-  const selectType = (slug: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("type", slug);
-    params.delete("category"); // reset sub-category when switching types
     setSearchParams(params);
   };
 
@@ -180,41 +178,50 @@ const AssetHub = () => {
     toast({ description: "URL copied!" });
   };
 
-  const totalGyms = gyms.length;
+  const scrollToSection = (typeId: string) => {
+    const el = sectionRefs.current.get(typeId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Expand it if collapsed
+    setCollapsedSections(prev => {
+      const next = new Set(prev);
+      next.delete(typeId);
+      return next;
+    });
+  };
 
-  if (gymsLoading || assetsLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--background))' }}>
-        <div className="text-xl" style={{ color: 'hsl(var(--brand-text-primary))' }}>Loading Asset Hub...</div>
-      </div>
-    );
-  }
+  const toggleSection = (typeId: string) => {
+    setCollapsedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(typeId)) next.delete(typeId);
+      else next.add(typeId);
+      return next;
+    });
+  };
 
-  // Get the URL to display for an asset (prefer gym-specific assignment URL if gym is filtered)
   const getAssetDisplayUrl = (asset: GymAsset): string => {
     if (activeGymId) {
       const gymAssignment = assignments.find(a => a.asset_id === asset.id && a.gym_id === activeGymId);
       if (gymAssignment?.file_url) return gymAssignment.file_url;
     }
-    // Otherwise use first assignment with a URL, or the asset's own URL
     const firstAssignment = assignments.find(a => a.asset_id === asset.id && a.file_url);
     return firstAssignment?.file_url || asset.file_url;
   };
 
-  // Get gym code badge for an asset thumbnail
-  const getAssetGymBadges = (asset: GymAsset): { code: string; color: string }[] => {
-    const assetAssigns = assetGymMap.get(asset.id) || [];
-    return assetAssigns.slice(0, 4).map(a => {
-      const gym = gyms.find(g => g.id === a.gym_id);
-      return {
-        code: gym?.code || '?',
-        color: gym?.colors[0]?.color_hex || '#667eea',
-      };
-    });
-  };
+  // Types to render
+  const visibleTypes = activeTypeFilter
+    ? assetTypes.filter(t => t.slug === activeTypeFilter)
+    : assetTypes;
+
+  if (gymsLoading || assetsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-xl text-muted-foreground">Loading Asset Hub...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'hsl(var(--background))' }}>
+    <div className="min-h-screen flex flex-col bg-background">
       {/* ─── HEADER ─── */}
       <div className="shrink-0 sticky top-0 z-40" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.88))',
@@ -229,29 +236,63 @@ const AssetHub = () => {
             <div className="h-5 w-px bg-primary-foreground/20" />
             <h1 className="text-lg font-bold text-primary-foreground flex items-center gap-2">
               <ImageIcon className="w-5 h-5" />
-              Asset Command Center
+              Asset Management
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Global stats */}
+            <div className="text-xs text-primary-foreground/70 hidden sm:flex items-center gap-1.5">
+              <span className="font-semibold text-primary-foreground">{globalStats.total}</span> total
+              {globalStats.missing > 0 && (
+                <>
+                  <span className="mx-1">·</span>
+                  <span className="text-orange-300 font-semibold">{globalStats.missing}</span> missing
+                </>
+              )}
+              <span className="mx-1">·</span>
+              <span className="font-semibold" style={{ color: 'hsl(var(--brand-gold))' }}>{globalStats.complete}</span> complete
+            </div>
             {isAdmin && (
               <Button size="sm" onClick={() => setShowNewTheme(true)}
                 className="text-primary-foreground text-sm"
                 style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}>
-                <Plus className="w-4 h-4 mr-1" /> New Theme
+                <Plus className="w-4 h-4 mr-1" /> Add Asset
               </Button>
             )}
           </div>
         </div>
 
-        {/* ─── ASSET TYPE TABS ─── */}
+        {/* ─── TAB BAR (quick-jump + "All") ─── */}
         <div className="px-4 flex items-center gap-1 border-t border-primary-foreground/10">
+          <button
+            onClick={() => setParam("type", null)}
+            className={cn(
+              "px-4 py-2.5 text-sm font-semibold transition-all relative",
+              !activeTypeFilter
+                ? "text-primary-foreground"
+                : "text-primary-foreground/50 hover:text-primary-foreground/80"
+            )}
+          >
+            All
+            {!activeTypeFilter && (
+              <div className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full"
+                style={{ background: 'hsl(var(--brand-rose-gold))' }} />
+            )}
+          </button>
           {assetTypes.map(type => {
-            const isActive = activeType?.id === type.id;
-            const count = typeCountMap.get(type.id) || 0;
+            const isActive = activeTypeFilter === type.slug;
+            const sectionAssets = assetsByType.get(type.id) || [];
             return (
               <button
                 key={type.id}
-                onClick={() => selectType(type.slug)}
+                onClick={() => {
+                  if (activeTypeFilter === type.slug) {
+                    // Already filtered to this type, scroll to it
+                    scrollToSection(type.id);
+                  } else {
+                    setParam("type", type.slug);
+                  }
+                }}
                 className={cn(
                   "px-4 py-2.5 text-sm font-semibold transition-all relative",
                   isActive
@@ -260,12 +301,12 @@ const AssetHub = () => {
                 )}
               >
                 {type.name}
-                {count > 0 && (
+                {sectionAssets.length > 0 && (
                   <span className={cn(
                     "ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold",
                     isActive ? "bg-primary-foreground/20" : "bg-primary-foreground/10"
                   )}>
-                    {count}
+                    {sectionAssets.length}
                   </span>
                 )}
                 {isActive && (
@@ -275,115 +316,32 @@ const AssetHub = () => {
               </button>
             );
           })}
+
+          {/* Search */}
+          <div className="relative flex-1 max-w-xs ml-auto">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary-foreground/40" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search assets..."
+              className="pl-8 h-8 text-sm bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40"
+            />
+          </div>
         </div>
-      </div>
-
-      {/* ─── FILTER BAR ─── */}
-      <div className="shrink-0 px-4 py-2 flex items-center gap-2 flex-wrap border-b"
-        style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}>
-        {/* Sidebar toggle */}
-        <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-1.5 h-8 w-8">
-          {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
-        </Button>
-
-        {/* Active gym chip */}
-        {activeGymId && (
-          <button onClick={() => setParam("gym", null)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
-            style={{ background: gyms.find(g => g.id === activeGymId)?.colors[0]?.color_hex || 'hsl(var(--brand-navy))' }}>
-            {gyms.find(g => g.id === activeGymId)?.code || 'Gym'}
-            <X className="w-3 h-3" />
-          </button>
-        )}
-
-        {/* Sub-category pills */}
-        {scopedCategories.length > 0 && (
-          <>
-            <div className="h-4 w-px bg-border" />
-            <button
-              onClick={() => setParam("category", null)}
-              className={cn(
-                "px-2.5 py-1 rounded-full text-xs font-semibold transition-colors",
-                !activeCategoryId
-                  ? "text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground bg-muted"
-              )}
-              style={!activeCategoryId ? { background: 'hsl(var(--brand-navy))' } : {}}
-            >
-              All
-            </button>
-            {scopedCategories.map(cat => {
-              const isActive = activeCategoryId === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setParam("category", isActive ? null : cat.id)}
-                  className={cn(
-                    "px-2.5 py-1 rounded-full text-xs font-semibold transition-colors",
-                    isActive
-                      ? "text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground bg-muted"
-                  )}
-                  style={isActive ? { background: 'hsl(var(--brand-navy))' } : {}}
-                >
-                  {cat.name}
-                </button>
-              );
-            })}
-          </>
-        )}
-
-        {/* Theme tag pills */}
-        {universalTags.length > 0 && (
-          <>
-            <div className="h-4 w-px bg-border" />
-            {universalTags.map(tag => {
-              const isActive = activeThemeTagId === tag.id;
-              return (
-                <button
-                  key={tag.id}
-                  onClick={() => setParam("tag", isActive ? null : tag.id)}
-                  className={cn(
-                    "px-2.5 py-1 rounded-full text-xs font-semibold transition-colors border",
-                    isActive
-                      ? "text-white border-transparent"
-                      : "text-muted-foreground hover:text-foreground border-border bg-background"
-                  )}
-                  style={isActive ? { background: 'hsl(var(--brand-rose-gold))' } : {}}
-                >
-                  {tag.name}
-                </button>
-              );
-            })}
-          </>
-        )}
-
-        {/* Search */}
-        <div className="relative flex-1 max-w-xs ml-auto">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search assets..."
-            className="pl-8 h-8 text-sm"
-          />
-        </div>
-
-        {/* Count */}
-        <span className="text-xs font-medium text-muted-foreground">
-          {filteredAssets.length} asset{filteredAssets.length !== 1 ? 's' : ''}
-        </span>
       </div>
 
       {/* ─── BODY ─── */}
       <div className="flex flex-1 min-h-0">
-        {/* ─── LEFT SIDEBAR: Gym List ─── */}
+        {/* ─── LEFT SIDEBAR ─── */}
         {sidebarOpen && (
-          <div className="w-44 shrink-0 border-r overflow-y-auto" style={{
-            background: 'hsl(var(--card))',
-            borderColor: 'hsl(var(--border))',
-          }}>
+          <div className="w-52 shrink-0 border-r overflow-y-auto flex flex-col"
+            style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}>
+
+            {/* GYMS section */}
+            <div className="px-3 pt-3 pb-1">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Gyms</div>
+            </div>
+
             <button
               onClick={() => setParam("gym", null)}
               className={cn(
@@ -398,7 +356,7 @@ const AssetHub = () => {
                 } : { color: 'hsl(var(--brand-navy))' }),
               }}
             >
-              All Gyms ({totalGyms})
+              ● All Gyms
             </button>
 
             {gyms.map(gym => {
@@ -435,93 +393,245 @@ const AssetHub = () => {
                       {gym.code}
                     </div>
                     <div className="text-[10px] truncate text-muted-foreground">
-                      {assetCount} asset{assetCount !== 1 ? 's' : ''}
+                      {gym.name}
                     </div>
                   </div>
                   {isActive && <Check className="w-3 h-3 shrink-0" style={{ color: primaryColor }} />}
                 </button>
               );
             })}
+
+            {/* CATEGORIES section */}
+            <div className="px-3 pt-4 pb-1">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Categories</div>
+            </div>
+
+            {assetTypes.map(type => {
+              const cats = assetCategories.filter(c => c.asset_type_id === type.id);
+              const typeAssetCount = (assetsByType.get(type.id) || []).length;
+              return (
+                <Collapsible key={type.id} defaultOpen>
+                  <CollapsibleTrigger className="w-full flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold hover:bg-muted/50 transition-colors"
+                    style={{ color: 'hsl(var(--brand-navy))' }}>
+                    <ChevronDown className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{type.name}</span>
+                    <span className="text-[10px] text-muted-foreground ml-auto">({typeAssetCount})</span>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    {/* Click type name to jump */}
+                    <button
+                      onClick={() => { setParam("type", type.slug); setParam("category", null); }}
+                      className="w-full text-left pl-8 pr-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
+                    >
+                      All {type.name}
+                    </button>
+                    {cats.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => { setParam("type", type.slug); setParam("category", cat.id); }}
+                        className={cn(
+                          "w-full text-left pl-8 pr-3 py-1 text-xs transition-colors",
+                          activeCategoryId === cat.id
+                            ? "font-semibold"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                        )}
+                        style={activeCategoryId === cat.id ? { color: 'hsl(var(--brand-navy))' } : {}}
+                      >
+                        · {cat.name}
+                      </button>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
           </div>
         )}
 
-        {/* ─── MAIN GRID ─── */}
-        <div className="flex-1 overflow-y-auto p-3">
-          {filteredAssets.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <ImageIcon className="w-12 h-12 mb-3 text-muted-foreground" />
-              <p className="text-lg font-medium" style={{ color: 'hsl(var(--brand-navy))' }}>
-                {searchQuery ? "No assets match your search" : "No assets in this category yet"}
-              </p>
-              <p className="text-sm mt-1 text-muted-foreground">
-                {activeType?.name} assets will appear here once uploaded
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
-              {filteredAssets.map(asset => {
-                const displayUrl = getAssetDisplayUrl(asset);
-                const gymBadges = getAssetGymBadges(asset);
-                const assignCount = (assetGymMap.get(asset.id) || []).length;
+        {/* ─── MAIN CONTENT (scrollable sections) ─── */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Sidebar toggle */}
+          <div className="sticky top-0 z-10 px-3 py-1.5 flex items-center gap-2 bg-background border-b" style={{ borderColor: 'hsl(var(--border))' }}>
+            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-1.5 h-8 w-8">
+              {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+            </Button>
 
-                return (
+            {activeGymId && (
+              <button onClick={() => setParam("gym", null)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
+                style={{ background: gyms.find(g => g.id === activeGymId)?.colors[0]?.color_hex || 'hsl(var(--brand-navy))' }}>
+                {gyms.find(g => g.id === activeGymId)?.code || 'Gym'}: {gyms.find(g => g.id === activeGymId)?.name}
+                <X className="w-3 h-3" />
+              </button>
+            )}
+
+            {activeCategoryId && (
+              <button onClick={() => setParam("category", null)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border bg-muted text-foreground">
+                {assetCategories.find(c => c.id === activeCategoryId)?.name}
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          <div className="p-4 space-y-6">
+            {visibleTypes.map(type => {
+              const sectionAssets = assetsByType.get(type.id) || [];
+              const stats = getSectionStats(type.id);
+              const isCollapsed = collapsedSections.has(type.id);
+
+              if (sectionAssets.length === 0 && !isAdmin) return null;
+
+              return (
+                <div
+                  key={type.id}
+                  ref={(el) => { if (el) sectionRefs.current.set(type.id, el); }}
+                  className="rounded-xl border-2 overflow-hidden"
+                  style={{ borderColor: 'hsl(var(--border))' }}
+                >
+                  {/* Section Header */}
                   <button
-                    key={asset.id}
-                    onClick={() => setSelectedAssetId(asset.id)}
-                    className="group text-left rounded-lg border overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02] relative"
-                    style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
+                    onClick={() => toggleSection(type.id)}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30"
+                    style={{ background: 'hsl(var(--card))' }}
                   >
-                    {/* Thumbnail */}
-                    <div className="aspect-square w-full overflow-hidden flex items-center justify-center bg-muted">
-                      {displayUrl ? (
-                        <img
-                          src={displayUrl}
-                          alt={asset.filename}
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <ImageIcon className="w-8 h-8 text-muted-foreground/30" />
-                      )}
+                    {isCollapsed ? (
+                      <ChevronRight className="w-4 h-4 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="text-base font-bold" style={{ color: 'hsl(var(--brand-navy))' }}>
+                      {type.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {stats.total} asset{stats.total !== 1 ? 's' : ''}
+                    </span>
+
+                    <div className="ml-auto flex items-center gap-2">
+                      {stats.missing > 0 ? (
+                        <Badge variant="outline" className="text-[10px] border-orange-300 text-orange-600 gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          {stats.missing} missing
+                        </Badge>
+                      ) : stats.total > 0 ? (
+                        <Badge className="text-[10px] gap-1" style={{ background: 'hsl(var(--brand-gold))', color: 'hsl(var(--brand-navy))' }}>
+                          <Check className="w-3 h-3" />
+                          all set
+                        </Badge>
+                      ) : null}
                     </div>
+                  </button>
 
-                    {/* Gym count badge */}
-                    {assignCount > 0 && (
-                      <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-bold text-white"
-                        style={{ background: 'hsl(var(--brand-navy) / 0.8)' }}>
-                        {assignCount}/{totalGyms}
-                      </div>
-                    )}
+                  {/* Section Content */}
+                  {!isCollapsed && (
+                    <div className="p-4 border-t" style={{ borderColor: 'hsl(var(--border))' }}>
+                      {sectionAssets.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                          <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground/30" />
+                          <p className="text-sm text-muted-foreground">No {type.name.toLowerCase()} yet</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                          {sectionAssets.map(asset => {
+                            const displayUrl = getAssetDisplayUrl(asset);
+                            const coverage = getCoverage(asset);
 
-                    {/* All gyms badge */}
-                    {asset.is_all_gyms && (
-                      <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold"
-                        style={{ background: 'hsl(var(--brand-gold))', color: 'hsl(var(--brand-navy))' }}>
-                        ALL
-                      </div>
-                    )}
+                            return (
+                              <button
+                                key={asset.id}
+                                onClick={() => setSelectedAssetId(asset.id)}
+                                className="group text-left rounded-lg border overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02] relative bg-card"
+                                style={{ borderColor: 'hsl(var(--border))' }}
+                              >
+                                {/* Thumbnail */}
+                                <div className="aspect-square w-full overflow-hidden flex items-center justify-center bg-muted">
+                                  {displayUrl ? (
+                                    <img
+                                      src={displayUrl}
+                                      alt={asset.filename}
+                                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <ImageIcon className="w-8 h-8 text-muted-foreground/30" />
+                                  )}
+                                </div>
 
-                    {/* Footer: filename + gym dots */}
-                    <div className="px-1.5 py-1">
-                      <div className="text-[10px] font-medium truncate" style={{ color: 'hsl(var(--brand-navy))' }}>
-                        {asset.filename}
-                      </div>
-                      {gymBadges.length > 0 && (
-                        <div className="flex gap-0.5 mt-0.5">
-                          {gymBadges.map((b, i) => (
-                            <div key={i} className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: b.color }} title={b.code} />
-                          ))}
-                          {assignCount > 4 && (
-                            <span className="text-[8px] text-muted-foreground ml-0.5">+{assignCount - 4}</span>
+                                {/* Coverage badge */}
+                                <div className={cn(
+                                  "absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold",
+                                  coverage.complete
+                                    ? "text-white"
+                                    : "text-white"
+                                )} style={{
+                                  background: coverage.complete
+                                    ? 'hsl(var(--brand-gold))'
+                                    : coverage.count > 0
+                                      ? 'hsl(var(--brand-navy) / 0.8)'
+                                      : 'hsl(var(--destructive) / 0.8)',
+                                }}>
+                                  {coverage.count}/{coverage.total}
+                                  {coverage.complete && ' ✓'}
+                                  {!coverage.complete && coverage.count === 0 && ' ⚠️'}
+                                </div>
+
+                                {/* ALL badge */}
+                                {asset.is_all_gyms && (
+                                  <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold"
+                                    style={{ background: 'hsl(var(--brand-gold))', color: 'hsl(var(--brand-navy))' }}>
+                                    ALL
+                                  </div>
+                                )}
+
+                                {/* Footer */}
+                                <div className="p-2 space-y-1.5">
+                                  <div className="text-xs font-semibold truncate" style={{ color: 'hsl(var(--brand-navy))' }}>
+                                    {asset.filename}
+                                  </div>
+
+                                  {/* Inline actions */}
+                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); copyUrl(displayUrl || asset.file_url); }}
+                                      className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-muted hover:bg-muted-foreground/20 transition-colors"
+                                    >
+                                      <Copy className="w-2.5 h-2.5" /> Copy
+                                    </button>
+                                    <a
+                                      href={displayUrl || asset.file_url}
+                                      download
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-muted hover:bg-muted-foreground/20 transition-colors"
+                                    >
+                                      <Download className="w-2.5 h-2.5" /> Save
+                                    </a>
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+
+                          {/* + ADD card (admin only) */}
+                          {isAdmin && (
+                            <button
+                              className="rounded-lg border-2 border-dashed flex flex-col items-center justify-center aspect-square text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
+                              style={{ borderColor: 'hsl(var(--border))' }}
+                              onClick={() => {
+                                toast({ description: "Asset upload coming soon!" });
+                              }}
+                            >
+                              <Plus className="w-8 h-8 mb-1" />
+                              <span className="text-xs font-semibold">Add</span>
+                            </button>
                           )}
                         </div>
                       )}
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -564,6 +674,11 @@ const AssetHub = () => {
                   <Copy className="w-3.5 h-3.5 mr-1" /> Copy URL
                 </Button>
                 <Button size="sm" variant="outline" asChild>
+                  <a href={selectedAsset.file_url} download>
+                    <Download className="w-3.5 h-3.5 mr-1" /> Download
+                  </a>
+                </Button>
+                <Button size="sm" variant="outline" asChild>
                   <a href={selectedAsset.file_url} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="w-3.5 h-3.5 mr-1" /> Open
                   </a>
@@ -590,18 +705,18 @@ const AssetHub = () => {
               )}
 
               {/* Coverage status */}
-              <div className="flex items-center gap-2 text-sm font-medium" style={{ color: 'hsl(var(--brand-navy))' }}>
-                <span>{selectedAssetAssignments.length}/{totalGyms} gyms</span>
-                {selectedAsset.is_all_gyms && (
-                  <Badge className="text-[10px]" style={{ background: 'hsl(var(--brand-gold))', color: 'hsl(var(--brand-navy))' }}>
-                    ALL GYMS
-                  </Badge>
-                )}
+              <div className="flex items-center gap-2 text-sm font-bold" style={{ color: 'hsl(var(--brand-navy))' }}>
+                GYM COVERAGE
+                <span className={cn(
+                  "px-2 py-0.5 rounded-full text-xs font-bold",
+                  selectedAssetAssignments.length >= totalGyms ? "text-white" : "text-orange-600"
+                )} style={selectedAssetAssignments.length >= totalGyms ? { background: 'hsl(var(--brand-gold))' } : { background: 'hsl(var(--destructive) / 0.1)' }}>
+                  {selectedAsset.is_all_gyms ? totalGyms : selectedAssetAssignments.length}/{totalGyms}
+                </span>
               </div>
 
               {/* Per-gym versions */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Gym Versions</h4>
+              <div className="space-y-1.5">
                 {gyms.map(gym => {
                   const assignment = selectedAssetAssignments.find(a => a.gym_id === gym.id);
                   const hasIt = !!assignment || selectedAsset.is_all_gyms || selectedAsset.is_global;
@@ -615,54 +730,53 @@ const AssetHub = () => {
                         borderColor: hasIt ? `${primaryColor}40` : 'hsl(var(--destructive) / 0.2)',
                         background: hasIt ? 'hsl(var(--card))' : 'hsl(var(--destructive) / 0.03)',
                       }}>
-                      {/* Logo */}
-                      <div className="w-7 h-7 rounded-md overflow-hidden shrink-0 flex items-center justify-center"
-                        style={{ border: `2px solid ${primaryColor}` }}>
-                        {mainLogo?.file_url ? (
-                          <img src={mainLogo.file_url} alt={gym.code} className="w-full h-full object-contain" />
-                        ) : (
-                          <span className="text-[7px] font-bold text-white rounded" style={{ backgroundColor: primaryColor, padding: '1px 2px' }}>
-                            {gym.code}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Code */}
-                      <span className="text-xs font-bold w-8" style={{ color: primaryColor }}>{gym.code}</span>
-
                       {/* Thumbnail */}
                       {fileUrl ? (
                         <div className="w-10 h-10 rounded overflow-hidden border shrink-0"
-                          style={{ borderColor: 'hsl(var(--border))' }}>
+                          style={{ borderColor: `${primaryColor}40` }}>
                           <img src={fileUrl} alt="" className="w-full h-full object-contain" />
                         </div>
                       ) : (
-                        <div className="w-10 h-10 rounded border flex items-center justify-center shrink-0"
-                          style={{ borderColor: 'hsl(var(--destructive) / 0.2)' }}>
+                        <div className="w-10 h-10 rounded border-2 border-dashed flex items-center justify-center shrink-0"
+                          style={{ borderColor: 'hsl(var(--destructive) / 0.3)' }}>
                           <X className="w-3 h-3 text-destructive/50" />
                         </div>
                       )}
 
-                      <div className="flex-1 min-w-0" />
+                      {/* Code */}
+                      <span className="text-xs font-bold w-8" style={{ color: primaryColor }}>{gym.code}</span>
+
+                      {/* URL preview (truncated) */}
+                      {fileUrl && (
+                        <span className="text-[10px] text-muted-foreground truncate flex-1 min-w-0">
+                          {fileUrl.split('/').pop()}
+                        </span>
+                      )}
+                      {!fileUrl && <span className="flex-1" />}
+
+                      {/* Actions */}
+                      {fileUrl && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button onClick={() => copyUrl(fileUrl)} className="p-1 rounded hover:bg-muted transition-colors" title="Copy URL">
+                            <Copy className="w-3 h-3 text-muted-foreground" />
+                          </button>
+                          <a href={fileUrl} download className="p-1 rounded hover:bg-muted transition-colors" title="Download">
+                            <Download className="w-3 h-3 text-muted-foreground" />
+                          </a>
+                          <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="p-1 rounded hover:bg-muted transition-colors" title="Open">
+                            <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                          </a>
+                        </div>
+                      )}
 
                       {/* Status */}
                       {hasIt ? (
-                        <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                          style={{ background: `${primaryColor}15`, color: primaryColor }}>
-                          <Check className="w-3 h-3" />
-                        </span>
+                        <Check className="w-4 h-4 shrink-0" style={{ color: primaryColor }} />
                       ) : (
-                        <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                        <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
                           style={{ background: 'hsl(var(--destructive) / 0.1)', color: 'hsl(var(--destructive))' }}>
                           <AlertTriangle className="w-3 h-3" /> MISSING
                         </span>
-                      )}
-
-                      {/* Copy URL */}
-                      {fileUrl && (
-                        <button onClick={() => copyUrl(fileUrl)} className="p-1 rounded hover:bg-muted transition-colors">
-                          <Copy className="w-3 h-3 text-muted-foreground" />
-                        </button>
                       )}
                     </div>
                   );
