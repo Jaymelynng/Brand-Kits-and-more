@@ -646,18 +646,21 @@ const AssetHub = () => {
                   {/* Section Header */}
                   <button
                     onClick={() => toggleSection(type.id)}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30"
-                    style={{ background: 'hsl(var(--card))' }}
+                    className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-muted/50 border-l-4"
+                    style={{
+                      background: 'hsl(var(--brand-navy) / 0.06)',
+                      borderLeftColor: 'hsl(var(--brand-navy))',
+                    }}
                   >
                     {isCollapsed ? (
-                      <ChevronRight className="w-4 h-4 shrink-0 text-muted-foreground" />
+                      <ChevronRight className="w-5 h-5 shrink-0" style={{ color: 'hsl(var(--brand-navy))' }} />
                     ) : (
-                      <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground" />
+                      <ChevronDown className="w-5 h-5 shrink-0" style={{ color: 'hsl(var(--brand-navy))' }} />
                     )}
-                    <span className="text-base font-bold" style={{ color: 'hsl(var(--brand-navy))' }}>
+                    <span className="text-sm font-extrabold uppercase tracking-wide" style={{ color: 'hsl(var(--brand-navy))' }}>
                       {type.name}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs font-semibold text-muted-foreground">
                       {stats.total} asset{stats.total !== 1 ? 's' : ''}
                     </span>
 
