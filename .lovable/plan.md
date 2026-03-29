@@ -1,42 +1,49 @@
 
 
-## Make Thumbnails Dominant + Auto-Rotate Through Gym Versions
+## Fix Asset Hub: Compact Cards with Clear Sections
 
-### Problem
-The asset cards currently show a small `aspect-square` thumbnail that's the same size as the text footer below it. The thumbnail needs to be the **dominant visual element** -- much larger, with minimal text. Additionally, each asset has multiple gym-specific versions (via assignments), but only one static image shows. The thumbnails should **auto-rotate** through the different gym versions like a slideshow.
+### Problems Visible in Screenshot
+1. **Cards are absurdly tall** -- `aspect-[3/4]` creates massive white boxes with tiny images floating in the middle
+2. **Only 4 columns** on a wide screen means each card is ~350px wide with a ~470px tall image area -- way too much empty space
+3. **No visual section separation** -- the "Logo 81 assets" header is tiny and doesn't feel like a real section boundary
+4. **Image `object-contain`** leaves huge gaps around non-square images
 
 ### Changes
 
-**File: `src/pages/AssetHub.tsx`** -- lines 534-627 (the card grid and individual cards)
+**File: `src/pages/AssetHub.tsx`**
 
-1. **Bigger thumbnail ratio**: Change from `aspect-square` to `aspect-[3/4]` or taller -- the image takes up ~80% of the card height. The footer text shrinks to just the asset name in small type + coverage badge.
+1. **Shrink card aspect ratio**: Change from `aspect-[3/4]` to `aspect-square` or `aspect-[4/3]` (landscape) so cards are compact, not towering
+2. **More columns**: Change grid to `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6` -- pack more cards per row, less wasted space
+3. **Use `object-cover`** instead of `object-contain` so images fill their frame without floating in whitespace. Add a subtle dark background behind the image area for contrast
+4. **Stronger section headers**: Bigger font, background color fill, left border accent, more padding -- make each section feel like a real distinct group
+5. **Tighter card gaps**: Reduce from `gap-4` to `gap-3` for density
+6. **Smaller + ADD card**: Match the new compact aspect ratio
 
-2. **Auto-rotating thumbnails**: Each card collects all unique image URLs for that asset (the base `file_url` + all `assignment.file_url` values). A `useEffect` with `setInterval` (every 3 seconds) cycles through the URLs, cross-fading between them. A small gym code badge in the corner updates to show which gym's version is currently displayed.
-
-3. **Visual treatment**: 
-   - Larger card min-width so images actually show detail
-   - Reduce grid columns (e.g., `grid-cols-2 md:grid-cols-3 lg:grid-cols-4`) so each card is bigger
-   - Subtle crossfade transition between rotated images
-   - Current gym code pill overlaid on the thumbnail corner during rotation
-
-4. **Card structure after change**:
+### Card After Fix
 ```text
-┌──────────────────┐
-│                  │
-│   [LARGE IMAGE]  │  ← 75-80% of card height
-│                  │  ← auto-rotates every 3s
-│          (CCP)   │  ← gym badge in corner
-│                  │
-├──────────────────┤
-│ Main Logo  10/13 │  ← minimal footer
-└──────────────────┘
+┌────────────┐
+│  [IMAGE]   │  ← aspect-square, object-cover
+│  fills box │  ← dark bg behind for contrast
+│       (CCP)│  ← gym badge
+│  V13       │  ← coverage badge
+├────────────┤
+│ filename   │  ← 1-line footer, tight
+└────────────┘
+```
+
+### Section Header After Fix
+```text
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▼  LOGOS    81 assets                 ✓ all set
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [card] [card] [card] [card] [card] [card]
+  [card] [card] [card] [card] [card] [+ADD]
 ```
 
 ### Technical Notes
-- Extract a small `RotatingAssetCard` component to keep state per-card
-- Each card gathers URLs: `[asset.file_url, ...assignments.filter(a => a.asset_id === id && a.file_url).map(a => ({ url: a.file_url, gymId: a.gym_id }))]`
-- `useState` for current index, `useEffect` with `setInterval(3000)` to increment
-- CSS `transition-opacity duration-500` for crossfade (stack two `<img>` absolutely, toggle opacity)
-- Pause rotation on hover (clear interval), resume on mouse leave
-- Grid changes from 6-col max to 4-col max so cards are visually dominant
+- Only changes to `src/pages/AssetHub.tsx`
+- `RotatingAssetCard`: change `aspect-[3/4]` → `aspect-square`, `object-contain` → `object-cover`, add `bg-slate-900` behind image
+- Grid: `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3`
+- Section header: uppercase type name, larger text, filled background bar, left accent border
+- `+ ADD` card: match `aspect-square`
 
