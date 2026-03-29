@@ -207,6 +207,22 @@ const AssetHub = () => {
     return firstAssignment?.file_url || asset.file_url;
   };
 
+  // Collect all image URLs for an asset (base + gym-specific versions)
+  const getAssetImageUrls = useCallback((asset: GymAsset): { url: string; gymCode?: string }[] => {
+    const urls: { url: string; gymCode?: string }[] = [];
+    // Base URL first
+    if (asset.file_url) urls.push({ url: asset.file_url, gymCode: 'BASE' });
+    // Gym-specific versions
+    const assetAssigns = assignments.filter(a => a.asset_id === asset.id && a.file_url);
+    assetAssigns.forEach(a => {
+      if (a.file_url && a.file_url !== asset.file_url) {
+        const gym = gyms.find(g => g.id === a.gym_id);
+        urls.push({ url: a.file_url, gymCode: gym?.code });
+      }
+    });
+    return urls.length > 0 ? urls : [{ url: asset.file_url }];
+  }, [assignments, gyms]);
+
   // Types to render
   const visibleTypes = activeTypeFilter
     ? assetTypes.filter(t => t.slug === activeTypeFilter)
