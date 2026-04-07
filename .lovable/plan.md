@@ -1,54 +1,78 @@
+# Bulk Brand Center — Project Plan & Changelog
 
-## Full Documentation & Memory Audit
+## Current State (April 2026)
 
-### What's Wrong Now
+### Working Features
+| Feature | Route | Status |
+|---------|-------|--------|
+| Dashboard (Bulk Brand Center) | `/` | Stable — 2-column card grid, bulk color copying, gym pill selector, search |
+| Gym Profile Pages | `/gym/:code` | Stable — hero banner, logo gallery, brand colors, brand elements |
+| QR Studio | `/qr-studio` | Stable — scan, generate, library tabs |
+| Admin Dashboard | `/admin` | Stable — manage gyms table, bulk data editing |
+| Auth (PIN-based admin) | `/auth` | Working but session expiry causes silent UI degradation |
+| My Brand | `/my-brand` | Working — personal brand colors, images, fonts |
 
-1. **`.lovable/plan.md`** -- Contains a stale, already-completed plan ("Remove Gym Info Section"). No changelog, no current/next plan.
-2. **`README.md`** -- Generic Lovable boilerplate. Says nothing about what this app actually is, its features, database schema, or how to use it.
-3. **Memory files** -- 6 memories exist and are mostly accurate but have gaps:
-   - No memory of your **working style preferences** (visual-first, think-ahead, break into small steps, frustration with AI reactivity)
-   - No memory of the **market assessment** (7.5-8/10 potential, 4/10 current, asset hub is the #1 priority)
-   - No memory of **known pain points** (auth session expiry hiding admin UI, asset hub layout still not matching your vision)
-   - The asset-hub memories describe the *intended* design but don't flag that the current build doesn't match yet
-   - No memory of the **front page detailed documentation** you just created (67-step breakdown)
+### Partially Built / Needs Work
+| Feature | Route | Status |
+|---------|-------|--------|
+| Asset Hub | `/assets` | **Layout does not match intended design.** Section-based card grid with category sidebar was designed but current build has flat grid with rotating cards. Sub-categories exist in DB but not wired to UI filtering. This is the #1 priority. |
 
-### What Gets Updated
+### Removed
+| Feature | When | Why |
+|---------|------|-----|
+| Gym Info card on profile pages | April 2026 | Address/Phone/Email/Website/Facebook/Instagram/Programs fields removed from `/gym/:code`. Data stays in DB, managed via Admin dashboard's Manage Gyms table. Unused state variables (`editingField`, `updateGymInfoMutation`) remain in GymProfile.tsx for cleanup. |
+| Themes page | March 2026 | Replaced with redirect to `/assets`. ThemeDetail also redirects. |
 
-#### 1. `.lovable/plan.md` -- Changelog + Current State + Next Priority
+---
 
-Replace with a structured document:
-- **Changelog** of completed milestones (gym info removal, asset categories migration, themes redirect, QR studio, etc.)
-- **Current state** of each major feature (working, partial, broken)
-- **Next priority**: Asset Hub layout rebuild (the section-based card grid that matches your wireframe)
-- **Backlog**: Auth session resilience, role expansion, deeper sub-category browsing
+## Changelog
 
-#### 2. `README.md` -- Real Project Documentation
+### April 2026
+- Removed Gym Info section from all gym profile pages (address, phone, email, website, social links, programs)
+- Full front page architecture documentation created (67-step interaction breakdown)
+- Memory audit and documentation overhaul
 
-Replace boilerplate with:
-- **What this is**: Bulk Brand Center -- multi-location gym brand asset management tool
-- **Live URL**: bulkbrands.mygymtools.com
-- **Features list**: Dashboard with bulk color copying, gym profile pages, QR Studio, Asset Hub, Admin dashboard
-- **Tech stack**: React 18 + Vite + Tailwind + Supabase (Lovable Cloud)
-- **Database schema overview**: 15 tables (gyms, gym_colors, gym_logos, gym_elements, gym_assets, gym_asset_assignments, asset_types, asset_categories, asset_theme_tags, theme_tags, qr_generated, qr_scans, personal_brand_*, user_roles, admin_pins)
-- **Routes**: /, /gym/:code, /assets, /qr-studio, /admin, /my-brand, /auth
-- **Edge functions**: analyze-image, set-pin, verify-pin
-- Keep the dev setup instructions (they're still valid)
+### March 2026
+- Asset Hub rebuilt with section-based layout, rotating asset cards, collapsible sidebar
+- Asset sub-categories added to DB (Primary, Dark Version, Icon Only, Hero Images, Icons, Dividers, Posts, Stories, In-Gym Shots, Flyers)
+- Themes page converted to redirect → `/assets`
 
-#### 3. Memory Updates (7 items)
+### February 2026
+- QR Studio added (scan, generate, library)
+- QR codes stored in `qr_generated` and `qr_scans` tables
 
-**UPDATE existing memories:**
+### Earlier
+- Core dashboard with 13 gyms, bulk color copy, gym pill selector
+- Gym profile pages with hero banner, logo gallery, brand elements
+- PIN-based admin auth with `user_roles` table
+- Brand elements (SVG icons) per gym
+- Personal brand page (`/my-brand`)
+- Edge functions: analyze-image, set-pin, verify-pin
 
-- `asset-command-center-structure` -- Add note that the current build does NOT match the intended layout yet. Cards are too large, sections lack visual separation, sub-categories not wired up to UI.
-- `asset-hub-layout-structure` -- Same: flag as "design intent, not current state." Current state is flat grid with rotating cards, no real section headers.
+---
 
-**CREATE new memories:**
+## Next Priorities (Ranked by Value Impact)
 
-- `owner-working-preferences` -- Document: visual-first (show mockups/wireframes before building), wants AI to think ahead not just react, prefers small incremental steps, gets frustrated when changes don't match what was discussed, session context is critical (refer back to earlier decisions), communicates urgently in caps when something is wrong, uploads screenshots constantly as reference
-- `market-assessment-and-priorities` -- 7.5-8/10 potential (multi-location brand management + QR + asset management), 4/10 current state. #1 value driver: functioning asset hub with category/sub-category browsing. #2: role-based access (owner > admin > gym-level). #3: auth session resilience
-- `known-pain-points` -- Auth token expiry silently hides admin UI (user sees "Add Logos" disappear with no error), asset hub layout has been iterated 4+ times and still doesn't match the wireframe vision, gym info fields were removed from profiles (data stays in DB, managed via admin table)
-- `front-page-architecture` -- Detailed interaction map: sticky nav with title/subtitle/nav buttons, bulk action bar (Select All/Clear All/Copy Colors), gym pill strip (3 click targets: body=toggle, external-link=profile, code-text=scroll-to-card), search bar, 2-column responsive card grid (auto-fill minmax 460px), card anatomy (header, logo, profile button, 2x2 color swatches with #/HEX copy, bulk copy row, logo download)
-- `database-schema-summary` -- All 15 tables, their purpose, key relationships, and the view (gym_icon_urls). Include asset type IDs for Logo/Email/Social/Marketing.
+### 1. Asset Hub Layout Rebuild
+The current card grid doesn't match the intended section-based design. Need:
+- Visible section headers per asset type (Logos, Email Assets, Social Media, Marketing)
+- Sub-category grouping within sections
+- Dominant thumbnail cards with coverage badges
+- Category tree in sidebar actually filtering content
+- Theme tags as cross-cutting filter pills
 
-### No Code Changes
+### 2. Auth Session Resilience
+Auth token expiry silently hides admin UI (upload buttons, edit controls disappear). Need:
+- Auto-detect expired session and prompt re-login
+- Or auto-refresh tokens before expiry
+- Toast notification when session drops
 
-This is purely documentation and memory. No files in `src/` change.
+### 3. Role Expansion (Future)
+Current: just `admin` role. Future needs:
+- Owner (full access, all gyms)
+- Admin (full access, assigned gyms)
+- Gym-level user (view/download only for their gym)
+
+### 4. Cleanup
+- Remove unused `editingField` / `editingFieldValue` state and related imports from GymProfile.tsx
+- Remove unused gym info field icons (MapPin, Phone, Mail, Globe, Facebook, Instagram, ClipboardList)
