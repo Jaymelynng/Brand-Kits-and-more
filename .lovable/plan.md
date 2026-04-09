@@ -1,36 +1,47 @@
 
 
-## Full Documentation & Memory Audit
+## Make Gym Pill Strip a Global Sticky Component
 
-### Already Done (This Session)
-`.lovable/plan.md` has been rewritten with a complete changelog, current state table, and ranked next priorities.
+### What You Want
+The gym selector pill strip (the row of logo thumbnails with CCP, CPF, CRR, etc.) should be visible on **every page** -- not just the front page. When you're on `/gym/CCP`, you can click another gym's pill to jump straight to `/gym/EAG` without going back to the dashboard first.
 
-### Still Needs Implementation Mode
+### What Changes
 
-#### 1. Rewrite `README.md`
-Replace the generic Lovable boilerplate with real project documentation:
-- What this app is (Bulk Brand Center -- multi-location gym brand management)
-- Live URL, features list, all 10 routes
-- Database schema overview (15 tables, 1 view, 3 edge functions)
-- Tech stack summary
-- Keep the dev setup instructions
+**1. Extract `GymPillStrip` into its own component**
+- Pull the pill strip markup (the horizontal row of gym logo pills + counter) out of `GymNavigation.tsx` into a new `src/components/GymPillStrip.tsx`
+- It receives `gyms` from `useGyms()` internally (self-contained, no prop drilling)
+- On the **front page**: clicking a pill toggles selection (existing behavior) AND the code text scrolls to the card
+- On **any other page** (profile, assets, QR studio): clicking a pill navigates to `/gym/CODE`
+- Uses `useLocation()` to detect which page it's on and switch behavior accordingly
+- Current gym gets a highlighted/active state on profile pages
 
-#### 2. Create/Update 7 Memory Files
+**2. Create a shared layout wrapper**
+- New `src/components/GlobalNav.tsx` that renders:
+  - The pill strip (sticky at top, `z-50`)
+  - `{children}` below it
+- Wrap all routes in `App.tsx` with this layout component
+- On the front page, the existing `GymNavigation` header (title + action bar) renders **below** the global pill strip as before
+- On profile pages, the `← Dashboard` back button sits below the pill strip
 
-**UPDATE 2 existing memories:**
-- `asset-command-center-structure` -- Add warning that the current build does NOT match the intended design. Cards are too large, sections lack visual separation, sub-categories not wired to UI.
-- `asset-hub-layout-structure` -- Same flag: "design intent documented, but current code is a flat rotating card grid."
+**3. Styling**
+- Compact single-row strip: same design as current (logo thumbnails, colored borders, gym codes)
+- Sticky `top-0` with a subtle bottom shadow
+- On profile pages, the **current gym's pill** gets a persistent highlight (thicker border, no opacity reduction)
+- Background matches current blush/rose-gold gradient
 
-**CREATE 5 new memories:**
+### Files to Change
 
-| Memory Key | Content |
-|------------|---------|
-| `owner-working-preferences` | Visual-first (show mockups before building). Wants AI to think ahead, not just react. Prefers small incremental steps. Gets frustrated when changes don't match discussion. Uploads screenshots constantly as reference. Communicates urgently in caps when something is wrong. Session context is critical -- refer back to earlier decisions. |
-| `market-assessment-and-priorities` | Potential: 7.5-8/10 (multi-location brand management + QR + asset management). Current state: 4/10. #1 value driver: functioning asset hub with category/sub-category browsing. #2: role-based access expansion. #3: auth session resilience. |
-| `known-pain-points` | Auth token expiry silently hides admin UI (upload buttons disappear, no error shown). Asset hub layout iterated 4+ times, still doesn't match wireframe. Gym info fields removed from profiles (data stays in DB). |
-| `front-page-architecture` | Detailed interaction map: sticky nav, bulk action bar, gym pill strip (3 click targets per pill), search, responsive card grid (minmax 460px), card anatomy (header, logo, profile button, 2x2 swatches, copy buttons, download). All 13 gym HEX colors documented. |
-| `database-schema-summary` | All 15 tables, 1 view, 3 edge functions with purposes. Asset type IDs (Logo=c82d874e, Email=47cfd7af, Social=cdce974a, Marketing=ed9d94ac). Key relationships. |
+| File | Change |
+|------|--------|
+| `src/components/GymPillStrip.tsx` | **New** -- extracted pill strip with route-aware click behavior |
+| `src/components/GlobalNav.tsx` | **New** -- layout wrapper rendering pill strip + children |
+| `src/components/GymNavigation.tsx` | Remove the pill strip section (keep title bar + action bar) |
+| `src/App.tsx` | Wrap `<Routes>` with `<GlobalNav>` |
+| `src/pages/GymProfile.tsx` | Remove redundant back-nav if pill strip covers navigation |
 
-### No Code Changes
-Only `.lovable/plan.md`, `README.md`, and memory files. Nothing in `src/` changes.
+### Technical Notes
+- `useGyms()` is already cached by React Query -- calling it in the pill strip component adds zero extra network requests
+- `useLocation().pathname` determines behavior: if starts with `/gym/` → navigate mode; if `/` → selection toggle mode
+- The pill strip on non-dashboard pages won't show Select All / Clear All / Copy Colors -- those stay on the dashboard only
+- Counter pill ("13 of 13 selected") only shows on the front page
 
