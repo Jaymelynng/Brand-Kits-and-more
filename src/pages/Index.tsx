@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useGyms } from "@/hooks/useGyms";
 import { useAuth } from "@/hooks/useAuth";
 import { GymNavigation } from "@/components/GymNavigation";
+import { GymPillStrip } from "@/components/GymPillStrip";
 import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
 import { AdminToolkit } from "@/components/AdminToolkit";
@@ -180,8 +181,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #e5e7eb 0%, #e6e6e6 50%, #d6c5bf 100%)' }}>
-      {/* Navigation section - Now includes title */}
+      {/* Sticky pill strip + navigation */}
       <div className="sticky top-0 z-40 shadow-sm" style={{ background: 'hsl(var(--brand-white))' }}>
+        <GymPillStrip
+          selectedGyms={selectedGyms}
+          onToggleGymSelection={toggleGymSelection}
+          onScrollToGym={scrollToGym}
+        />
         <GymNavigation 
           gyms={gyms} 
           onScrollToGym={scrollToGym}

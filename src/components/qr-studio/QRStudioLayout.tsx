@@ -1,6 +1,7 @@
 import { ArrowLeft, QrCode, ScanLine, Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { GymPillStrip } from "@/components/GymPillStrip";
 
 interface QRStudioLayoutProps {
   children: React.ReactNode;
@@ -19,6 +20,10 @@ export const QRStudioLayout = ({ children, activeTab, onTabChange }: QRStudioLay
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.06))' }}>
+      {/* Global Gym Pill Strip */}
+      <div className="sticky top-0 z-50" style={{ background: 'hsl(var(--brand-white))' }}>
+        <GymPillStrip />
+      </div>
       {/* Header */}
       <div style={{
         background: 'linear-gradient(to bottom, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.12))',

@@ -1,5 +1,6 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { GymPillStrip } from "@/components/GymPillStrip";
 import { useGyms } from "@/hooks/useGyms";
 import { useThemeTags, useAllAssetThemeTags, useCreateThemeTag } from "@/hooks/useThemeTags";
 import { useAllAssetsWithAssignments, useAssetTypes, useAssetCategories, GymAsset, GymAssetAssignment } from "@/hooks/useAssets";
@@ -376,6 +377,10 @@ const AssetHub = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      {/* Global Gym Pill Strip */}
+      <div className="sticky top-0 z-50" style={{ background: 'hsl(var(--brand-white))' }}>
+        <GymPillStrip />
+      </div>
       {/* ─── HEADER ─── */}
       <div className="shrink-0 sticky top-0 z-40" style={{
         background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.88))',

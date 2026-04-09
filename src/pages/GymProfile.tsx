@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { GymPillStrip } from "@/components/GymPillStrip";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo } from "@/hooks/useGyms";
 import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
@@ -748,6 +749,9 @@ const GymProfile = () => {
 
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
+      <div className="sticky top-0 z-50">
+        <GymPillStrip />
+      </div>
       <div 
         className="min-h-screen"
         style={{
