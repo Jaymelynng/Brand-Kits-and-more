@@ -18,44 +18,44 @@ export const FloatingNavRail = () => {
     <div
       className="fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2 p-1.5 rounded-full"
       style={{
-        background: "hsl(var(--brand-white))",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1)",
-        border: "1px solid hsl(var(--brand-rose-gold) / 0.2)",
+        background: "linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.14))",
+        boxShadow: "0 16px 34px -18px hsl(var(--brand-navy) / 0.4), 0 10px 18px -14px hsl(var(--brand-rose-gold) / 0.65)",
+        border: "1px solid hsl(var(--brand-rose-gold) / 0.28)",
       }}
     >
-      {/* Home / Dashboard */}
       <button
         onClick={() => navigate("/")}
         className={buttonBase}
         style={{
-          background: "hsl(var(--brand-navy))",
+          background: "linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))",
           color: "hsl(var(--brand-white))",
+          boxShadow: "0 10px 20px -14px hsl(var(--brand-rose-gold) / 0.9)",
         }}
         title="Back to Dashboard"
       >
         <Home className="w-4.5 h-4.5" />
       </button>
 
-      {/* Scroll to top */}
       <button
         onClick={scrollToTop}
         className={buttonBase}
         style={{
-          background: "hsl(var(--brand-rose-gold) / 0.12)",
+          background: "hsl(var(--brand-white))",
           color: "hsl(var(--brand-navy))",
+          boxShadow: "inset 0 1px 0 hsl(var(--brand-white)), 0 8px 14px -12px hsl(var(--brand-navy) / 0.4)",
         }}
         title="Scroll to top"
       >
         <ChevronUp className="w-5 h-5" />
       </button>
 
-      {/* Scroll to bottom */}
       <button
         onClick={scrollToBottom}
         className={buttonBase}
         style={{
-          background: "hsl(var(--brand-rose-gold) / 0.12)",
+          background: "hsl(var(--brand-white))",
           color: "hsl(var(--brand-navy))",
+          boxShadow: "inset 0 1px 0 hsl(var(--brand-white)), 0 8px 14px -12px hsl(var(--brand-navy) / 0.4)",
         }}
         title="Scroll to bottom"
       >
