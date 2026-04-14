@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AssetType {
@@ -44,6 +44,13 @@ export interface GymAssetWithDetails extends GymAsset {
   assignment?: GymAssetAssignment;
 }
 
+export interface CreateAssetCategoryInput {
+  name: string;
+  asset_type_id: string;
+  description?: string | null;
+  order_index: number;
+}
+
 // Fetch all asset types
 export const useAssetTypes = () => {
   return useQuery({
@@ -74,30 +81,52 @@ export const useAssetCategories = () => {
   });
 };
 
+export const useCreateAssetCategory = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ name, asset_type_id, description, order_index }: CreateAssetCategoryInput) => {
+      const { data, error } = await supabase
+        .from('asset_categories')
+        .insert({
+          name,
+          asset_type_id,
+          description: description ?? null,
+          order_index,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as AssetCategory;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['asset-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['all-assets-with-assignments'] });
+    },
+  });
+};
+
 // Fetch assets for a specific gym with full details
 export const useGymAssets = (gymId: string | undefined) => {
   return useQuery({
     queryKey: ['gym-assets', gymId],
     enabled: !!gymId,
     queryFn: async (): Promise<GymAssetWithDetails[]> => {
-      // Get assignments for this gym
       const { data: assignments, error: assignError } = await supabase
         .from('gym_asset_assignments')
         .select('*')
         .eq('gym_id', gymId!);
       if (assignError) throw assignError;
 
-      // Also get global assets
       const { data: globalAssets, error: globalError } = await supabase
         .from('gym_assets')
         .select('*')
         .eq('is_global', true);
       if (globalError) throw globalError;
 
-      // Get assigned asset IDs
       const assignedAssetIds = assignments.map(a => a.asset_id);
-      
-      // Get all assigned assets
+
       let assignedAssets: GymAsset[] = [];
       if (assignedAssetIds.length > 0) {
         const { data, error } = await supabase
@@ -108,12 +137,10 @@ export const useGymAssets = (gymId: string | undefined) => {
         assignedAssets = data as GymAsset[];
       }
 
-      // Merge: assigned assets + global assets not already assigned
       const allAssetIds = new Set(assignedAssets.map(a => a.id));
       const extraGlobals = (globalAssets as GymAsset[]).filter(g => !allAssetIds.has(g.id));
       const allAssets = [...assignedAssets, ...extraGlobals];
 
-      // Fetch types and categories
       const { data: types, error: typesError } = await supabase
         .from('asset_types')
         .select('*');
@@ -149,7 +176,7 @@ export const useAllAssetsWithAssignments = () => {
         supabase.from('asset_types').select('*'),
         supabase.from('asset_categories').select('*'),
       ]);
-      
+
       if (assetsRes.error) throw assetsRes.error;
       if (assignmentsRes.error) throw assignmentsRes.error;
       if (typesRes.error) throw typesRes.error;

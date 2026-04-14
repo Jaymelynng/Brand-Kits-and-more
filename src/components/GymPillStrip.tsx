@@ -50,27 +50,27 @@ export const GymPillStrip = ({
     <div
       className="flex flex-nowrap gap-5 px-6 py-3 justify-center overflow-x-auto rounded-none"
       style={{
-        background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.12), hsl(var(--brand-rose-gold) / 0.08))',
-        borderBottom: '1px solid hsl(var(--brand-rose-gold) / 0.2)',
+        background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.12))',
+        borderBottom: '1px solid hsl(var(--brand-rose-gold) / 0.22)',
+        boxShadow: '0 10px 22px -18px hsl(var(--brand-navy) / 0.35), inset 0 -1px 0 hsl(var(--brand-rose-gold) / 0.14)',
       }}
     >
-      {/* Home pill -- only on non-dashboard pages */}
       {!isDashboard && (
         <div
           onClick={() => navigate('/')}
           className="flex flex-col items-center gap-1 px-2 py-2 cursor-pointer rounded-xl transition-all duration-300"
           style={{
-            border: '2px solid hsl(var(--brand-navy) / 0.3)',
-            background: '#ffffff',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            border: '2px solid hsl(var(--brand-rose-gold) / 0.35)',
+            background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.08))',
+            boxShadow: '0 12px 20px -18px hsl(var(--brand-navy) / 0.35), 0 6px 14px -12px hsl(var(--brand-rose-gold) / 0.75)',
             minWidth: '56px',
           }}
           title="Back to Dashboard"
         >
-          <div className="w-11 h-11 flex items-center justify-center rounded-lg" style={{ background: 'hsl(var(--brand-navy))' }}>
+          <div className="w-11 h-11 flex items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))', boxShadow: '0 10px 18px -14px hsl(var(--brand-rose-gold) / 0.8)' }}>
             <Home className="w-5 h-5 text-white" />
           </div>
-          <span className="text-[10px] font-bold tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.6)' }}>
+          <span className="text-[10px] font-bold tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.72)' }}>
             HOME
           </span>
         </div>

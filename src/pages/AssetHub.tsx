@@ -4,7 +4,7 @@ import { GymPillStrip } from "@/components/GymPillStrip";
 import { FloatingNavRail } from "@/components/FloatingNavRail";
 import { useGyms } from "@/hooks/useGyms";
 import { useThemeTags, useAllAssetThemeTags, useCreateThemeTag } from "@/hooks/useThemeTags";
-import { useAllAssetsWithAssignments, useAssetTypes, useAssetCategories, GymAsset, GymAssetAssignment } from "@/hooks/useAssets";
+import { useAllAssetsWithAssignments, useAssetTypes, useAssetCategories, useCreateAssetCategory, GymAsset, GymAssetAssignment } from "@/hooks/useAssets";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -172,6 +172,7 @@ const AssetHub = () => {
   const { data: assetTypes = [] } = useAssetTypes();
   const { data: assetCategories = [] } = useAssetCategories();
   const createTagMutation = useCreateThemeTag();
+  const createCategoryMutation = useCreateAssetCategory();
 
   const assets = assetData?.assets || [];
   const assignments = assetData?.assignments || [];
@@ -186,6 +187,9 @@ const AssetHub = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewTheme, setShowNewTheme] = useState(false);
   const [newThemeName, setNewThemeName] = useState("");
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryTypeId, setNewCategoryTypeId] = useState("");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
@@ -193,6 +197,12 @@ const AssetHub = () => {
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const totalGyms = gyms.length;
+
+  useEffect(() => {
+    if (!newCategoryTypeId && assetTypes.length > 0) {
+      setNewCategoryTypeId(assetTypes[0].id);
+    }
+  }, [assetTypes, newCategoryTypeId]);
 
   // Build maps
   const assetTagMap = useMemo(() => {
@@ -313,6 +323,34 @@ const AssetHub = () => {
     }
   };
 
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim() || !newCategoryTypeId) return;
+
+    const nextOrder = assetCategories
+      .filter(category => category.asset_type_id === newCategoryTypeId)
+      .reduce((max, category) => Math.max(max, category.order_index), 0) + 1;
+
+    try {
+      const createdCategory = await createCategoryMutation.mutateAsync({
+        name: newCategoryName.trim(),
+        asset_type_id: newCategoryTypeId,
+        order_index: nextOrder,
+      });
+
+      const params = new URLSearchParams(searchParams);
+      const selectedType = assetTypes.find(type => type.id === newCategoryTypeId);
+      if (selectedType) params.set('type', selectedType.slug);
+      params.set('category', createdCategory.id);
+      setSearchParams(params);
+
+      toast({ description: `Category "${createdCategory.name}" created!` });
+      setNewCategoryName("");
+      setShowNewCategory(false);
+    } catch {
+      toast({ description: "Failed to create category", variant: "destructive" });
+    }
+  };
+
   const copyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
     toast({ description: "URL copied!" });
@@ -377,61 +415,93 @@ const AssetHub = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background" style={{ background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.08))' }}>
       {/* Global Gym Pill Strip */}
-      <div className="sticky top-0 z-50" style={{ background: 'hsl(var(--brand-white))' }}>
+      <div className="sticky top-0 z-50" style={{ background: 'hsl(var(--brand-white))', boxShadow: '0 12px 24px -20px hsl(var(--brand-navy) / 0.28)' }}>
         <GymPillStrip />
       </div>
       {/* ─── HEADER ─── */}
-      <div className="shrink-0 sticky top-0 z-40" style={{
-        background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-navy) / 0.88))',
-        boxShadow: '0 4px 20px hsl(var(--brand-navy) / 0.3)',
-      }}>
-        <div className="px-4 py-2.5 flex items-center justify-between gap-3">
+      <div
+        className="shrink-0 sticky top-0 z-40"
+        style={{
+          background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.16))',
+          borderBottom: '1px solid hsl(var(--brand-rose-gold) / 0.28)',
+          boxShadow: '0 14px 28px -22px hsl(var(--brand-navy) / 0.35), 0 8px 18px -16px hsl(var(--brand-rose-gold) / 0.7)',
+        }}
+      >
+        <div className="px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')}
-              className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="border bg-background shadow-sm hover:bg-accent"
+              style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.25)', color: 'hsl(var(--brand-navy))' }}
+            >
               <ArrowLeft className="w-4 h-4 mr-1" /> Dashboard
             </Button>
-            <div className="h-5 w-px bg-primary-foreground/20" />
-            <h1 className="text-lg font-bold text-primary-foreground flex items-center gap-2">
-              <ImageIcon className="w-5 h-5" />
+            <div className="h-5 w-px" style={{ background: 'hsl(var(--brand-rose-gold) / 0.3)' }} />
+            <h1 className="text-lg font-black flex items-center gap-2" style={{ color: 'hsl(var(--brand-navy))' }}>
+              <ImageIcon className="w-5 h-5" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
               Asset Management
             </h1>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Global stats */}
-            <div className="text-xs text-primary-foreground/70 hidden sm:flex items-center gap-1.5">
-              <span className="font-semibold text-primary-foreground">{globalStats.total}</span> total
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div
+              className="text-xs hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1.5 border"
+              style={{
+                color: 'hsl(var(--brand-text-primary))',
+                background: 'hsl(var(--brand-white) / 0.92)',
+                borderColor: 'hsl(var(--brand-rose-gold) / 0.22)',
+                boxShadow: '0 10px 18px -16px hsl(var(--brand-navy) / 0.3)',
+              }}
+            >
+              <span className="font-semibold" style={{ color: 'hsl(var(--brand-navy))' }}>{globalStats.total}</span> total
               {globalStats.missing > 0 && (
                 <>
                   <span className="mx-1">·</span>
-                  <span className="text-orange-300 font-semibold">{globalStats.missing}</span> missing
+                  <span className="font-semibold" style={{ color: 'hsl(var(--destructive))' }}>{globalStats.missing}</span> missing
                 </>
               )}
               <span className="mx-1">·</span>
               <span className="font-semibold" style={{ color: 'hsl(var(--brand-gold))' }}>{globalStats.complete}</span> complete
             </div>
             {isAdmin && (
-              <Button size="sm" onClick={() => setShowNewTheme(true)}
-                className="text-primary-foreground text-sm"
-                style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}>
-                <Plus className="w-4 h-4 mr-1" /> Add Asset
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowNewTheme(true)}
+                  className="bg-background shadow-sm hover:bg-accent"
+                  style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.25)', color: 'hsl(var(--brand-navy))' }}
+                >
+                  <Plus className="w-4 h-4 mr-1" /> Add Theme
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setShowNewCategory(true)}
+                  className="text-primary-foreground shadow-sm"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))',
+                    boxShadow: '0 14px 22px -16px hsl(var(--brand-rose-gold) / 0.85)',
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-1" /> Add Category
+                </Button>
+              </div>
             )}
           </div>
         </div>
 
         {/* ─── TAB BAR (quick-jump + "All") ─── */}
-        <div className="px-4 flex items-center gap-1 border-t border-primary-foreground/10">
+        <div className="px-4 flex items-center gap-1 border-t" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.16)' }}>
           <button
             onClick={() => setParam("type", null)}
             className={cn(
               "px-4 py-2.5 text-sm font-semibold transition-all relative",
-              !activeTypeFilter
-                ? "text-primary-foreground"
-                : "text-primary-foreground/50 hover:text-primary-foreground/80"
+              !activeTypeFilter ? "opacity-100" : "opacity-65 hover:opacity-100"
             )}
+            style={{ color: 'hsl(var(--brand-navy))' }}
           >
             All
             {!activeTypeFilter && (
@@ -447,7 +517,6 @@ const AssetHub = () => {
                 key={type.id}
                 onClick={() => {
                   if (activeTypeFilter === type.slug) {
-                    // Already filtered to this type, scroll to it
                     scrollToSection(type.id);
                   } else {
                     setParam("type", type.slug);
@@ -455,17 +524,16 @@ const AssetHub = () => {
                 }}
                 className={cn(
                   "px-4 py-2.5 text-sm font-semibold transition-all relative",
-                  isActive
-                    ? "text-primary-foreground"
-                    : "text-primary-foreground/50 hover:text-primary-foreground/80"
+                  isActive ? "opacity-100" : "opacity-65 hover:opacity-100"
                 )}
+                style={{ color: 'hsl(var(--brand-navy))' }}
               >
                 {type.name}
                 {sectionAssets.length > 0 && (
-                  <span className={cn(
-                    "ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold",
-                    isActive ? "bg-primary-foreground/20" : "bg-primary-foreground/10"
-                  )}>
+                  <span
+                    className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                    style={{ background: isActive ? 'hsl(var(--brand-rose-gold) / 0.18)' : 'hsl(var(--brand-rose-gold) / 0.1)' }}
+                  >
                     {sectionAssets.length}
                   </span>
                 )}
@@ -479,23 +547,28 @@ const AssetHub = () => {
 
           {/* Search */}
           <div className="relative flex-1 max-w-xs ml-auto">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary-foreground/40" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: 'hsl(var(--brand-text-primary) / 0.55)' }} />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search assets..."
-              className="pl-8 h-8 text-sm bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40"
+              className="pl-8 h-9 text-sm bg-background border-border text-foreground placeholder:text-muted-foreground shadow-sm"
+              style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.22)' }}
             />
           </div>
         </div>
       </div>
 
       {/* ─── BODY ─── */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0" style={{ background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.05))' }}>
         {/* ─── LEFT SIDEBAR ─── */}
         {sidebarOpen && (
           <div className="w-52 shrink-0 border-r overflow-y-auto flex flex-col"
-            style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}>
+            style={{
+              background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.08))',
+              borderColor: 'hsl(var(--brand-rose-gold) / 0.2)',
+              boxShadow: '10px 0 24px -24px hsl(var(--brand-navy) / 0.45)',
+            }}>
 
             {/* GYMS section */}
             <div className="px-3 pt-3 pb-1">
@@ -509,10 +582,11 @@ const AssetHub = () => {
                 !activeGymId ? "text-primary-foreground" : "hover:bg-muted/50"
               )}
               style={{
-                borderColor: 'hsl(var(--border))',
+                borderColor: 'hsl(var(--brand-rose-gold) / 0.18)',
                 ...(!activeGymId ? {
                   background: 'hsl(var(--brand-navy))',
                   color: 'hsl(var(--primary-foreground))',
+                  boxShadow: 'inset 0 1px 0 hsl(var(--brand-white) / 0.08)',
                 } : { color: 'hsl(var(--brand-navy))' }),
               }}
             >
@@ -523,7 +597,6 @@ const AssetHub = () => {
               const isActive = activeGymId === gym.id;
               const primaryColor = gym.colors[0]?.color_hex || '#667eea';
               const mainLogo = gym.logos.find(l => l.is_main_logo) || gym.logos[0];
-              const assetCount = gymAssetCountMap.get(gym.id) || 0;
 
               return (
                 <button
@@ -534,12 +607,16 @@ const AssetHub = () => {
                     isActive ? "ring-2 ring-inset" : "hover:bg-muted/50"
                   )}
                   style={{
-                    borderColor: 'hsl(var(--border))',
-                    ...(isActive ? { background: `${primaryColor}15`, ringColor: primaryColor } : {}),
+                    borderColor: 'hsl(var(--brand-rose-gold) / 0.16)',
+                    ...(isActive ? {
+                      background: `${primaryColor}15`,
+                      ringColor: primaryColor,
+                      boxShadow: `inset 0 0 0 1px ${primaryColor}40`,
+                    } : {}),
                   }}
                 >
                   <div className="w-7 h-7 rounded-md overflow-hidden shrink-0 flex items-center justify-center"
-                    style={{ border: `2px solid ${isActive ? primaryColor : 'hsl(var(--border))'}` }}>
+                    style={{ border: `2px solid ${isActive ? primaryColor : 'hsl(var(--brand-rose-gold) / 0.24)'}` }}>
                     {mainLogo?.file_url ? (
                       <img src={mainLogo.file_url} alt={gym.code} className="w-full h-full object-contain" />
                     ) : (
@@ -552,9 +629,7 @@ const AssetHub = () => {
                     <div className="text-xs font-bold truncate" style={{ color: isActive ? primaryColor : 'hsl(var(--brand-navy))' }}>
                       {gym.code}
                     </div>
-                    <div className="text-[10px] truncate text-muted-foreground">
-                      {gym.name}
-                    </div>
+                    <div className="text-[10px] truncate text-muted-foreground">{gym.name}</div>
                   </div>
                   {isActive && <Check className="w-3 h-3 shrink-0" style={{ color: primaryColor }} />}
                 </button>
@@ -562,8 +637,19 @@ const AssetHub = () => {
             })}
 
             {/* CATEGORIES section */}
-            <div className="px-3 pt-4 pb-1">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Categories</div>
+            <div className="px-3 pt-4 pb-2 flex items-center justify-between gap-2">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Categories</div>
+              {isAdmin && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowNewCategory(true)}
+                  className="h-7 px-2 text-[10px] font-bold shadow-sm hover:bg-accent"
+                  style={{ border: '1px solid hsl(var(--brand-rose-gold) / 0.22)', color: 'hsl(var(--brand-navy))' }}
+                >
+                  <Plus className="w-3 h-3 mr-1" /> Add
+                </Button>
+              )}
             </div>
 
             {assetTypes.map(type => {
@@ -578,7 +664,6 @@ const AssetHub = () => {
                     <span className="text-[10px] text-muted-foreground ml-auto">({typeAssetCount})</span>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    {/* Click type name to jump */}
                     <button
                       onClick={() => { setParam("type", type.slug); setParam("category", null); }}
                       className="w-full text-left pl-8 pr-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
@@ -591,9 +676,7 @@ const AssetHub = () => {
                         onClick={() => { setParam("type", type.slug); setParam("category", cat.id); }}
                         className={cn(
                           "w-full text-left pl-8 pr-3 py-1 text-xs transition-colors",
-                          activeCategoryId === cat.id
-                            ? "font-semibold"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                          activeCategoryId === cat.id ? "font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                         )}
                         style={activeCategoryId === cat.id ? { color: 'hsl(var(--brand-navy))' } : {}}
                       >
@@ -608,17 +691,18 @@ const AssetHub = () => {
         )}
 
         {/* ─── MAIN CONTENT (scrollable sections) ─── */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" style={{ background: 'linear-gradient(180deg, hsl(var(--background)), hsl(var(--brand-rose-gold) / 0.04))' }}>
           {/* Sidebar toggle */}
-          <div className="sticky top-0 z-10 px-3 py-1.5 flex items-center gap-2 bg-background border-b" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="sticky top-0 z-10 px-3 py-2 flex items-center gap-2 bg-background border-b" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.18)', boxShadow: '0 10px 20px -18px hsl(var(--brand-navy) / 0.35)' }}>
             <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1.5 h-8 w-8">
+              className="p-1.5 h-8 w-8 border shadow-sm hover:bg-accent"
+              style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.22)', color: 'hsl(var(--brand-navy))' }}>
               {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
             </Button>
 
             {activeGymId && (
               <button onClick={() => setParam("gym", null)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-sm"
                 style={{ background: gyms.find(g => g.id === activeGymId)?.colors[0]?.color_hex || 'hsl(var(--brand-navy))' }}>
                 {gyms.find(g => g.id === activeGymId)?.code || 'Gym'}: {gyms.find(g => g.id === activeGymId)?.name}
                 <X className="w-3 h-3" />
@@ -627,7 +711,8 @@ const AssetHub = () => {
 
             {activeCategoryId && (
               <button onClick={() => setParam("category", null)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border bg-muted text-foreground">
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border bg-background text-foreground shadow-sm"
+                style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.22)', color: 'hsl(var(--brand-navy))' }}>
                 {assetCategories.find(c => c.id === activeCategoryId)?.name}
                 <X className="w-3 h-3" />
               </button>
@@ -646,16 +731,20 @@ const AssetHub = () => {
                 <div
                   key={type.id}
                   ref={(el) => { if (el) sectionRefs.current.set(type.id, el); }}
-                  className="rounded-xl border-2 overflow-hidden"
-                  style={{ borderColor: 'hsl(var(--border))' }}
+                  className="rounded-2xl border overflow-hidden"
+                  style={{
+                    borderColor: 'hsl(var(--brand-rose-gold) / 0.28)',
+                    background: 'hsl(var(--brand-white))',
+                    boxShadow: '0 18px 34px -26px hsl(var(--brand-navy) / 0.35), 0 10px 22px -22px hsl(var(--brand-rose-gold) / 0.8)',
+                  }}
                 >
-                  {/* Section Header */}
                   <button
                     onClick={() => toggleSection(type.id)}
                     className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-muted/50 border-l-4"
                     style={{
-                      background: 'hsl(var(--brand-navy) / 0.06)',
-                      borderLeftColor: 'hsl(var(--brand-navy))',
+                      background: 'linear-gradient(135deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.16))',
+                      borderLeftColor: 'hsl(var(--brand-rose-gold))',
+                      boxShadow: 'inset 0 -1px 0 hsl(var(--brand-rose-gold) / 0.12)',
                     }}
                   >
                     {isCollapsed ? (
@@ -672,7 +761,7 @@ const AssetHub = () => {
 
                     <div className="ml-auto flex items-center gap-2">
                       {stats.missing > 0 ? (
-                        <Badge variant="outline" className="text-[10px] border-orange-300 text-orange-600 gap-1">
+                        <Badge variant="outline" className="text-[10px] gap-1" style={{ borderColor: 'hsl(var(--destructive) / 0.28)', color: 'hsl(var(--destructive))', background: 'hsl(var(--destructive) / 0.06)' }}>
                           <AlertTriangle className="w-3 h-3" />
                           {stats.missing} missing
                         </Badge>
@@ -685,16 +774,15 @@ const AssetHub = () => {
                     </div>
                   </button>
 
-                  {/* Section Content */}
                   {!isCollapsed && (
-                    <div className="p-4 border-t" style={{ borderColor: 'hsl(var(--border))' }}>
+                    <div className="p-4 border-t" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.16)', background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.04))' }}>
                       {sectionAssets.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 text-center">
                           <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground/30" />
                           <p className="text-sm text-muted-foreground">No {type.name.toLowerCase()} yet</p>
                         </div>
                       ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                           {sectionAssets.map(asset => {
                             const coverage = getCoverage(asset);
                             const imageUrls = getAssetImageUrls(asset);
@@ -711,17 +799,20 @@ const AssetHub = () => {
                             );
                           })}
 
-                          {/* + ADD card (admin only) */}
                           {isAdmin && (
                             <button
-                              className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center aspect-square text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
-                              style={{ borderColor: 'hsl(var(--border))' }}
+                              className="rounded-2xl border-2 border-dashed flex flex-col items-center justify-center aspect-square text-muted-foreground hover:text-foreground transition-all"
+                              style={{
+                                borderColor: 'hsl(var(--brand-rose-gold) / 0.28)',
+                                background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.08))',
+                                boxShadow: '0 14px 28px -24px hsl(var(--brand-navy) / 0.35)',
+                              }}
                               onClick={() => {
                                 toast({ description: "Asset upload coming soon!" });
                               }}
                             >
-                              <Plus className="w-10 h-10 mb-2" />
-                              <span className="text-sm font-semibold">Add Asset</span>
+                              <Plus className="w-10 h-10 mb-2" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
+                              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--brand-navy))' }}>Add Asset</span>
                             </button>
                           )}
                         </div>
@@ -889,9 +980,9 @@ const AssetHub = () => {
 
       {/* ─── NEW THEME DIALOG ─── */}
       <Dialog open={showNewTheme} onOpenChange={setShowNewTheme}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md border bg-background" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.22)', boxShadow: '0 24px 48px -28px hsl(var(--brand-navy) / 0.45)' }}>
           <DialogHeader>
-            <DialogTitle>Create New Theme Tag</DialogTitle>
+            <DialogTitle style={{ color: 'hsl(var(--brand-navy))' }}>Create New Theme Tag</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <Input
@@ -899,10 +990,48 @@ const AssetHub = () => {
               onChange={(e) => setNewThemeName(e.target.value)}
               placeholder="e.g. Halloween, Summer Camp, VIP..."
               onKeyDown={(e) => e.key === 'Enter' && handleCreateTheme()}
+              style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.24)' }}
             />
-            <Button onClick={handleCreateTheme} disabled={!newThemeName.trim()} className="w-full text-white"
-              style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}>
+            <Button onClick={handleCreateTheme} disabled={!newThemeName.trim()} className="w-full text-primary-foreground"
+              style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))' }}>
               <Plus className="w-4 h-4 mr-1" /> Create Theme
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showNewCategory} onOpenChange={setShowNewCategory}>
+        <DialogContent className="max-w-md border bg-background" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.22)', boxShadow: '0 24px 48px -28px hsl(var(--brand-navy) / 0.45)' }}>
+          <DialogHeader>
+            <DialogTitle style={{ color: 'hsl(var(--brand-navy))' }}>Create New Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'hsl(var(--brand-navy))' }}>Asset Type</label>
+              <select
+                value={newCategoryTypeId}
+                onChange={(e) => setNewCategoryTypeId(e.target.value)}
+                className="w-full h-10 rounded-md border bg-background px-3 text-sm"
+                style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.24)', color: 'hsl(var(--brand-navy))' }}
+              >
+                {assetTypes.map(type => (
+                  <option key={type.id} value={type.id}>{type.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'hsl(var(--brand-navy))' }}>Category Name</label>
+              <Input
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="e.g. Primary, Hero Images, Stories..."
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
+                style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.24)' }}
+              />
+            </div>
+            <Button onClick={handleCreateCategory} disabled={!newCategoryName.trim() || !newCategoryTypeId} className="w-full text-primary-foreground"
+              style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))' }}>
+              <Plus className="w-4 h-4 mr-1" /> Create Category
             </Button>
           </div>
         </DialogContent>
