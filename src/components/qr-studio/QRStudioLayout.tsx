@@ -2,6 +2,7 @@ import { ArrowLeft, QrCode, ScanLine, Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { GymPillStrip } from "@/components/GymPillStrip";
+import { FloatingNavRail } from "@/components/FloatingNavRail";
 
 interface QRStudioLayoutProps {
   children: React.ReactNode;
@@ -71,6 +72,9 @@ export const QRStudioLayout = ({ children, activeTab, onTabChange }: QRStudioLay
       <div className="max-w-7xl mx-auto px-4 py-4">
         {children}
       </div>
+
+      {/* Floating Nav Rail */}
+      <FloatingNavRail />
     </div>
   );
 };

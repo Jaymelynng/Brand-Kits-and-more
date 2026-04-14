@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { GymPillStrip } from "@/components/GymPillStrip";
+import { FloatingNavRail } from "@/components/FloatingNavRail";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo } from "@/hooks/useGyms";
 import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
@@ -2251,16 +2252,8 @@ const GymProfile = () => {
         />
       )}
 
-      {/* Back to Top Button */}
-      {showBackToTop && (
-        <Button
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-2xl bg-gym-primary text-gym-primary-foreground hover:bg-gym-primary/90 hover:shadow-glow transition-smooth hover:scale-110"
-          size="icon"
-        >
-          <ChevronUp className="w-6 h-6" />
-        </Button>
-      )}
+      {/* Floating Nav Rail */}
+      <FloatingNavRail />
 
       {/* Asset Modal */}
       <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />

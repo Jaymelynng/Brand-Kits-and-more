@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { GymPillStrip } from "@/components/GymPillStrip";
+import { FloatingNavRail } from "@/components/FloatingNavRail";
 import { useGyms } from "@/hooks/useGyms";
 import { useThemeTags, useAllAssetThemeTags, useCreateThemeTag } from "@/hooks/useThemeTags";
 import { useAllAssetsWithAssignments, useAssetTypes, useAssetCategories, GymAsset, GymAssetAssignment } from "@/hooks/useAssets";
@@ -906,6 +907,7 @@ const AssetHub = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <FloatingNavRail />
     </div>
   );
 };
