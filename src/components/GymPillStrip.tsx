@@ -54,6 +54,28 @@ export const GymPillStrip = ({
         borderBottom: '1px solid hsl(var(--brand-rose-gold) / 0.2)',
       }}
     >
+      {/* Home pill -- only on non-dashboard pages */}
+      {!isDashboard && (
+        <div
+          onClick={() => navigate('/')}
+          className="flex flex-col items-center gap-1 px-2 py-2 cursor-pointer rounded-xl transition-all duration-300"
+          style={{
+            border: '2px solid hsl(var(--brand-navy) / 0.3)',
+            background: '#ffffff',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            minWidth: '56px',
+          }}
+          title="Back to Dashboard"
+        >
+          <div className="w-11 h-11 flex items-center justify-center rounded-lg" style={{ background: 'hsl(var(--brand-navy))' }}>
+            <Home className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-[10px] font-bold tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.6)' }}>
+            HOME
+          </span>
+        </div>
+      )}
+
       {gyms.map((gym) => {
         const isSelected = isDashboard
           ? selectedGyms?.has(gym.code) ?? false
@@ -69,7 +91,7 @@ export const GymPillStrip = ({
             className={cn(
               "group flex flex-col items-center gap-1 px-2 py-2 cursor-pointer",
               "rounded-xl transition-all duration-300 relative",
-              isSelected ? "scale-105" : "opacity-70 hover:opacity-100"
+              isSelected ? "scale-105" : "hover:scale-102"
             )}
             style={{
               border: isSelected ? `3px solid ${primaryColor}` : '2px solid hsl(var(--brand-rose-gold) / 0.3)',
@@ -77,7 +99,7 @@ export const GymPillStrip = ({
               boxShadow: isSelected
                 ? `0 4px 15px ${primaryColor}40, 0 2px 6px rgba(0,0,0,0.15)`
                 : '0 2px 8px rgba(0,0,0,0.08)',
-              minWidth: '56px',
+              minWidth: '60px',
             }}
             title={isDashboard
               ? `${isSelected ? 'Deselect' : 'Select'} ${gym.name}`
@@ -107,7 +129,7 @@ export const GymPillStrip = ({
             )}
 
             {/* Logo thumbnail */}
-            <div className="w-10 h-10 flex items-center justify-center rounded-lg overflow-hidden">
+            <div className="w-11 h-11 flex items-center justify-center rounded-lg overflow-hidden">
               {logoUrl ? (
                 <img
                   src={logoUrl}
