@@ -1,6 +1,6 @@
 import { useGyms, GymWithColors } from "@/hooks/useGyms";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Check, ExternalLink } from "lucide-react";
+import { Check, ExternalLink, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GymPillStripProps {
