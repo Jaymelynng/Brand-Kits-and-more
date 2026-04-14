@@ -574,7 +574,68 @@ const AssetHub = () => {
             <div className="px-3 pt-3 pb-1">
               <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Gyms</div>
             </div>
-...
+
+            <button
+              onClick={() => setParam("gym", null)}
+              className={cn(
+                "w-full text-left px-3 py-2 text-sm font-semibold border-b transition-colors",
+                !activeGymId ? "text-primary-foreground" : "hover:bg-muted/50"
+              )}
+              style={{
+                borderColor: 'hsl(var(--brand-rose-gold) / 0.18)',
+                ...(!activeGymId ? {
+                  background: 'hsl(var(--brand-navy))',
+                  color: 'hsl(var(--primary-foreground))',
+                  boxShadow: 'inset 0 1px 0 hsl(var(--brand-white) / 0.08)',
+                } : { color: 'hsl(var(--brand-navy))' }),
+              }}
+            >
+              ● All Gyms
+            </button>
+
+            {gyms.map(gym => {
+              const isActive = activeGymId === gym.id;
+              const primaryColor = gym.colors[0]?.color_hex || '#667eea';
+              const mainLogo = gym.logos.find(l => l.is_main_logo) || gym.logos[0];
+
+              return (
+                <button
+                  key={gym.id}
+                  onClick={() => setParam("gym", gym.id)}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-2.5 py-1.5 text-left border-b transition-all",
+                    isActive ? "ring-2 ring-inset" : "hover:bg-muted/50"
+                  )}
+                  style={{
+                    borderColor: 'hsl(var(--brand-rose-gold) / 0.16)',
+                    ...(isActive ? {
+                      background: `${primaryColor}15`,
+                      ringColor: primaryColor,
+                      boxShadow: `inset 0 0 0 1px ${primaryColor}40`,
+                    } : {}),
+                  }}
+                >
+                  <div className="w-7 h-7 rounded-md overflow-hidden shrink-0 flex items-center justify-center"
+                    style={{ border: `2px solid ${isActive ? primaryColor : 'hsl(var(--brand-rose-gold) / 0.24)'}` }}>
+                    {mainLogo?.file_url ? (
+                      <img src={mainLogo.file_url} alt={gym.code} className="w-full h-full object-contain" />
+                    ) : (
+                      <span className="text-[8px] font-bold text-white" style={{ backgroundColor: primaryColor }}>
+                        {gym.code}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold truncate" style={{ color: isActive ? primaryColor : 'hsl(var(--brand-navy))' }}>
+                      {gym.code}
+                    </div>
+                    <div className="text-[10px] truncate text-muted-foreground">{gym.name}</div>
+                  </div>
+                  {isActive && <Check className="w-3 h-3 shrink-0" style={{ color: primaryColor }} />}
+                </button>
+              );
+            })}
+
             {/* CATEGORIES section */}
             <div className="px-3 pt-4 pb-2 flex items-center justify-between gap-2">
               <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Categories</div>
@@ -603,7 +664,6 @@ const AssetHub = () => {
                     <span className="text-[10px] text-muted-foreground ml-auto">({typeAssetCount})</span>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    {/* Click type name to jump */}
                     <button
                       onClick={() => { setParam("type", type.slug); setParam("category", null); }}
                       className="w-full text-left pl-8 pr-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
@@ -616,9 +676,7 @@ const AssetHub = () => {
                         onClick={() => { setParam("type", type.slug); setParam("category", cat.id); }}
                         className={cn(
                           "w-full text-left pl-8 pr-3 py-1 text-xs transition-colors",
-                          activeCategoryId === cat.id
-                            ? "font-semibold"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                          activeCategoryId === cat.id ? "font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                         )}
                         style={activeCategoryId === cat.id ? { color: 'hsl(var(--brand-navy))' } : {}}
                       >
@@ -633,17 +691,18 @@ const AssetHub = () => {
         )}
 
         {/* ─── MAIN CONTENT (scrollable sections) ─── */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" style={{ background: 'linear-gradient(180deg, hsl(var(--background)), hsl(var(--brand-rose-gold) / 0.04))' }}>
           {/* Sidebar toggle */}
-          <div className="sticky top-0 z-10 px-3 py-1.5 flex items-center gap-2 bg-background border-b" style={{ borderColor: 'hsl(var(--border))' }}>
+          <div className="sticky top-0 z-10 px-3 py-2 flex items-center gap-2 bg-background border-b" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.18)', boxShadow: '0 10px 20px -18px hsl(var(--brand-navy) / 0.35)' }}>
             <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1.5 h-8 w-8">
+              className="p-1.5 h-8 w-8 border shadow-sm hover:bg-accent"
+              style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.22)', color: 'hsl(var(--brand-navy))' }}>
               {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
             </Button>
 
             {activeGymId && (
               <button onClick={() => setParam("gym", null)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-sm"
                 style={{ background: gyms.find(g => g.id === activeGymId)?.colors[0]?.color_hex || 'hsl(var(--brand-navy))' }}>
                 {gyms.find(g => g.id === activeGymId)?.code || 'Gym'}: {gyms.find(g => g.id === activeGymId)?.name}
                 <X className="w-3 h-3" />
@@ -652,7 +711,8 @@ const AssetHub = () => {
 
             {activeCategoryId && (
               <button onClick={() => setParam("category", null)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border bg-muted text-foreground">
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border bg-background text-foreground shadow-sm"
+                style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.22)', color: 'hsl(var(--brand-navy))' }}>
                 {assetCategories.find(c => c.id === activeCategoryId)?.name}
                 <X className="w-3 h-3" />
               </button>
@@ -671,16 +731,20 @@ const AssetHub = () => {
                 <div
                   key={type.id}
                   ref={(el) => { if (el) sectionRefs.current.set(type.id, el); }}
-                  className="rounded-xl border-2 overflow-hidden"
-                  style={{ borderColor: 'hsl(var(--border))' }}
+                  className="rounded-2xl border overflow-hidden"
+                  style={{
+                    borderColor: 'hsl(var(--brand-rose-gold) / 0.28)',
+                    background: 'hsl(var(--brand-white))',
+                    boxShadow: '0 18px 34px -26px hsl(var(--brand-navy) / 0.35), 0 10px 22px -22px hsl(var(--brand-rose-gold) / 0.8)',
+                  }}
                 >
-                  {/* Section Header */}
                   <button
                     onClick={() => toggleSection(type.id)}
                     className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-muted/50 border-l-4"
                     style={{
-                      background: 'hsl(var(--brand-navy) / 0.06)',
-                      borderLeftColor: 'hsl(var(--brand-navy))',
+                      background: 'linear-gradient(135deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.16))',
+                      borderLeftColor: 'hsl(var(--brand-rose-gold))',
+                      boxShadow: 'inset 0 -1px 0 hsl(var(--brand-rose-gold) / 0.12)',
                     }}
                   >
                     {isCollapsed ? (
@@ -697,7 +761,7 @@ const AssetHub = () => {
 
                     <div className="ml-auto flex items-center gap-2">
                       {stats.missing > 0 ? (
-                        <Badge variant="outline" className="text-[10px] border-orange-300 text-orange-600 gap-1">
+                        <Badge variant="outline" className="text-[10px] gap-1" style={{ borderColor: 'hsl(var(--destructive) / 0.28)', color: 'hsl(var(--destructive))', background: 'hsl(var(--destructive) / 0.06)' }}>
                           <AlertTriangle className="w-3 h-3" />
                           {stats.missing} missing
                         </Badge>
@@ -710,16 +774,15 @@ const AssetHub = () => {
                     </div>
                   </button>
 
-                  {/* Section Content */}
                   {!isCollapsed && (
-                    <div className="p-4 border-t" style={{ borderColor: 'hsl(var(--border))' }}>
+                    <div className="p-4 border-t" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.16)', background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.04))' }}>
                       {sectionAssets.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 text-center">
                           <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground/30" />
                           <p className="text-sm text-muted-foreground">No {type.name.toLowerCase()} yet</p>
                         </div>
                       ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                           {sectionAssets.map(asset => {
                             const coverage = getCoverage(asset);
                             const imageUrls = getAssetImageUrls(asset);
@@ -736,17 +799,20 @@ const AssetHub = () => {
                             );
                           })}
 
-                          {/* + ADD card (admin only) */}
                           {isAdmin && (
                             <button
-                              className="rounded-xl border-2 border-dashed flex flex-col items-center justify-center aspect-square text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
-                              style={{ borderColor: 'hsl(var(--border))' }}
+                              className="rounded-2xl border-2 border-dashed flex flex-col items-center justify-center aspect-square text-muted-foreground hover:text-foreground transition-all"
+                              style={{
+                                borderColor: 'hsl(var(--brand-rose-gold) / 0.28)',
+                                background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.08))',
+                                boxShadow: '0 14px 28px -24px hsl(var(--brand-navy) / 0.35)',
+                              }}
                               onClick={() => {
                                 toast({ description: "Asset upload coming soon!" });
                               }}
                             >
-                              <Plus className="w-10 h-10 mb-2" />
-                              <span className="text-sm font-semibold">Add Asset</span>
+                              <Plus className="w-10 h-10 mb-2" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
+                              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--brand-navy))' }}>Add Asset</span>
                             </button>
                           )}
                         </div>
@@ -914,9 +980,9 @@ const AssetHub = () => {
 
       {/* ─── NEW THEME DIALOG ─── */}
       <Dialog open={showNewTheme} onOpenChange={setShowNewTheme}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md border bg-background" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.22)', boxShadow: '0 24px 48px -28px hsl(var(--brand-navy) / 0.45)' }}>
           <DialogHeader>
-            <DialogTitle>Create New Theme Tag</DialogTitle>
+            <DialogTitle style={{ color: 'hsl(var(--brand-navy))' }}>Create New Theme Tag</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <Input
@@ -924,10 +990,48 @@ const AssetHub = () => {
               onChange={(e) => setNewThemeName(e.target.value)}
               placeholder="e.g. Halloween, Summer Camp, VIP..."
               onKeyDown={(e) => e.key === 'Enter' && handleCreateTheme()}
+              style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.24)' }}
             />
-            <Button onClick={handleCreateTheme} disabled={!newThemeName.trim()} className="w-full text-white"
-              style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-blue-gray)))' }}>
+            <Button onClick={handleCreateTheme} disabled={!newThemeName.trim()} className="w-full text-primary-foreground"
+              style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))' }}>
               <Plus className="w-4 h-4 mr-1" /> Create Theme
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showNewCategory} onOpenChange={setShowNewCategory}>
+        <DialogContent className="max-w-md border bg-background" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.22)', boxShadow: '0 24px 48px -28px hsl(var(--brand-navy) / 0.45)' }}>
+          <DialogHeader>
+            <DialogTitle style={{ color: 'hsl(var(--brand-navy))' }}>Create New Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'hsl(var(--brand-navy))' }}>Asset Type</label>
+              <select
+                value={newCategoryTypeId}
+                onChange={(e) => setNewCategoryTypeId(e.target.value)}
+                className="w-full h-10 rounded-md border bg-background px-3 text-sm"
+                style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.24)', color: 'hsl(var(--brand-navy))' }}
+              >
+                {assetTypes.map(type => (
+                  <option key={type.id} value={type.id}>{type.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'hsl(var(--brand-navy))' }}>Category Name</label>
+              <Input
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="e.g. Primary, Hero Images, Stories..."
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
+                style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.24)' }}
+              />
+            </div>
+            <Button onClick={handleCreateCategory} disabled={!newCategoryName.trim() || !newCategoryTypeId} className="w-full text-primary-foreground"
+              style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))' }}>
+              <Plus className="w-4 h-4 mr-1" /> Create Category
             </Button>
           </div>
         </DialogContent>
