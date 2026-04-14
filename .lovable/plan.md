@@ -1,47 +1,39 @@
 
 
-## Make Gym Pill Strip a Global Sticky Component
+## Improve Profile Page Navigation
 
-### What You Want
-The gym selector pill strip (the row of logo thumbnails with CCP, CPF, CRR, etc.) should be visible on **every page** -- not just the front page. When you're on `/gym/CCP`, you can click another gym's pill to jump straight to `/gym/EAG` without going back to the dashboard first.
+### Problems You're Reporting
+1. **No easy way to get back to dashboard** -- the "Back to Dashboard" button is buried in the page header and scrolls away
+2. **Back-to-top button exists but is just a circle** -- needs to be more visible and always accessible
+3. **The frozen gym pill strip at top is hard to use** -- pills are small and the faded styling makes them feel broken
 
-### What Changes
+### What We'll Build
 
-**1. Extract `GymPillStrip` into its own component**
-- Pull the pill strip markup (the horizontal row of gym logo pills + counter) out of `GymNavigation.tsx` into a new `src/components/GymPillStrip.tsx`
-- It receives `gyms` from `useGyms()` internally (self-contained, no prop drilling)
-- On the **front page**: clicking a pill toggles selection (existing behavior) AND the code text scrolls to the card
-- On **any other page** (profile, assets, QR studio): clicking a pill navigates to `/gym/CODE`
-- Uses `useLocation()` to detect which page it's on and switch behavior accordingly
-- Current gym gets a highlighted/active state on profile pages
+**A fixed side navigation rail (right edge of screen)** with:
+- **Home/Dashboard button** -- always visible, takes you back to `/`
+- **Up arrow** -- scrolls to top of the current page
+- **Down arrow** -- scrolls to bottom of the current page
+- Small, compact vertical bar that doesn't block content
 
-**2. Create a shared layout wrapper**
-- New `src/components/GlobalNav.tsx` that renders:
-  - The pill strip (sticky at top, `z-50`)
-  - `{children}` below it
-- Wrap all routes in `App.tsx` with this layout component
-- On the front page, the existing `GymNavigation` header (title + action bar) renders **below** the global pill strip as before
-- On profile pages, the `← Dashboard` back button sits below the pill strip
-
-**3. Styling**
-- Compact single-row strip: same design as current (logo thumbnails, colored borders, gym codes)
-- Sticky `top-0` with a subtle bottom shadow
-- On profile pages, the **current gym's pill** gets a persistent highlight (thicker border, no opacity reduction)
-- Background matches current blush/rose-gold gradient
+**Improve the sticky pill strip:**
+- Remove the opacity fade on non-active pills (all pills fully visible)
+- Make pills slightly larger and easier to click
+- Add a visible "Home" pill at the start of the strip that goes to `/`
 
 ### Files to Change
 
 | File | Change |
 |------|--------|
-| `src/components/GymPillStrip.tsx` | **New** -- extracted pill strip with route-aware click behavior |
-| `src/components/GlobalNav.tsx` | **New** -- layout wrapper rendering pill strip + children |
-| `src/components/GymNavigation.tsx` | Remove the pill strip section (keep title bar + action bar) |
-| `src/App.tsx` | Wrap `<Routes>` with `<GlobalNav>` |
-| `src/pages/GymProfile.tsx` | Remove redundant back-nav if pill strip covers navigation |
+| `src/components/FloatingNavRail.tsx` | **New** -- fixed right-side vertical nav with Home, Up, Down buttons |
+| `src/components/GymPillStrip.tsx` | Add a Home pill at the start; remove `opacity-70` on unselected pills so they're all clearly visible; slightly increase pill size |
+| `src/pages/GymProfile.tsx` | Add `<FloatingNavRail />`, remove the old back-to-top button at the bottom |
+| `src/pages/AssetHub.tsx` | Add `<FloatingNavRail />` |
+| `src/components/qr-studio/QRStudioLayout.tsx` | Add `<FloatingNavRail />` |
 
-### Technical Notes
-- `useGyms()` is already cached by React Query -- calling it in the pill strip component adds zero extra network requests
-- `useLocation().pathname` determines behavior: if starts with `/gym/` → navigate mode; if `/` → selection toggle mode
-- The pill strip on non-dashboard pages won't show Select All / Clear All / Copy Colors -- those stay on the dashboard only
-- Counter pill ("13 of 13 selected") only shows on the front page
+### FloatingNavRail Design
+- Fixed position, right edge, vertically centered
+- 3 buttons stacked: Home icon → Up arrow → Down arrow
+- Solid white background, shadow, rounded-full buttons
+- Compact (40px wide rail)
+- Shows on all pages except the dashboard (dashboard already has full navigation)
 
