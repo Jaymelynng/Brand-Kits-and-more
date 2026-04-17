@@ -412,37 +412,54 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             </div>
 
             {mainLogo && (
-              <Button
-                onClick={async () => {
-                  try {
-                    const response = await fetch(mainLogo.file_url);
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = mainLogo.filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                    toast({ description: `Downloaded ${mainLogo.filename}!`, duration: 2000 });
-                  } catch (err) {
-                    console.error('Download failed:', err);
-                    toast({ title: "Download Failed", description: "Could not download the logo.", variant: "destructive" });
-                  }
-                }}
-                variant="outline"
-                size="sm"
-                className="w-full h-9 text-xs text-white font-semibold"
-                style={{
-                  background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
-                  border: 'none',
-                  boxShadow: `0 3px 6px ${secondaryColor}44, inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)`
-                }}
-              >
-                <Download className="w-3 h-3 mr-1" />
-                Logo
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(mainLogo.file_url);
+                      const blob = await response.blob();
+                      const url = URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = mainLogo.filename;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(url);
+                      toast({ description: `Downloaded ${mainLogo.filename}!`, duration: 2000 });
+                    } catch (err) {
+                      console.error('Download failed:', err);
+                      toast({ title: "Download Failed", description: "Could not download the logo.", variant: "destructive" });
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="h-9 text-xs text-white font-semibold"
+                  style={{
+                    background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
+                    border: 'none',
+                    boxShadow: `0 3px 6px ${secondaryColor}44, inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)`
+                  }}
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  Logo
+                </Button>
+                <Button
+                  onClick={() => copyLogoUrl(mainLogo.file_url, mainLogo.filename)}
+                  variant="outline"
+                  size="sm"
+                  className="h-9 text-xs font-semibold"
+                  style={{
+                    background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
+                    border: `1.5px solid ${secondaryColor}`,
+                    color: secondaryColor,
+                    boxShadow: `0 3px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)`
+                  }}
+                >
+                  <Copy className="w-3 h-3 mr-1" />
+                  {copiedStates[`url-${mainLogo.file_url}`] ? "Copied!" : "Copy URL"}
+                </Button>
+              </div>
             )}
 
           </div>
