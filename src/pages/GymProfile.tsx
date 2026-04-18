@@ -68,6 +68,20 @@ const GymProfile = () => {
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
+  const uploadCardRef = useRef<HTMLDivElement>(null);
+
+  const handleToggleUpload = () => {
+    const next = !showUpload;
+    setShowUpload(next);
+    if (next) {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          uploadCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          fileInputRef.current?.focus();
+        }, 50);
+      });
+    }
+  };
   const { toast } = useToast();
   const setMainLogoMutation = useSetMainLogo();
   const uploadLogoMutation = useUploadLogo();
