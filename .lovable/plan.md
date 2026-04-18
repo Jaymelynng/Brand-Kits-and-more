@@ -1,34 +1,44 @@
 
 
-The user wants a way to copy hosted image URLs from logos. Per memory, logo cards in the gym profile gallery already have a "Copy URL" button. Let me verify this and check what's missing — the user might mean they want it on the dashboard gym cards too, or it's not working/visible.
+The user is on `/gym/OAS` profile page trying to upload a logo. They click an "Add Logos" / upload button and it just toggles to "Hide Upload" with no actual upload area appearing. Let me check the GymProfile.tsx file.
+<lov-tool-use id="toolu_vrtx_017j8KcYvu7gCeibsCLz9ssp" name="code--search_files" integration-id="code" data="{\"query\": \"showUpload|Hide Upload|Add Logos\", \"include_patterns\": \"src/pages/GymProfile.tsx\"}">
+</lov-tool-use>
 
-Looking at `src/components/GymCard.tsx` (dashboard cards): the `copyLogoUrl` function exists, but the URL copy button only appears inside the `showAllLogos` gallery section — which is gated by a prop and likely off by default on the dashboard.
+<lov-tool-use id="toolu_vrtx_01HufqqKrSt7Xhf7gKr9xpXL" name="code--search_files" integration-id="code" data="{\"query\": \"showUpload|Hide Upload|Add Logos\", \"include_patterns\": \"src/pages/GymProfile.tsx\"}">
+</lov-tool-use>
 
-The user is on `/` (dashboard) right now. They want to copy the main logo URL directly without digging.
+<lov-tool-use id="toolu_vrtx_01XSrE68G2VeJrEe6V7vBF8o" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/GymProfile.tsx\", \"lines\": \"1120-1260\"}">
+</lov-tool-use>
+I see the issue. The "Add Logos" button toggles `showUpload`, but the upload card is rendered ABOVE the gallery (`mb-8` before the gallery). When user clicks "Add Logos" while scrolled to the gallery section, the upload card appears way up at line 1135 — far above the button they just clicked. From their viewport, nothing visible happens, then the button text changes to "Hide Upload."
 
-## Add Quick Copy URL Button to Gym Cards
+<lov-plan>
 
-### What You Want
-Yes, all logos are hosted on Supabase storage with public URLs. You want a fast way to copy that URL.
+## Fix: "Add Logos" Button Reveals Upload Out of View
 
-### What's Missing
-Right now you can only copy a logo URL from the expanded "All Logos" gallery view, which is hidden by default. On the dashboard, there's no quick way to grab the main logo's hosted URL.
+### The Problem
+You click "Add Logos" on the Logo Gallery and the button changes to "Hide Upload" — but no upload area appears where you're looking. That's because the upload card is rendered *above* the gallery card, not next to or inside the button. When you click from the gallery section, the upload card pops in way up the page (out of your viewport), so it looks like nothing happened.
 
-### What We'll Add
+### The Fix
 
-**1. Dashboard gym cards (`GymCard.tsx`)**
-Add a "Copy URL" button next to the existing "Logo" download button under the main logo. One click copies the main logo's public Supabase URL to clipboard with a toast confirmation.
+Two changes to `src/pages/GymProfile.tsx`:
 
-**2. Gym profile page (`GymProfile.tsx`)**
-Confirm/add a "Copy URL" button on every logo card in the gallery (per memory this exists — verify it's visible and working).
+**1. Auto-scroll to the upload card when it opens.**
+When you click "Add Logos," scroll the upload card into view automatically so you actually see the drop zone.
+
+**2. Move the upload card to render directly above the gallery (sticky position).**
+Right now there's a big gap because of other content. Place the upload card immediately before the Logo Gallery card with no margin gap, so opening it visibly slides in right above where you clicked.
+
+**3. Bonus — also make the gallery header itself a drop zone.**
+Add drag-and-drop directly on the Logo Gallery header strip so you can drop files without ever opening the upload card. The card stays as a fallback for click-to-browse and bulk uploads.
 
 ### Files to Change
 
 | File | Change |
 |------|--------|
-| `src/components/GymCard.tsx` | Add a "Copy URL" button beside the Logo download button. Uses existing `copyLogoUrl` helper. |
-| `src/pages/GymProfile.tsx` | Verify Copy URL button on each gallery logo; add if missing. |
+| `src/pages/GymProfile.tsx` | Add `useRef` for upload card. On `setShowUpload(true)`, scroll ref into view smoothly. Make Logo Gallery header accept drag/drop using existing `handleDrop` handlers. |
 
-### How URLs Work
-Logos are uploaded to a public Supabase storage bucket. Each logo's `file_url` is a permanent public link (e.g. `https://...supabase.co/storage/v1/object/public/gym-logos/...`) that anyone can hotlink — perfect for HTML emails, social posts, or external tools.
+### What You'll See After
+- Click "Add Logos" → page smoothly scrolls to the upload drop zone (no more invisible toggle)
+- Drag a file directly onto the Logo Gallery header → uploads instantly without opening anything
+- Click "Hide Upload" → card collapses and stays in place
 
