@@ -556,6 +556,7 @@ export const QRGenerator = () => {
       const imageUrl = await generateQRCode({
         content,
         size: bulkSize,
+        frameShape,
         logoImage: singleLogo?.image,
         label: showSingleLabel && title ? title : undefined,
       });
