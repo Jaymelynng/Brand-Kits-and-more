@@ -167,6 +167,26 @@ export const QRGenerator = () => {
   const [gyms, setGyms] = useState<GymWithLogo[]>([]);
   const [gymLogoImages, setGymLogoImages] = useState<Map<string, HTMLImageElement>>(new Map());
 
+  // Bulk QR size — applies to every QR in the batch (single + bulk). Persisted per session.
+  const [bulkSize, setBulkSize] = useState<number>(() => {
+    if (typeof window === 'undefined') return 512;
+    const stored = window.sessionStorage.getItem('qr-bulk-size');
+    const parsed = stored ? parseInt(stored, 10) : NaN;
+    return Number.isFinite(parsed) && parsed >= 256 && parsed <= 2048 ? parsed : 512;
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('qr-bulk-size', String(bulkSize));
+    }
+  }, [bulkSize]);
+
+  // Debounced size for live regeneration (prevents thrash while dragging slider)
+  const [debouncedSize, setDebouncedSize] = useState(bulkSize);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSize(bulkSize), 150);
+    return () => clearTimeout(t);
+  }, [bulkSize]);
+
   // Load gyms with logos
   useEffect(() => {
     const load = async () => {
