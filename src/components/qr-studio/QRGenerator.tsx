@@ -505,11 +505,6 @@ export const QRGenerator = () => {
       toast({ title: "Error generating QR code", variant: "destructive" });
     } finally { setIsGenerating(false); }
   };
-      toast({ title: "QR code generated" });
-    } catch {
-      toast({ title: "Error generating QR code", variant: "destructive" });
-    } finally { setIsGenerating(false); }
-  };
 
   const handleDownload = () => {
     if (!qrImage) return;
