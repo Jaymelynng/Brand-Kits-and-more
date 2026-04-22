@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "@/hooks/use-toast";
-import { generateQRCode } from "@/utils/qrGenerator";
+import { generateQRCode, type QRFrameShape } from "@/utils/qrGenerator";
 import { saveGeneratedQR, saveBulkGeneratedQRs } from "@/services/qrService";
 import { supabase } from "@/integrations/supabase/client";
 import { Download, Save, Layers, RefreshCw, X, AlertTriangle, QrCode, Check } from "lucide-react";
