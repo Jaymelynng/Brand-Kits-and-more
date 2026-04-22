@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "@/hooks/use-toast";
 import { generateQRCode } from "@/utils/qrGenerator";
 import { saveGeneratedQR, saveBulkGeneratedQRs } from "@/services/qrService";
@@ -166,6 +167,26 @@ export const QRGenerator = () => {
   const [gyms, setGyms] = useState<GymWithLogo[]>([]);
   const [gymLogoImages, setGymLogoImages] = useState<Map<string, HTMLImageElement>>(new Map());
 
+  // Bulk QR size — applies to every QR in the batch (single + bulk). Persisted per session.
+  const [bulkSize, setBulkSize] = useState<number>(() => {
+    if (typeof window === 'undefined') return 512;
+    const stored = window.sessionStorage.getItem('qr-bulk-size');
+    const parsed = stored ? parseInt(stored, 10) : NaN;
+    return Number.isFinite(parsed) && parsed >= 256 && parsed <= 2048 ? parsed : 512;
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('qr-bulk-size', String(bulkSize));
+    }
+  }, [bulkSize]);
+
+  // Debounced size for live regeneration (prevents thrash while dragging slider)
+  const [debouncedSize, setDebouncedSize] = useState(bulkSize);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSize(bulkSize), 150);
+    return () => clearTimeout(t);
+  }, [bulkSize]);
+
   // Load gyms with logos
   useEffect(() => {
     const load = async () => {
@@ -196,6 +217,52 @@ export const QRGenerator = () => {
     };
     load();
   }, []);
+
+  // Live regenerate single QR when size changes
+  useEffect(() => {
+    if (!qrImage || !content.trim()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const imageUrl = await generateQRCode({
+          content,
+          size: debouncedSize,
+          logoImage: singleLogo?.image,
+          label: showSingleLabel && title ? title : undefined,
+        });
+        if (!cancelled) setQrImage(imageUrl);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSize]);
+
+  // Live regenerate bulk QRs when size changes
+  useEffect(() => {
+    if (generatedQRs.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const updated: GeneratedQR[] = [];
+      for (const qr of generatedQRs) {
+        const matchedLogo = qr.resolvedGymId ? gymLogoImages.get(qr.resolvedGymId) : undefined;
+        try {
+          const imageUrl = await generateQRCode({
+            content: qr.content,
+            size: debouncedSize,
+            logoImage: matchedLogo,
+            label: showBulkLabel && qr.title ? qr.title : undefined,
+            sublabel: showBulkLabel ? qr.sublabel : undefined,
+          });
+          updated.push({ ...qr, imageUrl });
+        } catch {
+          updated.push(qr);
+        }
+      }
+      if (!cancelled) setGeneratedQRs(updated);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSize]);
 
   // Single mode: auto-load logo when gym selected
   const singleSelectedSet = useMemo(() => singleGymId ? new Set([singleGymId]) : new Set<string>(), [singleGymId]);
@@ -474,6 +541,7 @@ export const QRGenerator = () => {
     try {
       const imageUrl = await generateQRCode({
         content,
+        size: bulkSize,
         logoImage: singleLogo?.image,
         label: showSingleLabel && title ? title : undefined,
       });
@@ -521,6 +589,7 @@ export const QRGenerator = () => {
         const resolvedSublabel = sublabel || batchTitle.trim() || undefined;
         const imageUrl = await generateQRCode({
           content,
+          size: bulkSize,
           logoImage: matchedLogo,
           label: showBulkLabel && label ? label : undefined,
           sublabel: showBulkLabel ? resolvedSublabel : undefined,
@@ -595,8 +664,59 @@ export const QRGenerator = () => {
             </Button>
           </div>
 
-          {/* Gym Logo Grid */}
-          <GymLogoGrid gyms={gyms} selected={selectedBulkGyms} onToggle={handleBulkGymToggle} multi />
+          {/* QR Size Slider — applies to every QR in this batch */}
+          <div className="space-y-2 p-3 rounded-lg" style={{
+            background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.06), hsl(var(--brand-rose-gold) / 0.02))',
+            border: '1.5px solid hsl(var(--brand-rose-gold) / 0.25)',
+          }}>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.8)' }}>
+                QR Size — applies to all
+              </Label>
+              <span className="text-xs font-bold tabular-nums px-2 py-0.5 rounded" style={{
+                background: 'hsl(var(--brand-rose-gold) / 0.15)',
+                color: 'hsl(var(--brand-navy))',
+              }}>
+                {bulkSize} × {bulkSize} px
+              </span>
+            </div>
+            <Slider
+              value={[bulkSize]}
+              onValueChange={(v) => setBulkSize(v[0])}
+              min={256}
+              max={2048}
+              step={64}
+              className="py-1"
+            />
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: 'Small', size: 256 },
+                { label: 'Medium', size: 512 },
+                { label: 'Large', size: 1024 },
+                { label: 'Print', size: 2048 },
+              ].map(p => (
+                <Button
+                  key={p.size}
+                  type="button"
+                  variant={bulkSize === p.size ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setBulkSize(p.size)}
+                  className="h-7 text-[11px] px-2.5 font-semibold"
+                  style={bulkSize === p.size ? {
+                    background: 'hsl(var(--brand-rose-gold))',
+                    color: 'white',
+                    border: 'none',
+                  } : {
+                    border: '1.5px solid hsl(var(--brand-rose-gold) / 0.3)',
+                    color: 'hsl(var(--brand-navy))',
+                  }}
+                >
+                  {p.label} {p.size}
+                </Button>
+              ))}
+            </div>
+          </div>
+
 
           {/* Batch Title + Label Toggle */}
           <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
@@ -761,10 +881,63 @@ export const QRGenerator = () => {
               </Button>
             </div>
 
+            {/* QR Size Slider — shared across single + bulk */}
+            <div className="space-y-2 p-3 rounded-lg" style={{
+              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.06), hsl(var(--brand-rose-gold) / 0.02))',
+              border: '1.5px solid hsl(var(--brand-rose-gold) / 0.25)',
+            }}>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.8)' }}>
+                  QR Size
+                </Label>
+                <span className="text-xs font-bold tabular-nums px-2 py-0.5 rounded" style={{
+                  background: 'hsl(var(--brand-rose-gold) / 0.15)',
+                  color: 'hsl(var(--brand-navy))',
+                }}>
+                  {bulkSize} × {bulkSize} px
+                </span>
+              </div>
+              <Slider
+                value={[bulkSize]}
+                onValueChange={(v) => setBulkSize(v[0])}
+                min={256}
+                max={2048}
+                step={64}
+                className="py-1"
+              />
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: 'Small', size: 256 },
+                  { label: 'Medium', size: 512 },
+                  { label: 'Large', size: 1024 },
+                  { label: 'Print', size: 2048 },
+                ].map(p => (
+                  <Button
+                    key={p.size}
+                    type="button"
+                    variant={bulkSize === p.size ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setBulkSize(p.size)}
+                    className="h-7 text-[11px] px-2.5 font-semibold"
+                    style={bulkSize === p.size ? {
+                      background: 'hsl(var(--brand-rose-gold))',
+                      color: 'white',
+                      border: 'none',
+                    } : {
+                      border: '1.5px solid hsl(var(--brand-rose-gold) / 0.3)',
+                      color: 'hsl(var(--brand-navy))',
+                    }}
+                  >
+                    {p.label} {p.size}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
             {/* Gym Logo Grid */}
             <GymLogoGrid gyms={gyms} selected={singleSelectedSet} onToggle={handleSingleGymToggle} />
 
-            {/* Destination Type */}
+
             <div>
               <Label className="text-xs font-semibold">Destination Type</Label>
               <Select value={destinationType} onValueChange={setDestinationType}>
