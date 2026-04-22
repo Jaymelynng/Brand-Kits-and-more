@@ -934,7 +934,10 @@ export const QRGenerator = () => {
               </div>
             </div>
 
-            {/* Destination Type */}
+            {/* Gym Logo Grid */}
+            <GymLogoGrid gyms={gyms} selected={singleSelectedSet} onToggle={handleSingleGymToggle} />
+
+
             <div>
               <Label className="text-xs font-semibold">Destination Type</Label>
               <Select value={destinationType} onValueChange={setDestinationType}>
