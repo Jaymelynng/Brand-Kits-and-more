@@ -1,44 +1,37 @@
 
 
-The user is on `/gym/OAS` profile page trying to upload a logo. They click an "Add Logos" / upload button and it just toggles to "Hide Upload" with no actual upload area appearing. Let me check the GymProfile.tsx file.
-<lov-tool-use id="toolu_vrtx_017j8KcYvu7gCeibsCLz9ssp" name="code--search_files" integration-id="code" data="{\"query\": \"showUpload|Hide Upload|Add Logos\", \"include_patterns\": \"src/pages/GymProfile.tsx\"}">
-</lov-tool-use>
+## Bulk Resize QR Codes — One Slider Controls All
 
-<lov-tool-use id="toolu_vrtx_01HufqqKrSt7Xhf7gKr9xpXL" name="code--search_files" integration-id="code" data="{\"query\": \"showUpload|Hide Upload|Add Logos\", \"include_patterns\": \"src/pages/GymProfile.tsx\"}">
-</lov-tool-use>
+### What You Want
+Instead of changing the frame shape per QR, you want to resize **one** QR code and have all the others in the batch automatically match that size. One slider → all QRs update together.
 
-<lov-tool-use id="toolu_vrtx_01XSrE68G2VeJrEe6V7vBF8o" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/GymProfile.tsx\", \"lines\": \"1120-1260\"}">
-</lov-tool-use>
-I see the issue. The "Add Logos" button toggles `showUpload`, but the upload card is rendered ABOVE the gallery (`mb-8` before the gallery). When user clicks "Add Logos" while scrolled to the gallery section, the upload card appears way up at line 1135 — far above the button they just clicked. From their viewport, nothing visible happens, then the button text changes to "Hide Upload."
+### How It Will Work
 
-<lov-plan>
+In **QR Generator** (`/qr-studio` → Generate tab), add a single **"Size"** slider above the preview grid:
 
-## Fix: "Add Logos" Button Reveals Upload Out of View
+- **Range**: 256px → 2048px (covers tiny stickers to large posters)
+- **Default**: 512px (current)
+- **Live preview**: as you drag, every QR thumbnail in the batch resizes in real time
+- **Applies to**: every QR in the current batch — single or bulk
+- **Downloads**: the exported PNG/ZIP uses the slider value, so what you see is what you download
 
-### The Problem
-You click "Add Logos" on the Logo Gallery and the button changes to "Hide Upload" — but no upload area appears where you're looking. That's because the upload card is rendered *above* the gallery card, not next to or inside the button. When you click from the gallery section, the upload card pops in way up the page (out of your viewport), so it looks like nothing happened.
+The slider sits at the top of the generator panel so it's the first thing you reach for. A small readout next to it shows the current pixel size (e.g. "768 × 768 px").
 
-### The Fix
-
-Two changes to `src/pages/GymProfile.tsx`:
-
-**1. Auto-scroll to the upload card when it opens.**
-When you click "Add Logos," scroll the upload card into view automatically so you actually see the drop zone.
-
-**2. Move the upload card to render directly above the gallery (sticky position).**
-Right now there's a big gap because of other content. Place the upload card immediately before the Logo Gallery card with no margin gap, so opening it visibly slides in right above where you clicked.
-
-**3. Bonus — also make the gallery header itself a drop zone.**
-Add drag-and-drop directly on the Logo Gallery header strip so you can drop files without ever opening the upload card. The card stays as a fallback for click-to-browse and bulk uploads.
+### Bonus Quality-of-Life
+- **Preset chips** under the slider for one-click common sizes: `Small 256` · `Medium 512` · `Large 1024` · `Print 2048`
+- **Shape picker stays** but becomes secondary — size is the primary control since that's what you actually need
+- Size choice is **remembered** for the session so you don't reset it every time
 
 ### Files to Change
 
 | File | Change |
 |------|--------|
-| `src/pages/GymProfile.tsx` | Add `useRef` for upload card. On `setShowUpload(true)`, scroll ref into view smoothly. Make Logo Gallery header accept drag/drop using existing `handleDrop` handlers. |
+| `src/components/qr-studio/QRGenerator.tsx` | Add `bulkSize` state. Add a `<Slider>` (256–2048, step 64) + preset chip buttons at the top of the generator panel. Pass `bulkSize` into every `generateQRCode({ size: bulkSize, ... })` call so all QRs in the batch render at the same pixel size. Re-trigger preview regeneration when slider changes (debounced ~150ms so dragging stays smooth). |
+| `src/utils/qrGenerator.ts` | Already accepts `size` — no change needed. Confirmed it scales the canvas, label, and logo proportionally. |
 
 ### What You'll See After
-- Click "Add Logos" → page smoothly scrolls to the upload drop zone (no more invisible toggle)
-- Drag a file directly onto the Logo Gallery header → uploads instantly without opening anything
-- Click "Hide Upload" → card collapses and stays in place
+- One slider at the top of the QR Generator
+- Drag it → every QR preview resizes together instantly
+- Click "Download All" → the ZIP contains PNGs at exactly the size you picked
+- Preset buttons for fast jumps to common sizes
 
