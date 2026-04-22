@@ -605,6 +605,7 @@ export const QRGenerator = () => {
         const imageUrl = await generateQRCode({
           content,
           size: bulkSize,
+          frameShape,
           logoImage: matchedLogo,
           label: showBulkLabel && label ? label : undefined,
           sublabel: showBulkLabel ? resolvedSublabel : undefined,
