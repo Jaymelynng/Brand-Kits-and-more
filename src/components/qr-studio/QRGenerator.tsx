@@ -218,6 +218,52 @@ export const QRGenerator = () => {
     load();
   }, []);
 
+  // Live regenerate single QR when size changes
+  useEffect(() => {
+    if (!qrImage || !content.trim()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const imageUrl = await generateQRCode({
+          content,
+          size: debouncedSize,
+          logoImage: singleLogo?.image,
+          label: showSingleLabel && title ? title : undefined,
+        });
+        if (!cancelled) setQrImage(imageUrl);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSize]);
+
+  // Live regenerate bulk QRs when size changes
+  useEffect(() => {
+    if (generatedQRs.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const updated: GeneratedQR[] = [];
+      for (const qr of generatedQRs) {
+        const matchedLogo = qr.resolvedGymId ? gymLogoImages.get(qr.resolvedGymId) : undefined;
+        try {
+          const imageUrl = await generateQRCode({
+            content: qr.content,
+            size: debouncedSize,
+            logoImage: matchedLogo,
+            label: showBulkLabel && qr.title ? qr.title : undefined,
+            sublabel: showBulkLabel ? qr.sublabel : undefined,
+          });
+          updated.push({ ...qr, imageUrl });
+        } catch {
+          updated.push(qr);
+        }
+      }
+      if (!cancelled) setGeneratedQRs(updated);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSize]);
+
   // Single mode: auto-load logo when gym selected
   const singleSelectedSet = useMemo(() => singleGymId ? new Set([singleGymId]) : new Set<string>(), [singleGymId]);
 
