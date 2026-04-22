@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "@/hooks/use-toast";
-import { generateQRCode } from "@/utils/qrGenerator";
+import { generateQRCode, type QRFrameShape } from "@/utils/qrGenerator";
 import { saveGeneratedQR, saveBulkGeneratedQRs } from "@/services/qrService";
 import { supabase } from "@/integrations/supabase/client";
 import { Download, Save, Layers, RefreshCw, X, AlertTriangle, QrCode, Check } from "lucide-react";
@@ -187,6 +187,18 @@ export const QRGenerator = () => {
     return () => clearTimeout(t);
   }, [bulkSize]);
 
+  // Frame shape — applies to every QR. Persisted per session.
+  const [frameShape, setFrameShape] = useState<QRFrameShape>(() => {
+    if (typeof window === 'undefined') return 'square';
+    const stored = window.sessionStorage.getItem('qr-frame-shape') as QRFrameShape | null;
+    return stored && ['square', 'tall', 'wide', 'rounded', 'circle'].includes(stored) ? stored : 'square';
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('qr-frame-shape', frameShape);
+    }
+  }, [frameShape]);
+
   // Load gyms with logos
   useEffect(() => {
     const load = async () => {
@@ -227,6 +239,7 @@ export const QRGenerator = () => {
         const imageUrl = await generateQRCode({
           content,
           size: debouncedSize,
+          frameShape,
           logoImage: singleLogo?.image,
           label: showSingleLabel && title ? title : undefined,
         });
@@ -235,7 +248,7 @@ export const QRGenerator = () => {
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSize]);
+  }, [debouncedSize, frameShape]);
 
   // Live regenerate bulk QRs when size changes
   useEffect(() => {
@@ -249,6 +262,7 @@ export const QRGenerator = () => {
           const imageUrl = await generateQRCode({
             content: qr.content,
             size: debouncedSize,
+            frameShape,
             logoImage: matchedLogo,
             label: showBulkLabel && qr.title ? qr.title : undefined,
             sublabel: showBulkLabel ? qr.sublabel : undefined,
@@ -262,7 +276,7 @@ export const QRGenerator = () => {
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSize]);
+  }, [debouncedSize, frameShape]);
 
   // Single mode: auto-load logo when gym selected
   const singleSelectedSet = useMemo(() => singleGymId ? new Set([singleGymId]) : new Set<string>(), [singleGymId]);
@@ -542,6 +556,7 @@ export const QRGenerator = () => {
       const imageUrl = await generateQRCode({
         content,
         size: bulkSize,
+        frameShape,
         logoImage: singleLogo?.image,
         label: showSingleLabel && title ? title : undefined,
       });
@@ -590,6 +605,7 @@ export const QRGenerator = () => {
         const imageUrl = await generateQRCode({
           content,
           size: bulkSize,
+          frameShape,
           logoImage: matchedLogo,
           label: showBulkLabel && label ? label : undefined,
           sublabel: showBulkLabel ? resolvedSublabel : undefined,
@@ -717,8 +733,49 @@ export const QRGenerator = () => {
             </div>
           </div>
 
+          {/* Frame Shape Picker — applies to every QR */}
+          <div className="space-y-2 p-3 rounded-lg" style={{
+            background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.06), hsl(var(--brand-rose-gold) / 0.02))',
+            border: '1.5px solid hsl(var(--brand-rose-gold) / 0.25)',
+          }}>
+            <Label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.8)' }}>
+              Frame Shape — applies to all
+            </Label>
+            <div className="grid grid-cols-5 gap-1.5">
+              {([
+                { id: 'square', label: 'Square', dims: 'w-7 h-7 rounded-sm' },
+                { id: 'rounded', label: 'Rounded', dims: 'w-7 h-7 rounded-lg' },
+                { id: 'tall', label: 'Tall', dims: 'w-5 h-7 rounded-sm' },
+                { id: 'wide', label: 'Wide', dims: 'w-8 h-5 rounded-sm' },
+                { id: 'circle', label: 'Circle', dims: 'w-7 h-7 rounded-full' },
+              ] as const).map(s => (
+                <Button
+                  key={s.id}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFrameShape(s.id)}
+                  className="h-auto py-2 flex flex-col items-center gap-1 text-[10px] font-semibold"
+                  style={frameShape === s.id ? {
+                    background: 'hsl(var(--brand-rose-gold) / 0.15)',
+                    border: '2px solid hsl(var(--brand-rose-gold))',
+                    color: 'hsl(var(--brand-navy))',
+                  } : {
+                    border: '1.5px solid hsl(var(--brand-rose-gold) / 0.25)',
+                    color: 'hsl(var(--brand-navy) / 0.7)',
+                  }}
+                >
+                  <div className={cn(s.dims, "border-2")} style={{
+                    borderColor: frameShape === s.id ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy) / 0.4)',
+                    background: frameShape === s.id ? 'hsl(var(--brand-rose-gold) / 0.2)' : 'transparent',
+                  }} />
+                  {s.label}
+                </Button>
+              ))}
+            </div>
+          </div>
 
-          {/* Batch Title + Label Toggle */}
+
           <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
             <div>
               <Label htmlFor="batchTitle" className="text-xs font-semibold">Batch Title</Label>
@@ -934,10 +991,52 @@ export const QRGenerator = () => {
               </div>
             </div>
 
+            {/* Frame Shape Picker */}
+            <div className="space-y-2 p-3 rounded-lg" style={{
+              background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.06), hsl(var(--brand-rose-gold) / 0.02))',
+              border: '1.5px solid hsl(var(--brand-rose-gold) / 0.25)',
+            }}>
+              <Label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.8)' }}>
+                Frame Shape
+              </Label>
+              <div className="grid grid-cols-5 gap-1.5">
+                {([
+                  { id: 'square', label: 'Square', dims: 'w-7 h-7 rounded-sm' },
+                  { id: 'rounded', label: 'Rounded', dims: 'w-7 h-7 rounded-lg' },
+                  { id: 'tall', label: 'Tall', dims: 'w-5 h-7 rounded-sm' },
+                  { id: 'wide', label: 'Wide', dims: 'w-8 h-5 rounded-sm' },
+                  { id: 'circle', label: 'Circle', dims: 'w-7 h-7 rounded-full' },
+                ] as const).map(s => (
+                  <Button
+                    key={s.id}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFrameShape(s.id)}
+                    className="h-auto py-2 flex flex-col items-center gap-1 text-[10px] font-semibold"
+                    style={frameShape === s.id ? {
+                      background: 'hsl(var(--brand-rose-gold) / 0.15)',
+                      border: '2px solid hsl(var(--brand-rose-gold))',
+                      color: 'hsl(var(--brand-navy))',
+                    } : {
+                      border: '1.5px solid hsl(var(--brand-rose-gold) / 0.25)',
+                      color: 'hsl(var(--brand-navy) / 0.7)',
+                    }}
+                  >
+                    <div className={cn(s.dims, "border-2")} style={{
+                      borderColor: frameShape === s.id ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy) / 0.4)',
+                      background: frameShape === s.id ? 'hsl(var(--brand-rose-gold) / 0.2)' : 'transparent',
+                    }} />
+                    {s.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
             {/* Gym Logo Grid */}
             <GymLogoGrid gyms={gyms} selected={singleSelectedSet} onToggle={handleSingleGymToggle} />
 
-
+            {/* Destination Type */}
             <div>
               <Label className="text-xs font-semibold">Destination Type</Label>
               <Select value={destinationType} onValueChange={setDestinationType}>
