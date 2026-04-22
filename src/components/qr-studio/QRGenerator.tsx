@@ -543,6 +543,7 @@ export const QRGenerator = () => {
         const resolvedSublabel = sublabel || batchTitle.trim() || undefined;
         const imageUrl = await generateQRCode({
           content,
+          size: bulkSize,
           logoImage: matchedLogo,
           label: showBulkLabel && label ? label : undefined,
           sublabel: showBulkLabel ? resolvedSublabel : undefined,
