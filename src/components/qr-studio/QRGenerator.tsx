@@ -495,10 +495,16 @@ export const QRGenerator = () => {
     try {
       const imageUrl = await generateQRCode({
         content,
+        size: bulkSize,
         logoImage: singleLogo?.image,
         label: showSingleLabel && title ? title : undefined,
       });
       setQrImage(imageUrl);
+      toast({ title: "QR code generated" });
+    } catch {
+      toast({ title: "Error generating QR code", variant: "destructive" });
+    } finally { setIsGenerating(false); }
+  };
       toast({ title: "QR code generated" });
     } catch {
       toast({ title: "Error generating QR code", variant: "destructive" });
