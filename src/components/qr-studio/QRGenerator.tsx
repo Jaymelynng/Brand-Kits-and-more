@@ -664,8 +664,59 @@ export const QRGenerator = () => {
             </Button>
           </div>
 
-          {/* Gym Logo Grid */}
-          <GymLogoGrid gyms={gyms} selected={selectedBulkGyms} onToggle={handleBulkGymToggle} multi />
+          {/* QR Size Slider — applies to every QR in this batch */}
+          <div className="space-y-2 p-3 rounded-lg" style={{
+            background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.06), hsl(var(--brand-rose-gold) / 0.02))',
+            border: '1.5px solid hsl(var(--brand-rose-gold) / 0.25)',
+          }}>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.8)' }}>
+                QR Size — applies to all
+              </Label>
+              <span className="text-xs font-bold tabular-nums px-2 py-0.5 rounded" style={{
+                background: 'hsl(var(--brand-rose-gold) / 0.15)',
+                color: 'hsl(var(--brand-navy))',
+              }}>
+                {bulkSize} × {bulkSize} px
+              </span>
+            </div>
+            <Slider
+              value={[bulkSize]}
+              onValueChange={(v) => setBulkSize(v[0])}
+              min={256}
+              max={2048}
+              step={64}
+              className="py-1"
+            />
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: 'Small', size: 256 },
+                { label: 'Medium', size: 512 },
+                { label: 'Large', size: 1024 },
+                { label: 'Print', size: 2048 },
+              ].map(p => (
+                <Button
+                  key={p.size}
+                  type="button"
+                  variant={bulkSize === p.size ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setBulkSize(p.size)}
+                  className="h-7 text-[11px] px-2.5 font-semibold"
+                  style={bulkSize === p.size ? {
+                    background: 'hsl(var(--brand-rose-gold))',
+                    color: 'white',
+                    border: 'none',
+                  } : {
+                    border: '1.5px solid hsl(var(--brand-rose-gold) / 0.3)',
+                    color: 'hsl(var(--brand-navy))',
+                  }}
+                >
+                  {p.label} {p.size}
+                </Button>
+              ))}
+            </div>
+          </div>
+
 
           {/* Batch Title + Label Toggle */}
           <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
