@@ -239,6 +239,7 @@ export const QRGenerator = () => {
         const imageUrl = await generateQRCode({
           content,
           size: debouncedSize,
+          frameShape,
           logoImage: singleLogo?.image,
           label: showSingleLabel && title ? title : undefined,
         });
@@ -247,7 +248,7 @@ export const QRGenerator = () => {
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSize]);
+  }, [debouncedSize, frameShape]);
 
   // Live regenerate bulk QRs when size changes
   useEffect(() => {
