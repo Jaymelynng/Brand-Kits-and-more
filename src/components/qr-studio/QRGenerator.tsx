@@ -187,6 +187,18 @@ export const QRGenerator = () => {
     return () => clearTimeout(t);
   }, [bulkSize]);
 
+  // Frame shape — applies to every QR. Persisted per session.
+  const [frameShape, setFrameShape] = useState<QRFrameShape>(() => {
+    if (typeof window === 'undefined') return 'square';
+    const stored = window.sessionStorage.getItem('qr-frame-shape') as QRFrameShape | null;
+    return stored && ['square', 'tall', 'wide', 'rounded', 'circle'].includes(stored) ? stored : 'square';
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('qr-frame-shape', frameShape);
+    }
+  }, [frameShape]);
+
   // Load gyms with logos
   useEffect(() => {
     const load = async () => {
