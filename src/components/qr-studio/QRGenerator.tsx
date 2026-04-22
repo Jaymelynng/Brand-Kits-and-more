@@ -262,6 +262,7 @@ export const QRGenerator = () => {
           const imageUrl = await generateQRCode({
             content: qr.content,
             size: debouncedSize,
+            frameShape,
             logoImage: matchedLogo,
             label: showBulkLabel && qr.title ? qr.title : undefined,
             sublabel: showBulkLabel ? qr.sublabel : undefined,
@@ -275,7 +276,7 @@ export const QRGenerator = () => {
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSize]);
+  }, [debouncedSize, frameShape]);
 
   // Single mode: auto-load logo when gym selected
   const singleSelectedSet = useMemo(() => singleGymId ? new Set([singleGymId]) : new Set<string>(), [singleGymId]);
