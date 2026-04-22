@@ -733,8 +733,49 @@ export const QRGenerator = () => {
             </div>
           </div>
 
+          {/* Frame Shape Picker — applies to every QR */}
+          <div className="space-y-2 p-3 rounded-lg" style={{
+            background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold) / 0.06), hsl(var(--brand-rose-gold) / 0.02))',
+            border: '1.5px solid hsl(var(--brand-rose-gold) / 0.25)',
+          }}>
+            <Label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.8)' }}>
+              Frame Shape — applies to all
+            </Label>
+            <div className="grid grid-cols-5 gap-1.5">
+              {([
+                { id: 'square', label: 'Square', dims: 'w-7 h-7 rounded-sm' },
+                { id: 'rounded', label: 'Rounded', dims: 'w-7 h-7 rounded-lg' },
+                { id: 'tall', label: 'Tall', dims: 'w-5 h-7 rounded-sm' },
+                { id: 'wide', label: 'Wide', dims: 'w-8 h-5 rounded-sm' },
+                { id: 'circle', label: 'Circle', dims: 'w-7 h-7 rounded-full' },
+              ] as const).map(s => (
+                <Button
+                  key={s.id}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFrameShape(s.id)}
+                  className="h-auto py-2 flex flex-col items-center gap-1 text-[10px] font-semibold"
+                  style={frameShape === s.id ? {
+                    background: 'hsl(var(--brand-rose-gold) / 0.15)',
+                    border: '2px solid hsl(var(--brand-rose-gold))',
+                    color: 'hsl(var(--brand-navy))',
+                  } : {
+                    border: '1.5px solid hsl(var(--brand-rose-gold) / 0.25)',
+                    color: 'hsl(var(--brand-navy) / 0.7)',
+                  }}
+                >
+                  <div className={cn(s.dims, "border-2")} style={{
+                    borderColor: frameShape === s.id ? 'hsl(var(--brand-rose-gold))' : 'hsl(var(--brand-navy) / 0.4)',
+                    background: frameShape === s.id ? 'hsl(var(--brand-rose-gold) / 0.2)' : 'transparent',
+                  }} />
+                  {s.label}
+                </Button>
+              ))}
+            </div>
+          </div>
 
-          {/* Batch Title + Label Toggle */}
+
           <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
             <div>
               <Label htmlFor="batchTitle" className="text-xs font-semibold">Batch Title</Label>
