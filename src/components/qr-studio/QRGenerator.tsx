@@ -320,6 +320,9 @@ export const QRGenerator = () => {
     if (pipeUrlMatch) return { label: pipeUrlMatch[1].trim(), content: pipeUrlMatch[2].trim() };
     const arrowUrlMatch = trimmed.match(/^(.+?)\s*(?:→|=>)\s*(https?:\/\/.+)$/i);
     if (arrowUrlMatch) return { label: arrowUrlMatch[1].trim(), content: arrowUrlMatch[2].trim() };
+    // Whitespace-separated: "CCP   https://..." or "CCP https://..."
+    const wsUrlMatch = trimmed.match(/^(\S.*?)\s{1,}((?:https?:\/\/|mailto:|tel:)\S+)$/i);
+    if (wsUrlMatch) return { label: wsUrlMatch[1].trim(), content: wsUrlMatch[2].trim() };
     if (trimmed.match(/^https?:\/\//i) || trimmed.match(/^(mailto|tel):/i)) return { content: trimmed };
     return { content: trimmed };
   };
@@ -420,6 +423,11 @@ export const QRGenerator = () => {
     const label = rawLabel.trim();
 
     for (const gym of availableGyms) {
+      // Bare code or name match (no separator, no remainder)
+      if (label.toUpperCase() === gym.code.toUpperCase() || label.toLowerCase() === gym.name.toLowerCase()) {
+        return { gym, title: undefined };
+      }
+
       const patterns = [
         new RegExp(`^\\(\\s*${escapeRegExp(gym.code)}\\s*\\)\\s*[-–—:|]?\\s*(.*)$`, 'i'),
         new RegExp(`^${escapeRegExp(gym.code)}\\s*[-–—:|]\\s*(.*)$`, 'i'),
@@ -494,6 +502,22 @@ export const QRGenerator = () => {
           resolvedGymId: explicitMatch.gym.id,
           resolvedGymName: explicitMatch.gym.name,
           resolvedGymCode: explicitMatch.gym.code,
+          isGymResolved: true,
+        };
+      }
+    }
+
+    // Fallback: try matching label prefix against ALL gyms (so users don't
+    // need to pre-select gyms when they paste rows like "CCP   https://...")
+    if (entry.label) {
+      const anyMatch = resolveGymPrefix(entry.label, gyms);
+      if (anyMatch) {
+        return {
+          ...entry,
+          label: anyMatch.title || entry.label,
+          resolvedGymId: anyMatch.gym.id,
+          resolvedGymName: anyMatch.gym.name,
+          resolvedGymCode: anyMatch.gym.code,
           isGymResolved: true,
         };
       }
