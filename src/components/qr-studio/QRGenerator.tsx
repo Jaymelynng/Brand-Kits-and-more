@@ -309,99 +309,141 @@ export const QRGenerator = () => {
   };
 
   // ─── Parsing Logic ─────────────────────────────────────────────────
-  const parseLine = (line: string): { label?: string; sublabel?: string; content: string } | null => {
-    const trimmed = line.trim();
-    if (!trimmed) return null;
-    const dashUrlMatch = trimmed.match(/^(.+?)\s+[-–—]\s+(https?:\/\/.+)$/i);
-    if (dashUrlMatch) return { label: dashUrlMatch[1].trim(), content: dashUrlMatch[2].trim() };
-    const urlMatch = trimmed.match(/^(.+?):\s*(https?:\/\/.+)$/i);
-    if (urlMatch) return { label: urlMatch[1].trim(), content: urlMatch[2].trim() };
-    const pipeUrlMatch = trimmed.match(/^(.+?)\s*\|\s*(https?:\/\/.+)$/i);
-    if (pipeUrlMatch) return { label: pipeUrlMatch[1].trim(), content: pipeUrlMatch[2].trim() };
-    const arrowUrlMatch = trimmed.match(/^(.+?)\s*(?:→|=>)\s*(https?:\/\/.+)$/i);
-    if (arrowUrlMatch) return { label: arrowUrlMatch[1].trim(), content: arrowUrlMatch[2].trim() };
-    // Whitespace-separated: "CCP   https://..." or "CCP https://..."
-    const wsUrlMatch = trimmed.match(/^(\S.*?)\s{1,}((?:https?:\/\/|mailto:|tel:)\S+)$/i);
-    if (wsUrlMatch) return { label: wsUrlMatch[1].trim(), content: wsUrlMatch[2].trim() };
-    if (trimmed.match(/^https?:\/\//i) || trimmed.match(/^(mailto|tel):/i)) return { content: trimmed };
-    return { content: trimmed };
+  // URL-first approach: find every URL in the text, then look around each one
+  // for an associated label / gym code. Tolerates almost any layout:
+  //   "CCP   https://..."           (code + spaces/tabs + URL)
+  //   "CCP, https://..."            (any punctuation between)
+  //   "CCP — Trial — https://..."   (multi-part label)
+  //   "https://...   CCP"           (URL first, label after)
+  //   "CCP\nhttps://..."            (label on previous line)
+  //   "Capital Gymnastics (CCP): https://..." etc.
+
+  const URL_REGEX_SRC = "(?:https?:\\/\\/|mailto:|tel:)[^\\s<>\"'`)\\]}|]+";
+
+  const stripUrlEdges = (url: string): string => {
+    let u = url.trim();
+    while (u.length > 0) {
+      const last = u[u.length - 1];
+      if ('.,;:!?'.includes(last)) { u = u.slice(0, -1); continue; }
+      if (last === ')' && !u.includes('(')) { u = u.slice(0, -1); continue; }
+      if (last === ']' && !u.includes('[')) { u = u.slice(0, -1); continue; }
+      if (last === '}' && !u.includes('{')) { u = u.slice(0, -1); continue; }
+      break;
+    }
+    return u;
   };
 
-  const cleanUrl = (url: string): string => url.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  const cleanUrl = (url: string): string => stripUrlEdges(url).replace(/\s*\([^)]*\)\s*$/, '').trim();
 
-  const isSeparatorLine = (line: string) => /^[═─━─\-=_*]{3,}$/.test(line.trim()) || /^[\s═─━─\-=_*│|]+$/.test(line.trim());
+  const cleanLabel = (raw: string): string => {
+    let s = raw.trim();
+    s = s.replace(/^[\s>"'`]*[-*•·▪▸➤→›»#]+\s*/u, '');
+    s = s.replace(/^\s*\d+[.)\]]\s*/, '');
+    s = s.replace(/^\(\s*\d+\s*\)\s*/, '');
+    s = s.replace(/^[\u{1F300}-\u{1FAF8}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}]+\s*/u, '');
+    s = s.replace(/^["'`]+|["'`]+$/g, '');
+    s = s.replace(/[\s\-–—:|,;>=→]+$/u, '');
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
+  };
+
+  const isSeparatorLine = (line: string) => /^[═─━\-=_*]{3,}$/.test(line.trim()) || /^[\s═─━\-=_*│|]+$/.test(line.trim());
   const isCategoryHeader = (line: string) => {
     const t = line.trim();
     if (!t || t.length < 3) return false;
-    // All-caps lines like "ICLASS – REGISTRATION" or "ONLINE REGISTRATION"
     return /^[A-Z][A-Z\s–—\-:&/|,]+$/.test(t) && !/^https?:\/\//i.test(t);
   };
   const detectGymHeader = (line: string): { name: string; code: string } | null => {
     const t = line.trim();
-    // Match "Gym Name (CODE)" pattern
     const match = t.match(/^(.+?)\s*\(([A-Z0-9]{2,8})\)\s*$/i);
     if (match) return { name: match[1].trim(), code: match[2].toUpperCase() };
     return null;
   };
 
   const parseMultiLineEntries = (text: string) => {
-    const rawLines = text.split('\n');
-    const entries: { label?: string; sublabel?: string; content: string; detectedGymCode?: string; detectedGymName?: string }[] = [];
-    const isUrl = (s: string) => /^https?:\/\//i.test(cleanUrl(s)) || /^(mailto|tel):/i.test(cleanUrl(s));
+    if (!text || !text.trim()) return [];
 
-    // Filter keeping track of current gym context from section headers
+    type Entry = { label?: string; sublabel?: string; content: string; detectedGymCode?: string; detectedGymName?: string };
+    const entries: Entry[] = [];
+    const rawLines = text.split(/\r?\n/);
+
     let currentGymCode: string | undefined;
     let currentGymName: string | undefined;
-    const lines: string[] = [];
-    const lineGymContext: { code?: string; name?: string }[] = [];
 
     for (const rawLine of rawLines) {
-      const trimmed = rawLine.trim();
-      if (!trimmed) continue;
-      if (isSeparatorLine(trimmed)) continue;
+      const line = rawLine.trim();
+      if (!line) continue;
+      if (isSeparatorLine(line)) continue;
 
-      // Check if this line is a gym header like "Scottsdale Gymnastics (SGT)"
-      const gymHeader = detectGymHeader(trimmed);
-      if (gymHeader) {
-        currentGymCode = gymHeader.code;
-        currentGymName = gymHeader.name;
+      const hasUrl = new RegExp(URL_REGEX_SRC, 'i').test(line);
+
+      // Section header "Gym Name (CODE)" with no URL — sets context, no entry
+      if (!hasUrl) {
+        const gymHeader = detectGymHeader(line);
+        if (gymHeader) {
+          currentGymCode = gymHeader.code;
+          currentGymName = gymHeader.name;
+          continue;
+        }
+        if (isCategoryHeader(line)) continue;
+        const cleaned = cleanLabel(line);
+        if (cleaned) {
+          entries.push({ content: '__PENDING_LABEL__', label: cleaned, detectedGymCode: currentGymCode, detectedGymName: currentGymName });
+        }
         continue;
       }
 
-      // Skip category headers like "ICLASS – REGISTRATION"
-      if (isCategoryHeader(trimmed)) continue;
+      // Find every URL on this line
+      const urls: { match: string; index: number; clean: string }[] = [];
+      const re = new RegExp(URL_REGEX_SRC, 'gi');
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(line)) !== null) {
+        const clean = cleanUrl(m[0]);
+        if (clean) urls.push({ match: m[0], index: m.index, clean });
+      }
+      if (urls.length === 0) continue;
 
-      // Remove emoji/icon prefixes (📋, 🎯, etc.)
-      const cleaned = trimmed.replace(/^[\u{1F300}-\u{1FAF8}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}]+\s*/u, '');
-      if (!cleaned) continue;
+      let cursor = 0;
+      for (let u = 0; u < urls.length; u++) {
+        const url = urls[u];
+        const before = line.slice(cursor, url.index);
+        const after = u === urls.length - 1 ? line.slice(url.index + url.match.length) : '';
 
-      lines.push(cleaned);
-      lineGymContext.push({ code: currentGymCode, name: currentGymName });
+        let labelText = before;
+        if (!labelText.trim() && after.trim()) labelText = after;
+        labelText = labelText.replace(/[\s\-–—:|,;>=→\t]+$/u, '');
+        const label = cleanLabel(labelText);
+
+        entries.push({
+          content: url.clean,
+          label: label || undefined,
+          detectedGymCode: currentGymCode,
+          detectedGymName: currentGymName,
+        });
+        cursor = url.index + url.match.length;
+      }
     }
 
-    let i = 0;
-    while (i < lines.length) {
-      const current = lines[i].trim();
-      const next = i + 1 < lines.length ? lines[i + 1].trim() : null;
-      const third = i + 2 < lines.length ? lines[i + 2].trim() : null;
-      const ctx = lineGymContext[i];
-      if (!isUrl(current) && next && !isUrl(next) && third && isUrl(third)) {
-        entries.push({ label: current, sublabel: next, content: cleanUrl(third), detectedGymCode: ctx.code, detectedGymName: ctx.name });
-        i += 3; continue;
+    // Merge orphan label lines with the following entry
+    const merged: Entry[] = [];
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i];
+      if (e.content === '__PENDING_LABEL__') {
+        const next = entries[i + 1];
+        if (next && next.content !== '__PENDING_LABEL__') {
+          if (next.label) {
+            merged.push({ ...next, sublabel: next.sublabel || e.label });
+          } else {
+            merged.push({ ...next, label: e.label });
+          }
+          i++;
+        }
+        continue;
       }
-      if (!isUrl(current) && next && isUrl(next)) {
-        entries.push({ label: current, content: cleanUrl(next), detectedGymCode: ctx.code, detectedGymName: ctx.name });
-        i += 2; continue;
-      }
-      const singleLine = parseLine(current);
-      if (singleLine && isUrl(singleLine.content)) {
-        entries.push({ ...singleLine, content: cleanUrl(singleLine.content), detectedGymCode: ctx.code, detectedGymName: ctx.name });
-        i++; continue;
-      }
-      if (isUrl(current)) { entries.push({ content: cleanUrl(current), detectedGymCode: ctx.code, detectedGymName: ctx.name }); i++; continue; }
-      i++;
+      merged.push(e);
     }
-    return entries;
+
+    return merged;
   };
 
   const checkMismatch = (label: string | undefined, url: string): boolean => {
