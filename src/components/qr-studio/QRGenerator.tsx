@@ -461,6 +461,69 @@ export const QRGenerator = () => {
     [gyms, selectedBulkGyms],
   );
 
+  // Auto-assign a gym by scanning a URL + label for the gym's code, full name,
+  // or any meaningful name token. Returns the highest-scoring gym, or undefined
+  // if no confident match exists. Score weights:
+  //   +10 explicit code match (whole-word)         e.g. "/CCP/" or " CCP "
+  //   +6  full-name slug match                      e.g. "oasisgymnastics"
+  //   +3  per meaningful name-token match (≥4 chars unique to that gym)
+  //   +2  per shorter token match (3 chars)
+  // Ties are broken by code length (longer = more specific).
+  const autoAssignGym = (
+    label: string | undefined,
+    url: string,
+    available: GymWithLogo[],
+  ): GymWithLogo | undefined => {
+    if (available.length === 0) return undefined;
+
+    const haystackRaw = `${label || ''} ${url}`.toLowerCase();
+    // Normalized haystack: strip non-alphanumerics so "cap-gym-avery" matches "capgymavery"
+    const haystackSlug = haystackRaw.replace(/[^a-z0-9]/g, '');
+    if (!haystackSlug) return undefined;
+
+    // Stop-words that appear in many gym names — don't count toward score
+    const STOP = new Set(['gym', 'gyms', 'gymnastics', 'academy', 'center', 'centre', 'the', 'and']);
+
+    type Scored = { gym: GymWithLogo; score: number };
+    const scored: Scored[] = [];
+
+    for (const gym of available) {
+      let score = 0;
+      const codeLower = gym.code.toLowerCase();
+      const nameLower = gym.name.toLowerCase();
+      const nameSlug = nameLower.replace(/[^a-z0-9]/g, '');
+
+      // Whole-word code match in raw text (e.g. " CCP " or "/CCP/" or "(CCP)")
+      const codeWordRe = new RegExp(`(^|[^a-z0-9])${escapeRegExp(codeLower)}([^a-z0-9]|$)`, 'i');
+      if (codeWordRe.test(haystackRaw)) score += 10;
+
+      // Full-name slug appears in URL/label (strong signal)
+      if (nameSlug.length >= 6 && haystackSlug.includes(nameSlug)) score += 6;
+
+      // Per-token matches (excluding stop-words and the code itself)
+      const tokens = nameLower.split(/[^a-z0-9]+/).filter(Boolean);
+      for (const tok of tokens) {
+        if (STOP.has(tok)) continue;
+        if (tok.length >= 4 && haystackSlug.includes(tok)) score += 3;
+        else if (tok.length === 3 && haystackSlug.includes(tok)) score += 2;
+      }
+
+      if (score > 0) scored.push({ gym, score });
+    }
+
+    if (scored.length === 0) return undefined;
+    scored.sort((a, b) => b.score - a.score || b.gym.code.length - a.gym.code.length);
+
+    // Require a minimum score and a meaningful gap over runner-up to avoid
+    // false positives (e.g. two gyms sharing a token).
+    if (scored[0].score < 3) return undefined;
+    if (scored.length > 1 && scored[0].score === scored[1].score) {
+      // Ambiguous — only accept if the top score is very high (explicit code)
+      if (scored[0].score < 10) return undefined;
+    }
+    return scored[0].gym;
+  };
+
   const resolveGymPrefix = (rawLabel: string, availableGyms: GymWithLogo[]) => {
     const label = rawLabel.trim();
 
