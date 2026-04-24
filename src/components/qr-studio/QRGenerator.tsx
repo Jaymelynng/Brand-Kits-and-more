@@ -423,6 +423,11 @@ export const QRGenerator = () => {
     const label = rawLabel.trim();
 
     for (const gym of availableGyms) {
+      // Bare code or name match (no separator, no remainder)
+      if (label.toUpperCase() === gym.code.toUpperCase() || label.toLowerCase() === gym.name.toLowerCase()) {
+        return { gym, title: undefined };
+      }
+
       const patterns = [
         new RegExp(`^\\(\\s*${escapeRegExp(gym.code)}\\s*\\)\\s*[-–—:|]?\\s*(.*)$`, 'i'),
         new RegExp(`^${escapeRegExp(gym.code)}\\s*[-–—:|]\\s*(.*)$`, 'i'),
