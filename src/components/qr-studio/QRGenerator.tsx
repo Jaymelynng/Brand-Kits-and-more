@@ -549,7 +549,7 @@ export const QRGenerator = () => {
       }
     }
 
-    // Fallback: try matching label prefix against ALL gyms (so users don't
+    // Fallback 1: try matching label prefix against ALL gyms (so users don't
     // need to pre-select gyms when they paste rows like "CCP   https://...")
     if (entry.label) {
       const anyMatch = resolveGymPrefix(entry.label, gyms);
@@ -565,12 +565,25 @@ export const QRGenerator = () => {
       }
     }
 
+    // Fallback 2: fuzzy auto-assign by scanning the URL + label for gym
+    // identifiers (code, name tokens). Catches rows like
+    // "https://portal.iclasspro.com/oasisgymnastics/..." where the slug
+    // tells us which gym it belongs to even without any label.
+    const fuzzyMatch = autoAssignGym(entry.label, entry.content, gyms);
+    if (fuzzyMatch) {
+      return {
+        ...entry,
+        resolvedGymId: fuzzyMatch.id,
+        resolvedGymName: fuzzyMatch.name,
+        resolvedGymCode: fuzzyMatch.code,
+        isGymResolved: true,
+      };
+    }
+
     return {
       ...entry,
       isGymResolved: false,
-      validationMessage: selectedBulkGymRecords.length === 0
-        ? 'Select a gym first'
-        : 'Gym required',
+      validationMessage: 'No gym match — add a code or pick one',
     };
   };
 
