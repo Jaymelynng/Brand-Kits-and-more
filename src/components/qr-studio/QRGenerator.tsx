@@ -320,6 +320,9 @@ export const QRGenerator = () => {
     if (pipeUrlMatch) return { label: pipeUrlMatch[1].trim(), content: pipeUrlMatch[2].trim() };
     const arrowUrlMatch = trimmed.match(/^(.+?)\s*(?:→|=>)\s*(https?:\/\/.+)$/i);
     if (arrowUrlMatch) return { label: arrowUrlMatch[1].trim(), content: arrowUrlMatch[2].trim() };
+    // Whitespace-separated: "CCP   https://..." or "CCP https://..."
+    const wsUrlMatch = trimmed.match(/^(\S.*?)\s{1,}((?:https?:\/\/|mailto:|tel:)\S+)$/i);
+    if (wsUrlMatch) return { label: wsUrlMatch[1].trim(), content: wsUrlMatch[2].trim() };
     if (trimmed.match(/^https?:\/\//i) || trimmed.match(/^(mailto|tel):/i)) return { content: trimmed };
     return { content: trimmed };
   };
