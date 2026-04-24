@@ -507,6 +507,22 @@ export const QRGenerator = () => {
       }
     }
 
+    // Fallback: try matching label prefix against ALL gyms (so users don't
+    // need to pre-select gyms when they paste rows like "CCP   https://...")
+    if (entry.label) {
+      const anyMatch = resolveGymPrefix(entry.label, gyms);
+      if (anyMatch) {
+        return {
+          ...entry,
+          label: anyMatch.title || entry.label,
+          resolvedGymId: anyMatch.gym.id,
+          resolvedGymName: anyMatch.gym.name,
+          resolvedGymCode: anyMatch.gym.code,
+          isGymResolved: true,
+        };
+      }
+    }
+
     return {
       ...entry,
       isGymResolved: false,
