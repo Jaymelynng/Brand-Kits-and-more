@@ -1,37 +1,60 @@
+## Goals
 
+1. **Logo shape should match the QR frame** — when the frame is a circle, use a circular logo crop (so the logo fills nicely and stops looking awkward inside square padding). Square/rounded frames keep the existing aspect-preserving fit.
+2. **Inline website previews** — next to every generated QR, show a small live screenshot of the destination URL so you can scan-verify without clicking each one.
 
-## Bulk Resize QR Codes — One Slider Controls All
+---
 
-### What You Want
-Instead of changing the frame shape per QR, you want to resize **one** QR code and have all the others in the batch automatically match that size. One slider → all QRs update together.
+## 1. Logo auto-fits the frame shape
 
-### How It Will Work
+**File:** `src/utils/qrGenerator.ts`
 
-In **QR Generator** (`/qr-studio` → Generate tab), add a single **"Size"** slider above the preview grid:
+Pass the active `frameShape` into the logo overlay step and use it to decide the safe-zone shape:
 
-- **Range**: 256px → 2048px (covers tiny stickers to large posters)
-- **Default**: 512px (current)
-- **Live preview**: as you drag, every QR thumbnail in the batch resizes in real time
-- **Applies to**: every QR in the current batch — single or bulk
-- **Downloads**: the exported PNG/ZIP uses the slider value, so what you see is what you download
+- `circle` frame → logo is masked to a **circle**, sized so the logo's longest edge fills the circle. White safe-zone is a slightly larger circle (current behavior — already correct here).
+- `rounded` frame → logo masked to a **rounded square** (matches frame personality).
+- `square` / `tall` / `wide` → keep current aspect-preserving fit on a circular safe-zone (works for any logo proportion without stretching).
 
-The slider sits at the top of the generator panel so it's the first thing you reach for. A small readout next to it shows the current pixel size (e.g. "768 × 768 px").
+Only the safe-zone + clip path change. The aspect-ratio fix from the previous turn stays — logos are never stretched, just cropped/masked to match the frame.
 
-### Bonus Quality-of-Life
-- **Preset chips** under the slider for one-click common sizes: `Small 256` · `Medium 512` · `Large 1024` · `Print 2048`
-- **Shape picker stays** but becomes secondary — size is the primary control since that's what you actually need
-- Size choice is **remembered** for the session so you don't reset it every time
+## 2. Live website preview next to each generated QR
 
-### Files to Change
+**File:** `src/components/qr-studio/QRGenerator.tsx` (bulk results grid, ~lines 1053-1069)
 
-| File | Change |
-|------|--------|
-| `src/components/qr-studio/QRGenerator.tsx` | Add `bulkSize` state. Add a `<Slider>` (256–2048, step 64) + preset chip buttons at the top of the generator panel. Pass `bulkSize` into every `generateQRCode({ size: bulkSize, ... })` call so all QRs in the batch render at the same pixel size. Re-trigger preview regeneration when slider changes (debounced ~150ms so dragging stays smooth). |
-| `src/utils/qrGenerator.ts` | Already accepts `size` — no change needed. Confirmed it scales the canvas, label, and logo proportionally. |
+Add a small thumbnail beside each QR card showing the destination page. Two-column mini layout per result:
 
-### What You'll See After
-- One slider at the top of the QR Generator
-- Drag it → every QR preview resizes together instantly
-- Click "Download All" → the ZIP contains PNGs at exactly the size you picked
-- Preset buttons for fast jumps to common sizes
+```text
+┌──────────────────────────────┐
+│  Title — Sublabel            │
+│  ┌────────┐  ┌────────────┐  │
+│  │   QR   │  │  website   │  │
+│  │  image │  │  preview   │  │
+│  └────────┘  └────────────┘  │
+│  https://destination/url     │
+└──────────────────────────────┘
+```
 
+**How the preview is fetched:**
+- Use a free, no-auth screenshot service that takes a URL and returns a PNG (e.g. `https://image.thum.io/get/width/300/{url}` or `https://s.wordpress.com/mshots/v1/{url}?w=300`). These work as plain `<img src>` — no API key, no edge function, no Firecrawl credits.
+- Lazy-load: only fetch when the card scrolls into view (`loading="lazy"` on the `<img>`).
+- Graceful fallback: on `onError`, show a small "preview unavailable" tile with the URL hostname so the layout never breaks.
+
+**Where it appears:**
+- Bulk results grid (the main verification surface) — primary win.
+- Single QR preview panel — also add the thumbnail under the QR so single-mode verification matches.
+
+**No new dependencies, no backend changes, no DB changes.** Pure client-side render.
+
+---
+
+## Out of scope (unchanged)
+
+- Parsing logic, fuzzy gym matching, label resolution, save/download flows — all stay as-is.
+- QR generation core (size, error correction, frame wrapper) — only the logo masking step is touched.
+
+---
+
+## Technical summary
+
+- `qrGenerator.ts`: extend `QRGenerateOptions` with `frameShape` already available; route it into the logo draw step and switch the clip path between circle / rounded-rect.
+- `QRGenerator.tsx`: add a `<UrlPreview url={...} />` inline component (~30 lines) using `s.wordpress.com/mshots` as the image source with `onError` fallback. Drop it into both the bulk results card and the single preview panel.
