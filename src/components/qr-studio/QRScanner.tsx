@@ -158,6 +158,9 @@ export const QRScanner = () => {
                         </Button>
                       )}
                     </div>
+                    {code.data.startsWith('http') && (
+                      <UrlPreview url={code.data} className="mt-2" />
+                    )}
                   </div>
                 ))
               ) : (
