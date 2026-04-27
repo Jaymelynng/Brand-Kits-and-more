@@ -41,39 +41,77 @@ export const generateQRCode = async (options: QRGenerateOptions): Promise<string
     color,
   });
 
-  // 2. Overlay logo if provided (preserves aspect ratio — no stretching)
+  // 2. Overlay logo if provided — safe-zone shape adapts to the QR frame.
+  //    circle frame  → circular crop (logo fills the disc, longest edge = diameter)
+  //    rounded frame → rounded-square crop
+  //    square/tall/wide → aspect-preserving fit on a circular safe-zone
   if (logoImage) {
     const ctx = qrCanvas.getContext('2d');
     if (ctx) {
       const boxSize = qrCanvas.width * logoSize;
       const cx = qrCanvas.width / 2;
       const cy = qrCanvas.height / 2;
-
-      // Fit the logo inside the circular clear area without distortion
       const naturalW = logoImage.naturalWidth || logoImage.width || boxSize;
       const naturalH = logoImage.naturalHeight || logoImage.height || boxSize;
-      const scale = Math.min(boxSize / naturalW, boxSize / naturalH);
-      const drawW = naturalW * scale;
-      const drawH = naturalH * scale;
-      const drawX = cx - drawW / 2;
-      const drawY = cy - drawH / 2;
 
-      // White safe-zone behind logo (circle sized to the longest logo edge)
-      const safeRadius = Math.max(drawW, drawH) / 2 + 8;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(cx, cy, safeRadius, 0, Math.PI * 2);
-      ctx.fill();
+      const drawCircularSafeZone = (radius: number) => {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.stroke();
+      };
 
-      // Draw logo at natural aspect ratio
-      ctx.drawImage(logoImage, drawX, drawY, drawW, drawH);
-
-      // Subtle outline matching the safe-zone circle
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(cx, cy, safeRadius, 0, Math.PI * 2);
-      ctx.stroke();
+      if (frameShape === 'circle') {
+        // Circular logo crop — logo's longest edge = disc diameter (cover-fit, no stretch)
+        const radius = boxSize / 2;
+        drawCircularSafeZone(radius + 6);
+        const scale = Math.max((radius * 2) / naturalW, (radius * 2) / naturalH);
+        const drawW = naturalW * scale;
+        const drawH = naturalH * scale;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(logoImage, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
+        ctx.restore();
+      } else if (frameShape === 'rounded') {
+        // Rounded-square logo crop matching the frame personality
+        const side = boxSize;
+        const r = side * 0.18;
+        const x = cx - side / 2;
+        const y = cy - side / 2;
+        // White rounded safe-zone (slightly larger)
+        const pad = 6;
+        ctx.fillStyle = '#ffffff';
+        roundRect(ctx, x - pad, y - pad, side + pad * 2, side + pad * 2, r + pad);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.lineWidth = 2;
+        roundRect(ctx, x - pad, y - pad, side + pad * 2, side + pad * 2, r + pad);
+        ctx.stroke();
+        // Cover-fit the logo inside the rounded square
+        const scale = Math.max(side / naturalW, side / naturalH);
+        const drawW = naturalW * scale;
+        const drawH = naturalH * scale;
+        ctx.save();
+        roundRect(ctx, x, y, side, side, r);
+        ctx.clip();
+        ctx.drawImage(logoImage, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
+        ctx.restore();
+      } else {
+        // Default: aspect-preserving fit (works for any logo proportion without stretching)
+        const scale = Math.min(boxSize / naturalW, boxSize / naturalH);
+        const drawW = naturalW * scale;
+        const drawH = naturalH * scale;
+        const safeRadius = Math.max(drawW, drawH) / 2 + 8;
+        drawCircularSafeZone(safeRadius);
+        ctx.drawImage(logoImage, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
+      }
     }
   }
 
