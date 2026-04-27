@@ -7,6 +7,7 @@ import { scanQRCode, QRCode } from "@/utils/qrScanner";
 import { saveScannedQR } from "@/services/qrService";
 import { Upload, ScanLine, Copy, ExternalLink, FileImage } from "lucide-react";
 import { useDropzone } from "react-dropzone";
+import { UrlPreview } from "./UrlPreview";
 
 interface ImageResult {
   fileName: string;
