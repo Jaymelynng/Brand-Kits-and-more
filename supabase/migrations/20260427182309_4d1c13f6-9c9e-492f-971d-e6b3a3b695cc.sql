@@ -1,0 +1,2 @@
+UPDATE public.gym_logos SET is_main_logo = false WHERE gym_id = '5a389733-37e7-4f13-b472-2ebff35808c9' AND is_main_logo = true;
+UPDATE public.gym_logos SET is_main_logo = true WHERE id = 'cdfe246c-0b6a-4ed6-bc13-6c101b50044f';
