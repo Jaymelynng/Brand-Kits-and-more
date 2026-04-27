@@ -41,27 +41,38 @@ export const generateQRCode = async (options: QRGenerateOptions): Promise<string
     color,
   });
 
-  // 2. Overlay logo if provided
+  // 2. Overlay logo if provided (preserves aspect ratio — no stretching)
   if (logoImage) {
     const ctx = qrCanvas.getContext('2d');
     if (ctx) {
-      const logoPixelSize = qrCanvas.width * logoSize;
-      const logoX = (qrCanvas.width - logoPixelSize) / 2;
-      const logoY = (qrCanvas.height - logoPixelSize) / 2;
+      const boxSize = qrCanvas.width * logoSize;
+      const cx = qrCanvas.width / 2;
+      const cy = qrCanvas.height / 2;
+
+      // Fit the logo inside the circular clear area without distortion
+      const naturalW = logoImage.naturalWidth || logoImage.width || boxSize;
+      const naturalH = logoImage.naturalHeight || logoImage.height || boxSize;
+      const scale = Math.min(boxSize / naturalW, boxSize / naturalH);
+      const drawW = naturalW * scale;
+      const drawH = naturalH * scale;
+      const drawX = cx - drawW / 2;
+      const drawY = cy - drawH / 2;
+
+      // White safe-zone behind logo (circle sized to the longest logo edge)
+      const safeRadius = Math.max(drawW, drawH) / 2 + 8;
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(qrCanvas.width / 2, qrCanvas.height / 2, logoPixelSize / 2 + 8, 0, Math.PI * 2);
+      ctx.arc(cx, cy, safeRadius, 0, Math.PI * 2);
       ctx.fill();
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(qrCanvas.width / 2, qrCanvas.height / 2, logoPixelSize / 2, 0, Math.PI * 2);
-      ctx.clip();
-      ctx.drawImage(logoImage, logoX, logoY, logoPixelSize, logoPixelSize);
-      ctx.restore();
+
+      // Draw logo at natural aspect ratio
+      ctx.drawImage(logoImage, drawX, drawY, drawW, drawH);
+
+      // Subtle outline matching the safe-zone circle
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(qrCanvas.width / 2, qrCanvas.height / 2, logoPixelSize / 2, 0, Math.PI * 2);
+      ctx.arc(cx, cy, safeRadius, 0, Math.PI * 2);
       ctx.stroke();
     }
   }
