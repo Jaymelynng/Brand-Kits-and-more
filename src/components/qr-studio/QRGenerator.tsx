@@ -792,22 +792,50 @@ export const QRGenerator = () => {
   };
 
   const handleDownloadAll = async () => {
-    // Browsers throttle / drop rapid synchronous downloads (typically caps at ~10).
-    // Stagger each download with a small delay so every QR in the batch saves.
-    for (let index = 0; index < generatedQRs.length; index++) {
-      const qr = generatedQRs[index];
+    // Bundle every QR into a single ZIP — guarantees ALL files arrive
+    // (browsers silently drop multi-file <a download> bursts past ~10,
+    // and dedupe identical filenames). One file = zero loss.
+    if (generatedQRs.length === 0) return;
+    try {
+      const { default: JSZip } = await import("jszip");
+      const zip = new JSZip();
+      const usedNames = new Set<string>();
+
+      for (let index = 0; index < generatedQRs.length; index++) {
+        const qr = generatedQRs[index];
+        let filename = buildBulkFilename(qr.resolvedGymCode, qr.title, index);
+        // Guarantee uniqueness inside the zip
+        if (usedNames.has(filename)) {
+          const dot = filename.lastIndexOf('.');
+          const base = dot > 0 ? filename.slice(0, dot) : filename;
+          const ext = dot > 0 ? filename.slice(dot) : '';
+          filename = `${base}-${index + 1}${ext}`;
+        }
+        usedNames.add(filename);
+
+        // qr.imageUrl is a data URL ("data:image/png;base64,....")
+        const base64 = qr.imageUrl.split(',')[1];
+        if (base64) zip.file(filename, base64, { base64: true });
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.download = buildBulkFilename(qr.resolvedGymCode, qr.title, index);
-      link.href = qr.imageUrl;
+      const stamp = new Date().toISOString().slice(0, 10);
+      const batchSlug = slugifyFilenamePart(batchTitle) || 'qr-codes';
+      link.download = `${batchSlug}-${stamp}.zip`;
+      link.href = url;
       link.rel = "noopener";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      // 250ms is the sweet spot — fast enough to feel instant, slow enough that Chrome/Edge/Safari
-      // don't coalesce or drop downloads.
-      await new Promise((r) => setTimeout(r, 250));
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      toast({ title: `Downloaded ${generatedQRs.length} QR codes`, description: "Bundled as a single .zip file" });
+    } catch (err) {
+      console.error('Download all failed', err);
+      toast({ title: "Download failed", description: "Could not create the zip file.", variant: "destructive" });
     }
-    toast({ title: `Downloaded ${generatedQRs.length} QR codes` });
   };
 
   // ─── Render ────────────────────────────────────────────────────────
