@@ -1051,7 +1051,7 @@ export const QRGenerator = () => {
                 <Save className="h-4 w-4 mr-2" /> Save All as Batch
               </Button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {generatedQRs.map((qr, index) => (
                 <Card key={index} className="p-2.5 space-y-2" style={{
                   border: '1.5px solid hsl(var(--brand-rose-gold) / 0.2)',
@@ -1061,9 +1061,13 @@ export const QRGenerator = () => {
                     <div className="text-xs font-semibold truncate">{qr.title || `QR #${index + 1}`}</div>
                     {qr.sublabel && <div className="text-[10px] text-muted-foreground truncate">{qr.sublabel}</div>}
                   </div>
-                  <img src={qr.imageUrl} alt={qr.title || `QR ${index + 1}`} className="w-full rounded-md" style={{
-                    border: '1px solid hsl(var(--brand-rose-gold) / 0.15)',
-                  }} />
+                  <div className="grid grid-cols-2 gap-2">
+                    <img src={qr.imageUrl} alt={qr.title || `QR ${index + 1}`} className="w-full rounded-md aspect-square object-contain" style={{
+                      border: '1px solid hsl(var(--brand-rose-gold) / 0.15)',
+                      background: '#fff',
+                    }} />
+                    <UrlPreview url={qr.content} />
+                  </div>
                   <p className="text-[10px] text-muted-foreground break-all line-clamp-1">{qr.content}</p>
                 </Card>
               ))}
