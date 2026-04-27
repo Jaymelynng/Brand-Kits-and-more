@@ -529,8 +529,10 @@ export const QRGenerator = () => {
 
     for (const gym of availableGyms) {
       // Bare code or name match (no separator, no remainder)
+      // Use the gym's full name as the title so QR labels show "Oasis Gymnastics"
+      // instead of just "OAS" when the user pastes the bare code.
       if (label.toUpperCase() === gym.code.toUpperCase() || label.toLowerCase() === gym.name.toLowerCase()) {
-        return { gym, title: undefined };
+        return { gym, title: gym.name };
       }
 
       const patterns = [
@@ -634,8 +636,14 @@ export const QRGenerator = () => {
     // tells us which gym it belongs to even without any label.
     const fuzzyMatch = autoAssignGym(entry.label, entry.content, gyms);
     if (fuzzyMatch) {
+      // If the only label was the bare code (e.g. "OAS") or no label at all,
+      // promote the gym's full name so the QR shows "Oasis Gymnastics".
+      const labelIsBareCode = entry.label
+        ? entry.label.trim().toUpperCase() === fuzzyMatch.code.toUpperCase()
+        : true;
       return {
         ...entry,
+        label: labelIsBareCode ? fuzzyMatch.name : entry.label,
         resolvedGymId: fuzzyMatch.id,
         resolvedGymName: fuzzyMatch.name,
         resolvedGymCode: fuzzyMatch.code,
