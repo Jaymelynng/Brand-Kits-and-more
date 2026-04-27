@@ -791,13 +791,23 @@ export const QRGenerator = () => {
     finally { setIsGenerating(false); }
   };
 
-  const handleDownloadAll = () => {
-    generatedQRs.forEach((qr, index) => {
+  const handleDownloadAll = async () => {
+    // Browsers throttle / drop rapid synchronous downloads (typically caps at ~10).
+    // Stagger each download with a small delay so every QR in the batch saves.
+    for (let index = 0; index < generatedQRs.length; index++) {
+      const qr = generatedQRs[index];
       const link = document.createElement("a");
       link.download = buildBulkFilename(qr.resolvedGymCode, qr.title, index);
       link.href = qr.imageUrl;
+      link.rel = "noopener";
+      document.body.appendChild(link);
       link.click();
-    });
+      document.body.removeChild(link);
+      // 250ms is the sweet spot — fast enough to feel instant, slow enough that Chrome/Edge/Safari
+      // don't coalesce or drop downloads.
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    toast({ title: `Downloaded ${generatedQRs.length} QR codes` });
   };
 
   // ─── Render ────────────────────────────────────────────────────────
