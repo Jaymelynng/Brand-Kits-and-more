@@ -529,8 +529,10 @@ export const QRGenerator = () => {
 
     for (const gym of availableGyms) {
       // Bare code or name match (no separator, no remainder)
+      // Use the gym's full name as the title so QR labels show "Oasis Gymnastics"
+      // instead of just "OAS" when the user pastes the bare code.
       if (label.toUpperCase() === gym.code.toUpperCase() || label.toLowerCase() === gym.name.toLowerCase()) {
-        return { gym, title: undefined };
+        return { gym, title: gym.name };
       }
 
       const patterns = [
