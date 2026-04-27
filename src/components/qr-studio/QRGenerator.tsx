@@ -14,6 +14,7 @@ import { saveGeneratedQR, saveBulkGeneratedQRs } from "@/services/qrService";
 import { supabase } from "@/integrations/supabase/client";
 import { Download, Save, Layers, RefreshCw, X, AlertTriangle, QrCode, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UrlPreview } from "./UrlPreview";
 
 interface GeneratedQR {
   content: string;
