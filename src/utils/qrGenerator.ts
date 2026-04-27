@@ -80,29 +80,26 @@ export const generateQRCode = async (options: QRGenerateOptions): Promise<string
         ctx.drawImage(logoImage, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
         ctx.restore();
       } else if (frameShape === 'rounded') {
-        // Rounded-square logo crop matching the frame personality
-        const side = boxSize;
-        const r = side * 0.18;
-        const x = cx - side / 2;
-        const y = cy - side / 2;
-        // White rounded safe-zone (slightly larger)
-        const pad = 6;
+        // Rounded-square SAFE-ZONE matching the frame personality, but the
+        // logo itself is contain-fit (never stretched, never cropped).
+        // Wide logos (e.g. Oasis "AS") would otherwise overflow with cover-fit.
+        const scale = Math.min(boxSize / naturalW, boxSize / naturalH);
+        const drawW = naturalW * scale;
+        const drawH = naturalH * scale;
+        const pad = 8;
+        const sideW = drawW + pad * 2;
+        const sideH = drawH + pad * 2;
+        const r = Math.min(sideW, sideH) * 0.18;
+        const x = cx - sideW / 2;
+        const y = cy - sideH / 2;
         ctx.fillStyle = '#ffffff';
-        roundRect(ctx, x - pad, y - pad, side + pad * 2, side + pad * 2, r + pad);
+        roundRect(ctx, x, y, sideW, sideH, r);
         ctx.fill();
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
         ctx.lineWidth = 2;
-        roundRect(ctx, x - pad, y - pad, side + pad * 2, side + pad * 2, r + pad);
+        roundRect(ctx, x, y, sideW, sideH, r);
         ctx.stroke();
-        // Cover-fit the logo inside the rounded square
-        const scale = Math.max(side / naturalW, side / naturalH);
-        const drawW = naturalW * scale;
-        const drawH = naturalH * scale;
-        ctx.save();
-        roundRect(ctx, x, y, side, side, r);
-        ctx.clip();
         ctx.drawImage(logoImage, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
-        ctx.restore();
       } else {
         // Default: aspect-preserving fit (works for any logo proportion without stretching)
         const scale = Math.min(boxSize / naturalW, boxSize / naturalH);
