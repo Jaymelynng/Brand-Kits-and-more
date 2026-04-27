@@ -1264,6 +1264,14 @@ export const QRGenerator = () => {
                   border: '2px solid hsl(var(--brand-rose-gold) / 0.2)',
                   boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
                 }} />
+                {content && /^https?:\/\//i.test(content) && (
+                  <div className="w-full max-w-xs space-y-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.6)' }}>
+                      Destination Preview
+                    </div>
+                    <UrlPreview url={content} />
+                  </div>
+                )}
                 <div className="flex gap-2 w-full max-w-xs">
                   <Button onClick={handleDownload} variant="outline" className="flex-1 h-9 text-sm" style={{
                     border: '2px solid hsl(var(--brand-rose-gold) / 0.3)',
