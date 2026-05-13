@@ -2048,8 +2048,11 @@ const GymProfile = () => {
                           )}
                         </div>
                         
-                        <div className="text-sm font-bold text-foreground truncate mb-4">
-                          {element.element_type}
+                        <div className="text-sm font-bold text-foreground mb-4">
+                          <InlineRename
+                            value={element.display_name || element.element_type}
+                            onSave={(v) => handleRenameElement(element.id, v)}
+                          />
                         </div>
                         
                         <div className="flex flex-col gap-2">
