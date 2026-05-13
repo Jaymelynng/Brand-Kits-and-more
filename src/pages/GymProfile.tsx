@@ -90,6 +90,20 @@ const GymProfile = () => {
   const uploadElementMutation = useUploadElement();
   const deleteElementMutation = useDeleteElement();
   const updateElementTypeMutation = useUpdateElementType();
+  const renameLogoMutation = useRenameLogo();
+  const renameElementMutation = useRenameElement();
+  const handleRenameLogo = (logoId: string, filename: string) => {
+    renameLogoMutation.mutate({ logoId, filename }, {
+      onSuccess: () => toast({ description: `Renamed to ${filename}` }),
+      onError: () => toast({ variant: "destructive", description: "Rename failed" }),
+    });
+  };
+  const handleRenameElement = (elementId: string, displayName: string) => {
+    renameElementMutation.mutate({ elementId, displayName }, {
+      onSuccess: () => toast({ description: `Renamed to ${displayName}` }),
+      onError: () => toast({ variant: "destructive", description: "Rename failed" }),
+    });
+  };
   const updateColorMutation = useUpdateGymColor();
   const addColorMutation = useAddGymColor();
   const { removeBg, isProcessing: isRemovingBg, progress: bgRemovalProgress, statusMessage: bgRemovalStatus } = useBackgroundRemoval();
