@@ -1511,8 +1511,8 @@ const GymProfile = () => {
                                 </div>
                                 
                                 {/* Logo Info */}
-                                <div className="text-sm font-bold text-foreground truncate mb-4">
-                                  {logo.filename}
+                                <div className="text-sm font-bold text-foreground mb-4">
+                                  <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
                                 </div>
                                 
                                 {/* Action Buttons */}
@@ -1679,8 +1679,8 @@ const GymProfile = () => {
                         </div>
                         
                         {/* Logo Info */}
-                        <div className="text-sm font-bold text-foreground truncate mb-4">
-                          {logo.filename}
+                        <div className="text-sm font-bold text-foreground mb-4">
+                          <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
                         </div>
                         
                         {/* Action Buttons */}
@@ -1785,8 +1785,8 @@ const GymProfile = () => {
                           {/* Logo Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                              <div className="text-lg font-bold text-foreground truncate">
-                                {logo.filename}
+                              <div className="text-lg font-bold text-foreground flex-1 min-w-0">
+                                <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
                               </div>
                               {logo.is_main_logo && (
                                 <div 
@@ -1904,8 +1904,8 @@ const GymProfile = () => {
                         </div>
                         
                         {/* Logo Info */}
-                        <div className="text-sm font-bold text-foreground truncate mb-3">
-                          {logo.filename}
+                        <div className="text-sm font-bold text-foreground mb-3">
+                          <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
                         </div>
                         
                         {/* Action Buttons */}
