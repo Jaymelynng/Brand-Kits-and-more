@@ -40,6 +40,7 @@ export interface GymElement {
   svg_data: string;
   element_color: string;
   element_variant?: number;
+  display_name?: string | null;
   created_at?: string;
 }
 
