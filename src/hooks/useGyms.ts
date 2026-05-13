@@ -40,6 +40,7 @@ export interface GymElement {
   svg_data: string;
   element_color: string;
   element_variant?: number;
+  display_name?: string | null;
   created_at?: string;
 }
 
@@ -302,6 +303,38 @@ export const useDeleteLogo = () => {
         .delete()
         .eq('id', logoId);
 
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
+export const useRenameLogo = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ logoId, filename }: { logoId: string; filename: string }) => {
+      const { error } = await supabase
+        .from('gym_logos')
+        .update({ filename })
+        .eq('id', logoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
+    },
+  });
+};
+
+export const useRenameElement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ elementId, displayName }: { elementId: string; displayName: string }) => {
+      const { error } = await supabase
+        .from('gym_elements')
+        .update({ display_name: displayName })
+        .eq('id', elementId);
       if (error) throw error;
     },
     onSuccess: () => {

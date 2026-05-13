@@ -1,7 +1,8 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { GymPillStrip } from "@/components/GymPillStrip";
 import { FloatingNavRail } from "@/components/FloatingNavRail";
-import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo, useRenameLogo, useRenameElement } from "@/hooks/useGyms";
+import { InlineRename } from "@/components/shared/InlineRename";
 import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
@@ -89,6 +90,20 @@ const GymProfile = () => {
   const uploadElementMutation = useUploadElement();
   const deleteElementMutation = useDeleteElement();
   const updateElementTypeMutation = useUpdateElementType();
+  const renameLogoMutation = useRenameLogo();
+  const renameElementMutation = useRenameElement();
+  const handleRenameLogo = (logoId: string, filename: string) => {
+    renameLogoMutation.mutate({ logoId, filename }, {
+      onSuccess: () => toast({ description: `Renamed to ${filename}` }),
+      onError: () => toast({ variant: "destructive", description: "Rename failed" }),
+    });
+  };
+  const handleRenameElement = (elementId: string, displayName: string) => {
+    renameElementMutation.mutate({ elementId, displayName }, {
+      onSuccess: () => toast({ description: `Renamed to ${displayName}` }),
+      onError: () => toast({ variant: "destructive", description: "Rename failed" }),
+    });
+  };
   const updateColorMutation = useUpdateGymColor();
   const addColorMutation = useAddGymColor();
   const { removeBg, isProcessing: isRemovingBg, progress: bgRemovalProgress, statusMessage: bgRemovalStatus } = useBackgroundRemoval();
@@ -1496,8 +1511,8 @@ const GymProfile = () => {
                                 </div>
                                 
                                 {/* Logo Info */}
-                                <div className="text-sm font-bold text-foreground truncate mb-4">
-                                  {logo.filename}
+                                <div className="text-sm font-bold text-foreground mb-4">
+                                  <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
                                 </div>
                                 
                                 {/* Action Buttons */}
@@ -1664,8 +1679,8 @@ const GymProfile = () => {
                         </div>
                         
                         {/* Logo Info */}
-                        <div className="text-sm font-bold text-foreground truncate mb-4">
-                          {logo.filename}
+                        <div className="text-sm font-bold text-foreground mb-4">
+                          <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
                         </div>
                         
                         {/* Action Buttons */}
@@ -1770,8 +1785,8 @@ const GymProfile = () => {
                           {/* Logo Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                              <div className="text-lg font-bold text-foreground truncate">
-                                {logo.filename}
+                              <div className="text-lg font-bold text-foreground flex-1 min-w-0">
+                                <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
                               </div>
                               {logo.is_main_logo && (
                                 <div 
@@ -1889,8 +1904,8 @@ const GymProfile = () => {
                         </div>
                         
                         {/* Logo Info */}
-                        <div className="text-sm font-bold text-foreground truncate mb-3">
-                          {logo.filename}
+                        <div className="text-sm font-bold text-foreground mb-3">
+                          <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
                         </div>
                         
                         {/* Action Buttons */}
@@ -2033,8 +2048,11 @@ const GymProfile = () => {
                           )}
                         </div>
                         
-                        <div className="text-sm font-bold text-foreground truncate mb-4">
-                          {element.element_type}
+                        <div className="text-sm font-bold text-foreground mb-4">
+                          <InlineRename
+                            value={element.display_name || element.element_type}
+                            onSave={(v) => handleRenameElement(element.id, v)}
+                          />
                         </div>
                         
                         <div className="flex flex-col gap-2">
