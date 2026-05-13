@@ -1,7 +1,8 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { GymPillStrip } from "@/components/GymPillStrip";
 import { FloatingNavRail } from "@/components/FloatingNavRail";
-import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo } from "@/hooks/useGyms";
+import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo, useRenameLogo, useRenameElement } from "@/hooks/useGyms";
+import { InlineRename } from "@/components/shared/InlineRename";
 import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
 import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
