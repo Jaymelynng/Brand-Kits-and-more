@@ -1,0 +1,1 @@
+ALTER TABLE public.gym_elements ADD COLUMN IF NOT EXISTS display_name TEXT;

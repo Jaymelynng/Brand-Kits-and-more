@@ -330,6 +330,7 @@ export type Database = {
       gym_elements: {
         Row: {
           created_at: string | null
+          display_name: string | null
           element_color: string
           element_type: string
           element_variant: number | null
@@ -339,6 +340,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          display_name?: string | null
           element_color: string
           element_type: string
           element_variant?: number | null
@@ -348,6 +350,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          display_name?: string | null
           element_color?: string
           element_type?: string
           element_variant?: number | null
