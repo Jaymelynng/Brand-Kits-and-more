@@ -189,6 +189,37 @@ const Index = () => {
     });
   };
 
+  const handleCopyColorsAndLogos = () => {
+    const useSelected = selectedGyms.size > 0 && selectedGyms.size < gyms.length;
+    const list = useSelected ? gyms.filter(g => selectedGyms.has(g.code)) : gyms;
+    if (list.length === 0) {
+      toast({ description: 'No gyms selected!', variant: 'destructive', duration: 2000 });
+      return;
+    }
+    let text = 'GYM BRAND COLORS + LOGO URLS\n\n';
+    list.forEach(gym => {
+      text += `${gym.name} (${gym.code}):\n`;
+      text += 'Colors:\n';
+      text += (gym.colors || []).map(c => c.color_hex).join('\n') + '\n';
+      const logos = [...(gym.logos || [])].sort(
+        (a, b) => Number(!!b.is_main_logo) - Number(!!a.is_main_logo)
+      );
+      if (logos.length > 0) {
+        text += 'Logos:\n';
+        logos.forEach(l => {
+          text += `${l.filename || 'logo'}: ${l.file_url}\n`;
+        });
+      }
+      text += '\n';
+    });
+    navigator.clipboard.writeText(text).then(() => {
+      toast({
+        description: `Copied colors + logos from ${list.length} gym${list.length === 1 ? '' : 's'}`,
+        duration: 2000,
+      });
+    });
+  };
+
   const toggleEditMode = () => {
     setEditMode(!editMode);
   };
@@ -231,6 +262,7 @@ const Index = () => {
           onCopySelected={handleCopySelected}
           onCopyAll={copyAllGyms}
           onCopyLogoUrls={handleCopyLogoUrls}
+          onCopyColorsAndLogos={handleCopyColorsAndLogos}
           selectedGyms={selectedGyms}
           onToggleGymSelection={toggleGymSelection}
           onSelectAllGyms={selectAllGyms}
