@@ -10,6 +10,7 @@ interface GymNavigationProps {
   onScrollToGym: (gymCode: string) => void;
   onCopySelected: () => void;
   onCopyAll: () => void;
+  onCopyLogoUrls: () => void;
   selectedGyms: Set<string>;
   onToggleGymSelection: (gymCode: string) => void;
   onSelectAllGyms: () => void;
@@ -25,6 +26,7 @@ export const GymNavigation = ({
   onScrollToGym,
   onCopySelected,
   onCopyAll,
+  onCopyLogoUrls,
   selectedGyms,
   onToggleGymSelection,
   onSelectAllGyms,
@@ -148,6 +150,24 @@ export const GymNavigation = ({
             }}
           >
             {selectedCount > 0 ? `Copy Colors (${selectedCount})` : 'Copy All Colors'}
+          </Button>
+
+          {/* Copy Logo URLs */}
+          <Button
+            onClick={onCopyLogoUrls}
+            size="sm"
+            className="px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] border-2"
+            style={{
+              borderColor: 'hsl(var(--brand-navy))',
+              color: 'white',
+              background: 'linear-gradient(135deg, hsl(var(--brand-navy)), hsl(var(--brand-blue-gray-dark)))',
+              boxShadow: '0 4px 14px rgba(15,27,61,0.4), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+            }}
+            title="Copies logo URLs for selected gyms (or all if none selected)"
+          >
+            {selectedCount > 0 && selectedCount < totalCount
+              ? `Copy Logo URLs (${selectedCount})`
+              : 'Copy All Logo URLs'}
           </Button>
         </div>
 
