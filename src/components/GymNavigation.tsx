@@ -10,6 +10,7 @@ interface GymNavigationProps {
   onScrollToGym: (gymCode: string) => void;
   onCopySelected: () => void;
   onCopyAll: () => void;
+  onCopyLogoUrls: () => void;
   selectedGyms: Set<string>;
   onToggleGymSelection: (gymCode: string) => void;
   onSelectAllGyms: () => void;
