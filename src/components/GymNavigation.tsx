@@ -26,6 +26,7 @@ export const GymNavigation = ({
   onScrollToGym,
   onCopySelected,
   onCopyAll,
+  onCopyLogoUrls,
   selectedGyms,
   onToggleGymSelection,
   onSelectAllGyms,
