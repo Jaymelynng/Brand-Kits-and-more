@@ -262,6 +262,7 @@ const Index = () => {
           onCopySelected={handleCopySelected}
           onCopyAll={copyAllGyms}
           onCopyLogoUrls={handleCopyLogoUrls}
+          onCopyColorsAndLogos={handleCopyColorsAndLogos}
           selectedGyms={selectedGyms}
           onToggleGymSelection={toggleGymSelection}
           onSelectAllGyms={selectAllGyms}
