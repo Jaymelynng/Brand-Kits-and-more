@@ -230,6 +230,7 @@ const Index = () => {
           onScrollToGym={scrollToGym}
           onCopySelected={handleCopySelected}
           onCopyAll={copyAllGyms}
+          onCopyLogoUrls={handleCopyLogoUrls}
           selectedGyms={selectedGyms}
           onToggleGymSelection={toggleGymSelection}
           onSelectAllGyms={selectAllGyms}
