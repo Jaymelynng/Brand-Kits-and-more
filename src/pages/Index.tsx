@@ -152,6 +152,43 @@ const Index = () => {
     });
   };
 
+  const buildLogoUrlsText = (list: typeof gyms) => {
+    let text = 'GYM LOGO URLS\n\n';
+    list.forEach(gym => {
+      const urls = gym.logos || [];
+      if (urls.length === 0) return;
+      text += `${gym.name} (${gym.code}):\n`;
+      const sorted = [...urls].sort((a, b) => Number(!!b.is_main_logo) - Number(!!a.is_main_logo));
+      sorted.forEach(l => {
+        text += `${l.filename || 'logo'}: ${l.file_url}\n`;
+      });
+      text += '\n';
+    });
+    return text;
+  };
+
+  const handleCopyLogoUrls = () => {
+    const useSelected = selectedGyms.size > 0 && selectedGyms.size < gyms.length;
+    const list = useSelected
+      ? gyms.filter(g => selectedGyms.has(g.code))
+      : gyms;
+    if (list.length === 0) {
+      toast({ description: 'No gyms selected!', variant: 'destructive', duration: 2000 });
+      return;
+    }
+    const totalLogos = list.reduce((n, g) => n + (g.logos?.length || 0), 0);
+    if (totalLogos === 0) {
+      toast({ description: 'No logos found for selection', variant: 'destructive', duration: 2000 });
+      return;
+    }
+    navigator.clipboard.writeText(buildLogoUrlsText(list)).then(() => {
+      toast({
+        description: `Copied ${totalLogos} logo URL${totalLogos === 1 ? '' : 's'} from ${list.length} gym${list.length === 1 ? '' : 's'}`,
+        duration: 2000,
+      });
+    });
+  };
+
   const toggleEditMode = () => {
     setEditMode(!editMode);
   };
