@@ -27,6 +27,7 @@ const App = () => (
           <Route path="/gym/:gymCode" element={<GymProfile />} />
           <Route path="/auth" element={<Auth />} />
           
+          <Route path="/assets" element={<Themes />} />
           <Route path="/themes" element={<Themes />} />
           <Route path="/themes/:categoryId" element={<ThemeDetail />} />
           <Route path="/admin" element={<Admin />} />
