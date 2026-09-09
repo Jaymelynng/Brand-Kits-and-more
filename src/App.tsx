@@ -12,7 +12,7 @@ import ThemeDetail from "./pages/ThemeDetail";
 import Admin from "./pages/Admin";
 import MyBrand from "./pages/MyBrand";
 import NotFound from "./pages/NotFound";
-import QRStudio from "./pages/QRStudio";
+
 
 const queryClient = new QueryClient();
 
@@ -32,7 +32,7 @@ const App = () => (
           <Route path="/themes/:categoryId" element={<ThemeDetail />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/my-brand" element={<MyBrand />} />
-          <Route path="/qr-studio" element={<QRStudio />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
