@@ -1745,7 +1745,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   {/* 60 / 40. Fonts used to be their own full-width slab, which
                       pushed the logos below the fold - the thing she opens the
                       kit for sat behind a wall of type. */}
-                  <div className="flex flex-col gap-4 lg:flex-row">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
                     <div className="min-w-0 lg:w-[60%]">
                       {/* Half-width slides, not thirds: in the narrower column
                           thirds shrank the cards until the buttons stopped

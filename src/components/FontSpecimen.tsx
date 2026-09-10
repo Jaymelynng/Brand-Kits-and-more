@@ -58,7 +58,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
       <SheetTrigger asChild>
         <button
           className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold"
-          style={{ background: "rgba(255,255,255,0.16)", color: onInk }}
+          style={{ background: `${ink}14`, color: ink }}
           title="Edit pairings"
         >
           <Pencil className="h-3 w-3" /> Edit
@@ -93,13 +93,15 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
 
   return (
     <div
-      className="flex h-full flex-col rounded-2xl p-4"
+      className="flex flex-col rounded-2xl p-5"
       style={{
-        // The gym's own dark tone, so the specimen reads as that brand's type
-        // rather than as a form field with a font name in it.
-        background: ink,
-        color: onInk,
-        boxShadow: `inset 0 0 0 2px ${accent}55`,
+        // The card behind this is already the gym's dark tone, so a dark panel
+        // on it was invisible - the same colour as its own background. White
+        // makes the specimen an object on that ground, and gives the type the
+        // contrast it needs to actually be judged.
+        background: "#FFFFFF",
+        color: ink,
+        boxShadow: `0 10px 30px rgba(0,0,0,0.28), inset 0 0 0 2px ${accent}`,
       }}
     >
       <div className="mb-2 flex items-center gap-2">
@@ -109,7 +111,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         >
           Typeface
         </span>
-        <span className="truncate text-[12px] font-bold" style={{ color: onInk }}>
+        <span className="truncate text-[12px] font-bold" style={{ color: ink }}>
           {p.name}
         </span>
         {p.is_preferred && (
@@ -121,19 +123,19 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
             <button
               onClick={() => setIndex(i => (i - 1 + pairings.length) % pairings.length)}
               className="rounded-full p-1"
-              style={{ background: "rgba(255,255,255,0.16)", color: onInk }}
+              style={{ background: `${ink}14`, color: ink }}
               aria-label="Previous pairing"
               title="Previous pairing"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
-            <span className="text-[10px] font-bold tabular-nums" style={{ color: onInk, opacity: 0.75 }}>
+            <span className="text-[10px] font-bold tabular-nums" style={{ color: ink, opacity: 0.7 }}>
               {index + 1}/{pairings.length}
             </span>
             <button
               onClick={() => setIndex(i => (i + 1) % pairings.length)}
               className="rounded-full p-1"
-              style={{ background: "rgba(255,255,255,0.16)", color: onInk }}
+              style={{ background: `${ink}14`, color: ink }}
               aria-label="Next pairing"
               title="Next pairing"
             >
@@ -143,32 +145,46 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         )}
       </div>
 
-      {/* The specimen. Big enough to judge the face by. */}
-      <div className="min-h-0 flex-1">
+      {/* The specimen fills the panel rather than sitting at the top of it.
+          The panel is as tall as the logo carousel beside it, so left to its
+          natural height the type sat in the top third with a void beneath. */}
+      <div className="flex flex-col gap-3 py-1">
         <div
-          className="leading-[0.95]"
+          className="leading-[0.92]"
           style={{
             fontFamily: `'${p.heading_font}', sans-serif`,
             fontWeight: Number(p.heading_weight),
-            fontSize: "clamp(30px, 3.4vw, 46px)",
-            color: onInk,
+            fontSize: "clamp(44px, 5.4vw, 82px)",
+            color: ink,
           }}
         >
           {gymName}
         </div>
         <div
-          className="mt-2"
           style={{
             fontFamily: `'${p.body_font}', sans-serif`,
             fontWeight: Number(p.body_weight),
-            fontSize: 14,
-            lineHeight: 1.6,
-            color: onInk,
-            opacity: 0.92,
+            fontSize: 17,
+            lineHeight: 1.7,
+            color: ink,
+            opacity: 0.88,
           }}
         >
           Classes for every age and level, from first steps on the floor to
-          competitive team.
+          competitive team. Come and see the gym for yourself.
+        </div>
+        {/* The alphabet, which is what a specimen is actually for. */}
+        <div
+          className="tracking-wide"
+          style={{
+            fontFamily: `'${p.heading_font}', sans-serif`,
+            fontWeight: Number(p.heading_weight),
+            fontSize: 22,
+            color: accent,
+            opacity: 1,
+          }}
+        >
+          ABCDEFGHIJKLM NOPQRSTUVWXYZ 0123456789
         </div>
         {p.accent_font && (
           <div
@@ -186,11 +202,11 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
       </div>
 
       {/* Names and controls, compact, under the sample. */}
-      <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t pt-2.5" style={{ borderColor: "rgba(255,255,255,0.18)" }}>
+      <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t pt-2.5" style={{ borderColor: `${ink}22` }}>
         <button
           onClick={() => copy(`${p.heading_font} ${p.heading_weight}`, p.heading_font)}
           className="rounded-full px-2.5 py-1 text-[11px] font-bold"
-          style={{ background: "rgba(255,255,255,0.14)", color: onInk }}
+          style={{ background: `${ink}14`, color: ink }}
           title="Copy heading font"
         >
           {p.heading_font} {p.heading_weight}
@@ -198,7 +214,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         <button
           onClick={() => copy(`${p.body_font} ${p.body_weight}`, p.body_font)}
           className="rounded-full px-2.5 py-1 text-[11px] font-bold"
-          style={{ background: "rgba(255,255,255,0.14)", color: onInk }}
+          style={{ background: `${ink}14`, color: ink }}
           title="Copy body font"
         >
           {p.body_font} {p.body_weight}
