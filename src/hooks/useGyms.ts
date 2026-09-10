@@ -32,6 +32,14 @@ export interface GymLogo {
   is_main_logo: boolean;
   /** Primary | White / Reverse | Dark | Mono | Icon | Wordmark … */
   variant?: string | null;
+  // Two axes of a variation set, plus facts measured at upload rather than
+  // inferred from the filename.
+  category?: string | null;
+  treatment?: string | null;
+  colorway?: string | null;
+  width?: number | null;
+  height?: number | null;
+  has_alpha?: boolean | null;
   created_at?: string;
 }
 
@@ -84,12 +92,21 @@ export const useGyms = () => {
 
       if (elementsError) throw elementsError;
 
-      return gyms.map(gym => ({
-        ...gym,
-        colors: colors.filter(color => color.gym_id === gym.id),
-        logos: logos.filter(logo => logo.gym_id === gym.id),
-        elements: elements?.filter(element => element.gym_id === gym.id) || [],
-      }));
+      return gyms.map(gym => {
+        // Two locations of one brand share a palette. It lives on the family so
+        // a correction is made once - but a gym that sets its own colours still
+        // wins, which is how a deliberate exception stays visible as one.
+        const own = colors.filter(color => color.gym_id === gym.id);
+        const family = (gym as any).brand_id
+          ? colors.filter(color => (color as any).brand_id === (gym as any).brand_id)
+          : [];
+        return {
+          ...gym,
+          colors: own.length > 0 ? own : family,
+          logos: logos.filter(logo => logo.gym_id === gym.id),
+          elements: elements?.filter(element => element.gym_id === gym.id) || [],
+        };
+      });
     },
   });
 };

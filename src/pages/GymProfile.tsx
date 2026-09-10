@@ -28,6 +28,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { HeroVideoBackground } from "@/components/HeroVideoBackground";
 import JSZip from "jszip";
 import { HeroLogo } from "@/components/HeroLogo";
+import { VariationBrowser } from "@/components/VariationBrowser";
 import { useSecretTap } from "@/hooks/useSecretTap";
 import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
 import AssetModal from "@/components/AssetModal";
@@ -54,7 +55,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
-  const [viewMode, setViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('carousel');
+  const [viewMode, setViewMode] = useState<'variations' | 'carousel' | 'grid' | 'list' | 'masonry'>('variations');
   const [elementViewMode, setElementViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('grid');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
@@ -1320,6 +1321,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-background/95 border-gym-primary/30 backdrop-blur-sm">
+                      <SelectItem value="variations">
+                        <div className="flex items-center gap-2">
+                          <Columns className="w-4 h-4" />
+                          Variations
+                        </div>
+                      </SelectItem>
                       <SelectItem value="carousel">
                         <div className="flex items-center gap-2">
                           <LayoutGrid className="w-4 h-4" />
@@ -1384,7 +1391,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               )}
             </CardHeader>
             <CardContent>
-              {viewMode === 'carousel' ? (
+              {viewMode === 'variations' ? (
+                <VariationBrowser
+                  logos={filteredLogos}
+                  gymCode={gym.code}
+                  primaryColor={primaryColor}
+                  secondaryColor={secondaryColor}
+                />
+              ) : viewMode === 'carousel' ? (
                 <div style={{ perspective: "3000px" }} className="w-full overflow-hidden py-8">
                   <Carousel 
                     className="w-full max-w-5xl mx-auto px-16" 
