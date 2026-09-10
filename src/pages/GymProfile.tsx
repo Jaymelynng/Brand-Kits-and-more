@@ -795,6 +795,17 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
    */
   const dragPropsFor = (logo: GymLogo) => ({
     draggable: true,
+    // Hitting Select turns the whole card into the target. Requiring a small
+    // checkbox meant aiming at a few pixels on a big picture, which took
+    // several attempts per file; the card is the thing you are looking at,
+    // so the card is what you click.
+    onClick: (e: React.MouseEvent) => {
+      // Let the card's own buttons - Download, Copy URL, Delete - do their job.
+      if ((e.target as HTMLElement).closest('button,a,input,[role="checkbox"]')) return;
+      if (selectionMode) toggleLogoSelection(logo.id);
+      else setExpandedLogo(logo);
+    },
+    style: { cursor: selectionMode ? 'pointer' : 'zoom-in' } as React.CSSProperties,
     onDragStart: (e: React.DragEvent) => {
       // Grabbing a ticked card takes the whole selection; grabbing an
       // unticked one takes just that file. Either way the tray gets a list.
@@ -873,6 +884,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
   const availableVariants = useMemo(() => {
     const seen = new Set(visibleLogos.map(l => l.variant || 'Uncategorized'));
+    // Uncategorized is the inbox, not a category, so it shows even when it is
+    // empty. Hiding it at zero means there is no way to tell "nothing is
+    // waiting" from "the chip is missing" - and no way to find the pile when
+    // an upload does land there.
+    seen.add('Uncategorized');
     return VARIANT_ORDER.filter(v => seen.has(v))
       .concat([...seen].filter(v => !VARIANT_ORDER.includes(v)).sort());
   }, [visibleLogos, VARIANT_ORDER]);
@@ -1589,15 +1605,27 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   {availableVariants.map(variantName => {
                     const count = gym.logos.filter(l => (l.variant || 'Uncategorized') === variantName).length;
                     const on = activeCategories.includes(variantName);
+                    // The inbox reads as a job, not a category: amber while
+                    // files are waiting, quiet and greyed once it is clear.
+                    const inbox = variantName === 'Uncategorized';
+                    const waiting = inbox && count > 0;
+                    const off = waiting
+                      ? { background: '#FFF4E0', color: '#8A5A00', borderColor: '#F0B34E' }
+                      : inbox
+                        ? { background: '#F1F4F8', color: '#8A97A4', borderColor: '#F1F4F8' }
+                        : { background: '#FFFFFF', color: '#41505F', borderColor: '#FFFFFF' };
                     return (
                       <button
                         key={variantName}
                         onClick={() => setActiveCategories(prev =>
                           on ? prev.filter(x => x !== variantName) : [...prev, variantName])}
+                        title={inbox
+                          ? (count ? `${count} waiting to be filed` : 'Nothing waiting - everything is filed')
+                          : undefined}
                         className="px-4 py-1.5 rounded-full text-sm font-bold border-2 shadow-md transition-transform hover:scale-105"
                         style={on
                           ? { background: '#101820', color: '#FFFFFF', borderColor: '#101820' }
-                          : { background: '#FFFFFF', color: '#41505F', borderColor: '#FFFFFF' }}
+                          : off}
                       >
                         {variantName} ({count})
                       </button>
@@ -1788,7 +1816,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                              <Card 
                               data-card
                               {...dragPropsFor(logo)}
-                              onClick={() => { if (!selectionMode) setExpandedLogo(logo); }}
                               className={cn(
                                 "relative shadow-2xl transition-all duration-700 border-2",
                                 !selectionMode && "cursor-zoom-in",
