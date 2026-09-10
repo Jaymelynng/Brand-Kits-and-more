@@ -326,9 +326,13 @@ export const useSetMainLogo = () => {
         .update({ is_main_logo: false })
         .eq('gym_id', gymId);
 
+      // The one on display is by definition a primary, so choosing it files
+      // it there too. Primary logos holds as many as she likes; is_main_logo
+      // picks which of them the page actually shows, and the clear above
+      // keeps that to exactly one per gym.
       const { error } = await supabase
         .from('gym_logos')
-        .update({ is_main_logo: true })
+        .update({ is_main_logo: true, variant: 'Primary logos' })
         .eq('id', logoId);
 
       if (error) throw error;

@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { copyText } from "@/lib/copyText";
 import { FilingTray } from "@/components/FilingTray";
+import { GalleryControls } from "@/components/GalleryControls";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -99,6 +100,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   // Dragging a logo carries it, or the whole ticked set if it is one of them.
   const [dragIds, setDragIds] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [tagSheetOpen, setTagSheetOpen] = useState(false);
   const [showRenamer, setShowRenamer] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark'>('light');
   const [downloadingZip, setDownloadingZip] = useState(false);
@@ -1160,7 +1162,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       style={{ backgroundColor: primaryColor }}
                     >
                       <Download className="w-5 h-5 mr-2" />
-                      Download Main Logo
+                      Download display logo
                     </Button>
                   </div>
                 )}
@@ -1508,28 +1510,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     {downloadingZip ? 'Zipping...' : 'Download All'}
                   </Button>
 
-                  {/* Nothing in the app could turn selection on: setSelectionMode
-                      was only ever called with false, so the checkboxes, Smart
-                      Rename and the bulk bar were all unreachable. This is the
-                      way in. */}
-                  {isAdmin && (
-                    <Button
-                      onClick={() => {
-                        setSelectionMode(v => !v);
-                        if (selectionMode) setSelectedLogos(new Set());
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="font-semibold shadow-lg border-white/50 hover:bg-white/90"
-                      style={selectionMode
-                        ? { background: primaryColor, color: "#fff", borderColor: primaryColor }
-                        : { background: "#fff", color: "hsl(var(--foreground))" }}
-                    >
-                      <CheckSquare className="w-4 h-4 mr-2" />
-                      {selectionMode ? "Done selecting" : "Select"}
-                    </Button>
-                  )}
-
                   <Button
                     onClick={handleToggleUpload}
                     variant="outline"
@@ -1587,140 +1567,88 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   </Select>
                 </div>
               </div>
-              {/* Categories across the top, multi-select. Every chip is a
-                  solid object: the old white/15 over the brand colour was
-                  literally the background showing through. */}
               {availableVariants.length > 1 && (
-                <div className="mt-4 flex items-center gap-2 flex-wrap">
-                  <button
-                    onClick={() => { setActiveCategories([]); setActiveTags([]); }}
-                    className="px-4 py-1.5 rounded-full text-sm font-bold border-2 shadow-md transition-transform hover:scale-105"
-                    style={activeCategories.length === 0
-                      ? { background: '#101820', color: '#FFFFFF', borderColor: '#101820' }
-                      : { background: '#FFFFFF', color: '#41505F', borderColor: '#FFFFFF' }}
-                  >
-                    All ({visibleLogos.length})
-                  </button>
-
-                  {availableVariants.map(variantName => {
-                    const count = gym.logos.filter(l => (l.variant || 'Uncategorized') === variantName).length;
-                    const on = activeCategories.includes(variantName);
-                    // The inbox reads as a job, not a category: amber while
-                    // files are waiting, quiet and greyed once it is clear.
-                    const inbox = variantName === 'Uncategorized';
-                    const waiting = inbox && count > 0;
-                    const off = waiting
-                      ? { background: '#FFF4E0', color: '#8A5A00', borderColor: '#F0B34E' }
-                      : inbox
-                        ? { background: '#F1F4F8', color: '#8A97A4', borderColor: '#F1F4F8' }
-                        : { background: '#FFFFFF', color: '#41505F', borderColor: '#FFFFFF' };
-                    return (
-                      <button
-                        key={variantName}
-                        onClick={() => setActiveCategories(prev =>
-                          on ? prev.filter(x => x !== variantName) : [...prev, variantName])}
-                        title={inbox
-                          ? (count ? `${count} waiting to be filed` : 'Nothing waiting - everything is filed')
-                          : undefined}
-                        className="px-4 py-1.5 rounded-full text-sm font-bold border-2 shadow-md transition-transform hover:scale-105"
-                        style={on
-                          ? { background: '#101820', color: '#FFFFFF', borderColor: '#101820' }
-                          : off}
-                      >
-                        {variantName} ({count})
-                      </button>
-                    );
-                  })}
-
-                  {/* Tags live behind this, not stacked in four more rows. */}
-                  {tagFacets.length > 0 && (
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <button
-                          className="ml-1 flex items-center gap-2 rounded-full border-2 px-4 py-1.5 text-sm font-bold shadow-md transition-transform hover:scale-105"
-                          style={{ background: '#FFFFFF', color: '#41505F', borderColor: '#FFFFFF' }}
-                        >
-                          <TagIcon className="h-4 w-4" />
-                          Filter tags
-                          {activeTags.length > 0 && (
-                            <span
-                              className="rounded-full px-2 py-0.5 text-[11px] font-extrabold text-white"
-                              style={{ background: primaryColor }}
-                            >
-                              {activeTags.length}
-                            </span>
-                          )}
-                        </button>
-                      </SheetTrigger>
-                      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-sm">
-                        <SheetHeader>
-                          <SheetTitle className="flex items-center gap-2">
-                            <TagIcon className="h-5 w-5" style={{ color: primaryColor }} />
-                            Filter tags
-                          </SheetTitle>
-                          <p className="text-left text-xs text-muted-foreground">
-                            Tags stack: picking two means files that are both. A tag
-                            that would leave you nothing is not shown.
-                          </p>
-                        </SheetHeader>
-
-                        <div className="mt-4 space-y-4 pb-20">
-                          {tagFacets.map(([kind, tags]) => (
-                            <div key={kind}>
-                              <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                                {kind}
-                              </div>
-                              <div className="flex flex-wrap gap-1.5">
-                                {tags.map(t => {
-                                  const on = activeTags.includes(t.name);
-                                  return (
-                                    <button
-                                      key={t.name}
-                                      onClick={() => setActiveTags(prev =>
-                                        on ? prev.filter(x => x !== t.name) : [...prev, t.name])}
-                                      className="rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-all duration-150"
-                                      style={on
-                                        ? { background: primaryColor, color: '#FFFFFF', borderColor: primaryColor }
-                                        : { background: '#FFFFFF', color: '#41505F', borderColor: '#DCE3EB' }}
-                                    >
-                                      {t.name} ({t.count})
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 border-t bg-background px-6 py-3">
-                          <span className="text-sm font-bold">
-                            {filteredLogos.length} file{filteredLogos.length === 1 ? '' : 's'}
-                          </span>
-                          {activeTags.length > 0 && (
-                            <Button size="sm" variant="outline" onClick={() => setActiveTags([])}>
-                              Clear {activeTags.length}
-                            </Button>
-                          )}
-                        </div>
-                      </SheetContent>
-                    </Sheet>
-                  )}
-
-                  {/* What is on, readable without opening the drawer. */}
-                  {activeTags.map(name => (
-                    <button
-                      key={name}
-                      onClick={() => setActiveTags(prev => prev.filter(x => x !== name))}
-                      title="Remove this tag"
-                      className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-md"
-                      style={{ background: primaryColor }}
-                    >
-                      {name}
-                      <X className="h-3 w-3" />
-                    </button>
-                  ))}
-                </div>
+                <GalleryControls
+                  categories={availableVariants.map(name => ({
+                    name,
+                    count: gym.logos.filter(l => (l.variant || 'Uncategorized') === name).length,
+                  }))}
+                  activeCategories={activeCategories}
+                  onToggleCategory={(name) => setActiveCategories(prev =>
+                    prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name])}
+                  onClearCategories={() => { setActiveCategories([]); setActiveTags([]); }}
+                  tagFacets={tagFacets}
+                  activeTags={activeTags}
+                  onToggleTag={(name) => setActiveTags(prev =>
+                    prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name])}
+                  onClearTags={() => setActiveTags([])}
+                  shown={filteredLogos.length}
+                  total={visibleLogos.length}
+                  palette={gym.colors.map(c => c.color_hex)}
+                  isAdmin={isAdmin}
+                  selectionMode={selectionMode}
+                  onToggleSelection={() => {
+                    setSelectionMode(v => !v);
+                    if (selectionMode) setSelectedLogos(new Set());
+                  }}
+                  onOpenTags={() => setTagSheetOpen(true)}
+                />
               )}
+
+              {/* The tag drawer, now opened from the panel above. */}
+              <Sheet open={tagSheetOpen} onOpenChange={setTagSheetOpen}>
+                <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-sm">
+                  <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                      <TagIcon className="h-5 w-5" style={{ color: primaryColor }} />
+                      Filter tags
+                    </SheetTitle>
+                    <p className="text-left text-xs text-muted-foreground">
+                      Tags stack: picking two means files that are both. A tag that
+                      would leave you nothing is not shown.
+                    </p>
+                  </SheetHeader>
+
+                  <div className="mt-4 space-y-4 pb-20">
+                    {tagFacets.map(([kind, tags]) => (
+                      <div key={kind}>
+                        <div className="mb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                          {kind}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {tags.map(t => {
+                            const on = activeTags.includes(t.name);
+                            return (
+                              <button
+                                key={t.name}
+                                onClick={() => setActiveTags(prev =>
+                                  on ? prev.filter(x => x !== t.name) : [...prev, t.name])}
+                                className="rounded-full border-2 px-3 py-1.5 text-xs font-bold transition-all duration-150"
+                                style={on
+                                  ? { background: primaryColor, color: '#FFFFFF', borderColor: primaryColor }
+                                  : { background: '#FFFFFF', color: '#41505F', borderColor: '#DCE3EB' }}
+                              >
+                                {t.name} ({t.count})
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 border-t bg-background px-6 py-3">
+                    <span className="text-sm font-bold">
+                      {filteredLogos.length} file{filteredLogos.length === 1 ? '' : 's'}
+                    </span>
+                    {activeTags.length > 0 && (
+                      <Button size="sm" variant="outline" onClick={() => setActiveTags([])}>
+                        Clear {activeTags.length}
+                      </Button>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
             </CardHeader>
             <CardContent>
               {viewMode === 'variations' ? (
@@ -1851,7 +1779,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                     style={{ backgroundColor: primaryColor }}
                                   >
                                     <Star className="w-3 h-3" />
-                                    Main Logo
+                                    On display
                                   </div>
                                 )}
                                 
@@ -1937,7 +1865,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                       className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
                                     >
                                       <Star className="w-4 h-4 mr-2" />
-                                      Set as Main
+                                      Use as display
                                     </Button>
                                   )}
                                   
@@ -2024,7 +1952,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                             style={{ backgroundColor: primaryColor }}
                           >
                             <Star className="w-3 h-3" />
-                            Main
+                            On display
                           </div>
                         )}
 
@@ -2094,12 +2022,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           {isAdmin && !logo.is_main_logo && (
                             <Button
                               onClick={() => setMainLogo(logo.id)}
+                              title="Use as this gym's display logo"
+                              aria-label="Use as this gym's display logo"
                               size="sm"
                               variant="outline"
                               className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
                             >
                               <Star className="w-4 h-4 mr-2" />
-                              Set as Main
+                              Use as display
                             </Button>
                           )}
                           
@@ -2180,7 +2110,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                   style={{ backgroundColor: primaryColor }}
                                 >
                                   <Star className="w-3 h-3" />
-                                  Main
+                                  On display
                                 </div>
                               )}
                             </div>
@@ -2210,6 +2140,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                             {isAdmin && !logo.is_main_logo && (
                               <Button
                                 onClick={() => setMainLogo(logo.id)}
+                                title="Use as this gym's display logo"
+                                aria-label="Use as this gym's display logo"
                                 size="sm"
                                 variant="outline"
                                 className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
@@ -2276,7 +2208,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                             style={{ backgroundColor: primaryColor }}
                           >
                             <Star className="w-3 h-3" />
-                            Main
+                            On display
                           </div>
                         )}
                         
@@ -2320,6 +2252,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           {isAdmin && !logo.is_main_logo && (
                             <Button
                               onClick={() => setMainLogo(logo.id)}
+                              title="Use as this gym's display logo"
+                              aria-label="Use as this gym's display logo"
                               size="sm"
                               variant="outline"
                               className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground"
