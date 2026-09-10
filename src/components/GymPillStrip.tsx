@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useGyms } from "@/hooks/useGyms";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ExternalLink, Home, LayoutGrid, LogIn, Settings } from "lucide-react";
@@ -9,6 +10,12 @@ interface GymPillStripProps {
   selectedGyms?: Set<string>;
   onToggleGymSelection?: (gymCode: string) => void;
   onScrollToGym?: (gymCode: string) => void;
+  /**
+   * Share-link mode. The strip still shows every gym - she wants the vendor to
+   * see the family - but nothing on it navigates, and the tools that only make
+   * sense for her (home, sign in, settings, review) are not drawn at all.
+   */
+  readOnly?: boolean;
 }
 
 const SHELL = "#161C24";
@@ -42,6 +49,7 @@ export const GymPillStrip = ({
   selectedGyms,
   onToggleGymSelection,
   onScrollToGym,
+  readOnly = false,
 }: GymPillStripProps) => {
   const { data: gyms = [] } = useGyms();
   const { isAdmin } = useAuth();
@@ -66,6 +74,7 @@ export const GymPillStrip = ({
   }, [gyms.length]);
 
   const handlePillClick = (gymCode: string) => {
+    if (readOnly) return;
     if (isDashboard && onToggleGymSelection) {
       onToggleGymSelection(gymCode);
     } else {
@@ -75,6 +84,7 @@ export const GymPillStrip = ({
 
   const handleCodeClick = (e: React.MouseEvent, gymCode: string) => {
     e.stopPropagation();
+    if (readOnly) return;
     if (isDashboard && onScrollToGym) {
       onScrollToGym(gymCode);
     } else {
@@ -84,6 +94,7 @@ export const GymPillStrip = ({
 
   const handleProfileClick = (e: React.MouseEvent, gymCode: string) => {
     e.stopPropagation();
+    if (readOnly) return;
     navigate(`/gym/${gymCode}`);
   };
 
@@ -123,7 +134,7 @@ export const GymPillStrip = ({
 
       {!isDashboard && (
         <div
-          onClick={() => navigate("/")}
+          onClick={() => { if (!readOnly) navigate("/"); }}
           className="flex flex-1 cursor-pointer flex-col items-stretch gap-1"
           style={{ minWidth: 54, maxWidth: 76 }}
           title="Back to Dashboard"
@@ -153,7 +164,7 @@ export const GymPillStrip = ({
       {/* Signed out, this is the only way in, so it is a labelled button and
           not a gesture. It costs a vendor nothing to see - it just says the
           site has an owner - and it costs her nothing to find. */}
-      {!isAdmin && isDashboard && (
+      {!readOnly && !isAdmin && isDashboard && (
         <button
           onClick={() => navigate("/auth")}
           title="Sign in"
@@ -169,7 +180,7 @@ export const GymPillStrip = ({
         </button>
       )}
 
-      {isAdmin && (
+      {isAdmin && !readOnly && (
         <div className="order-first flex shrink-0 items-center gap-1.5 self-center pr-2">
           <button
             onClick={() => navigate("/review")}
@@ -205,12 +216,21 @@ export const GymPillStrip = ({
             {/* Logo tile — click to select */}
             <button
               onClick={() => handlePillClick(gym.code)}
+              // Inert on a share link, and it must look inert: a button that
+              // does nothing when pressed is worse than one that is clearly
+              // not for pressing.
+              disabled={readOnly}
               title={
-                isDashboard
-                  ? `${isSelected ? "Deselect" : "Select"} ${gym.name}`
-                  : `Go to ${gym.name}`
+                readOnly
+                  ? gym.name
+                  : isDashboard
+                    ? `${isSelected ? "Deselect" : "Select"} ${gym.name}`
+                    : `Go to ${gym.name}`
               }
-              className="relative flex items-center justify-center rounded-lg px-1.5 py-1 active:translate-y-[2px]"
+              className={cn(
+                "relative flex items-center justify-center rounded-lg px-1.5 py-1",
+                readOnly ? "cursor-default" : "active:translate-y-[2px]"
+              )}
               style={{
                 height: "clamp(40px, 4.2vw, 56px)",
                 // Picked = a ring plus a real halo in the gym's own colour,

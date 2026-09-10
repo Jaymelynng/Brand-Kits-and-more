@@ -832,6 +832,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
    * Make a logo card draggable. Spread onto every card in every view so the
    * gesture works the same whichever way she is looking at the library.
    */
+  // The purpose in a curated name also selects the intended preview surface.
+  const prefersDarkLogoBackground = (logo: GymLogo) =>
+    darkPreviewUrls.has(logo.file_url) || /\bdark backgrounds\b/i.test(logo.filename);
+
   const dragPropsFor = (logo: GymLogo) => ({
     draggable: true,
     // Hitting Select turns the whole card into the target. Requiring a small
@@ -843,7 +847,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       if ((e.target as HTMLElement).closest('button,a,input,[role="checkbox"]')) return;
       if (selectionMode) toggleLogoSelection(logo.id);
       else {
-        setExpandedGround(darkPreviewUrls.has(logo.file_url) ? "dark" : "light");
+        setExpandedGround(prefersDarkLogoBackground(logo) ? "dark" : "light");
         setExpandedLogo(logo);
       }
     },
@@ -1008,7 +1012,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const secondaryColor = gym.colors[1]?.color_hex || '#9CA3AF';
   const logoBgColor = logoBgMode === 'dark' ? '#1a1a2e' : `${primaryColor}08`;
   const logoPreviewBackground = (logo: GymLogo) =>
-    darkPreviewUrls.has(logo.file_url) ? showcaseInk : logoBgColor;
+    prefersDarkLogoBackground(logo) ? showcaseInk : logoBgColor;
 
   // Convert hex to HSL for better manipulation
   const hexToHsl = (hex: string) => {
@@ -1319,7 +1323,9 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <div className="sticky top-0 z-50">
-        {!solo && <GymPillStrip />}
+        {/* The strip shows on a share link too - she wants the vendor to see
+            the whole family - but read-only, so none of it navigates. */}
+        <GymPillStrip readOnly={solo} />
       </div>
       <div 
         className="min-h-screen"
