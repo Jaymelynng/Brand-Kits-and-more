@@ -55,7 +55,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
-  const [viewMode, setViewMode] = useState<'variations' | 'carousel' | 'grid' | 'list' | 'masonry'>('variations');
+  const [viewMode, setViewMode] = useState<'variations' | 'carousel' | 'grid' | 'list' | 'masonry'>('carousel');
   const [elementViewMode, setElementViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('grid');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
