@@ -69,6 +69,9 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [editingColorId, setEditingColorId] = useState<string | null>(null);
   const [editingColorValue, setEditingColorValue] = useState('#000000');
   const [selectionMode, setSelectionMode] = useState(false);
+  // Clicking a card opens it large. The arrows are for moving.
+  const [expandedLogo, setExpandedLogo] = useState<typeof gym.logos[0] | null>(null);
+  const [expandedGround, setExpandedGround] = useState<"light" | "dark" | "brand" | "check">("light");
   const [selectedLogos, setSelectedLogos] = useState<Set<string>>(new Set());
   const [showRenamer, setShowRenamer] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark'>('light');
@@ -1412,6 +1415,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     plugins={[
                       Autoplay({
                         delay: 4000,
+                        // It used to keep advancing while she was reaching for a
+                        // card, so the card she aimed at slid away mid-click.
+                        stopOnMouseEnter: true,
+                        stopOnInteraction: true,
+                        stopOnFocusIn: true,
                       }),
                     ]}
                     setApi={(api) => {
@@ -1484,8 +1492,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           >
                              <Card 
                               data-card
+                              onClick={() => { if (!selectionMode) setExpandedLogo(logo); }}
                               className={cn(
                                 "relative shadow-2xl transition-all duration-700 border-2",
+                                !selectionMode && "cursor-zoom-in",
                                 selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                               )}
                               style={{
@@ -2353,6 +2363,83 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       )}
 
       {/* Floating Nav Rail */}
+      {/* Clicked a card: see it big, on whichever ground you need it to survive,
+          then take it. Escape or a click outside closes. */}
+      {expandedLogo && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: "rgba(6,10,16,0.75)", backdropFilter: "blur(4px)" }}
+          onClick={() => setExpandedLogo(null)}
+        >
+          <div
+            className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="flex min-h-[320px] items-center justify-center p-10"
+              style={
+                expandedGround === "brand"
+                  ? { background: primaryColor }
+                  : expandedGround === "check"
+                    ? { backgroundImage: "repeating-conic-gradient(#CBD5E1 0% 25%, #F1F5F9 0% 50%) 50% / 18px 18px" }
+                    : { background: expandedGround === "dark" ? "#0B1119" : "#FFFFFF" }
+              }
+            >
+              <img
+                src={expandedLogo.file_url}
+                alt={expandedLogo.filename}
+                className="max-h-[52vh] max-w-full object-contain"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 border-t p-4">
+              <div className="min-w-0 basis-full sm:basis-auto sm:flex-1">
+                <div className="truncate text-sm font-bold" title={expandedLogo.filename}>
+                  {(expandedLogo as any).treatment || expandedLogo.variant || expandedLogo.filename}
+                </div>
+                <div className="text-xs font-semibold text-muted-foreground">
+                  {(expandedLogo as any).width
+                    ? `${(expandedLogo as any).width} × ${(expandedLogo as any).height}`
+                    : "size not measured"}
+                  {(expandedLogo as any).has_alpha === false && " · solid background"}
+                </div>
+              </div>
+
+              <div className="flex gap-1 rounded-lg bg-[#EEF2F6] p-1">
+                {(["light", "dark", "brand", "check"] as const).map((g) => (
+                  <button
+                    key={g}
+                    onClick={() => setExpandedGround(g)}
+                    className="rounded px-2.5 py-1 text-[11px] font-extrabold capitalize"
+                    style={{
+                      background: expandedGround === g ? "#FFFFFF" : "transparent",
+                      color: expandedGround === g ? "#101820" : "#697887",
+                      boxShadow: expandedGround === g ? "0 1px 3px rgba(16,24,32,0.18)" : "none",
+                    }}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+
+              <Button size="sm" variant="outline" onClick={() => copyUrl(expandedLogo.file_url)}>
+                <Copy className="mr-1.5 h-3.5 w-3.5" /> Copy URL
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => downloadLogo(expandedLogo.file_url, expandedLogo.filename)}
+                style={{ background: primaryColor, color: "#fff" }}
+              >
+                <Download className="mr-1.5 h-3.5 w-3.5" /> Download
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setExpandedLogo(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <FloatingNavRail solo={solo} />
 
       {/* Asset Modal */}
