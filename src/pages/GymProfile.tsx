@@ -21,6 +21,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { copyText } from "@/lib/copyText";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
+import { PrimaryShowcase } from "@/components/PrimaryShowcase";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +46,15 @@ interface GymProfileProps {
   /** Solo mode: a shareable single-gym page with no way into the rest of the app. */
   solo?: boolean;
 }
+
+/** What each view is called, for the label over the icon row. */
+const VIEW_LABELS: Record<string, string> = {
+  carousel: "Carousel",
+  grid: "Grid",
+  masonry: "Masonry",
+  list: "List",
+  variations: "Variations",
+};
 
 const GymProfile = ({ solo = false }: GymProfileProps) => {
   const { gymCode } = useParams<{ gymCode: string }>();
@@ -77,7 +87,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
-  const [viewMode, setViewMode] = useState<'variations' | 'carousel' | 'grid' | 'list' | 'masonry'>('carousel');
+  const [viewMode, setViewMode] = useState<'variations' | 'carousel' | 'grid' | 'list' | 'masonry'>('grid');
   const [elementViewMode, setElementViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('grid');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
@@ -1369,6 +1379,17 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
       {/* Content Section */}
       <div className="container mx-auto px-6 pb-12">
+
+          {/* The brand at a glance, above the workbench. */}
+          <PrimaryShowcase
+            logos={visibleLogos.filter(l => l.variant === 'Primary logos')}
+            palette={gym.colors.map(c => c.color_hex)}
+            isAdmin={isAdmin}
+            onDownload={downloadLogo}
+            onCopy={copyUrl}
+            onSetDisplay={setMainLogo}
+          />
+
         {/* Upload Interface - Always visible for admins when no logos exist */}
         {(gym.logos.length === 0 || showUpload) && isAdmin && (
           <Card ref={uploadCardRef} className="lg:col-span-4 bg-white shadow-xl mb-4 animate-fade-in border-2 scroll-mt-24" style={{ borderColor: `${primaryColor}40` }}>
@@ -1531,8 +1552,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   )}
 
                   {/* One icon per view. A dropdown hid a browseable set of
-                      five behind a click; these are the same five, visible. */}
-                  <div className="flex items-center gap-0.5 rounded-md bg-white/95 p-0.5 shadow-lg">
+                      five behind a click; these are the same five, visible -
+                      with a label, because a bare row of icons does not say
+                      that it is a choice you can make. */}
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/90">
+                      View · {VIEW_LABELS[viewMode] ?? viewMode}
+                    </span>
+                    <div className="flex items-center gap-0.5 rounded-md bg-white/95 p-0.5 shadow-lg">
                     {([
                       ['carousel', LayoutGrid, 'Carousel'],
                       ['grid', Grid3X3, 'Grid'],
@@ -1553,6 +1580,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         <Icon className="w-4 h-4" />
                       </button>
                     ))}
+                    </div>
                   </div>
 
                   {isAdmin && (
