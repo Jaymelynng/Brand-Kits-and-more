@@ -19,6 +19,7 @@ import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, L
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { copyText } from "@/lib/copyText";
+import { luminance, shade } from "@/lib/shade";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
@@ -977,6 +978,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const logoAnimation = gym.logos.find(l => l.variant === 'Animation');
 
   const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
+  // The darkest colour a gym owns, for the showcase ground behind its marks.
+  const showcaseInk = (() => {
+    const hexes = gym.colors.map(c => c.color_hex).filter(Boolean);
+    const darkest = [...hexes].sort((a, b) => luminance(a) - luminance(b))[0];
+    return darkest && luminance(darkest) < 0.5 ? darkest : shade(primaryColor, 0.55);
+  })();
   const secondaryColor = gym.colors[1]?.color_hex || '#9CA3AF';
   const logoBgColor = logoBgMode === 'dark' ? '#1a1a2e' : `${primaryColor}08`;
 
@@ -1681,11 +1688,20 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               ? primaries
               : Array.from({ length: Math.ceil(9 / primaries.length) }, () => primaries).flat();
             return (
-              <Card className="mb-6 bg-white shadow-xl border-2" style={{ borderColor: `${primaryColor}40` }}>
+              <Card
+                className="mb-6 shadow-xl border-2"
+                style={{
+                  // White cards on a white panel read as one flat sheet. The
+                  // gym's own dark tone behind them - navy for TIG - makes the
+                  // marks sit forward instead of dissolving into the page.
+                  background: showcaseInk,
+                  borderColor: showcaseInk,
+                }}
+              >
                 <CardHeader className="pb-0">
                   <div className="flex items-baseline gap-3">
-                    <CardTitle className="text-2xl">Primary logos</CardTitle>
-                    <span className="text-sm font-semibold text-muted-foreground">
+                    <CardTitle className="text-2xl text-white">Primary logos</CardTitle>
+                    <span className="text-sm font-semibold text-white/70">
                       {primaries.length === 1 ? 'the mark' : `${primaries.length} approved marks`}
                     </span>
                   </div>
