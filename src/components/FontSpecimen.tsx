@@ -95,6 +95,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
     <div
       className="flex flex-col rounded-2xl p-5"
       style={{
+        containerType: "inline-size",
         // The card behind this is already the gym's dark tone, so a dark panel
         // on it was invisible - the same colour as its own background. White
         // makes the specimen an object on that ground, and gives the type the
@@ -145,16 +146,16 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         )}
       </div>
 
-      {/* The specimen fills the panel rather than sitting at the top of it.
-          The panel is as tall as the logo carousel beside it, so left to its
-          natural height the type sat in the top third with a void beneath. */}
+      {/* Size type against this column, and balance the saved email copy
+          without inserting hard line breaks that fail at another width. */}
       <div className="flex flex-col gap-3 py-1">
         <div
           className="break-words leading-[1.02]"
           style={{
             fontFamily: `'${p.heading_font}', sans-serif`,
             fontWeight: Number(p.heading_weight),
-            fontSize: p.sample_heading ? "clamp(30px, 4vw, 60px)" : "clamp(42px, 5.4vw, 82px)",
+            fontSize: p.sample_heading ? "clamp(30px, 9cqi, 60px)" : "clamp(42px, 12cqi, 82px)",
+            textWrap: "balance",
             color: ink,
           }}
         >
@@ -166,6 +167,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
             fontWeight: Number(p.body_weight),
             fontSize: 17,
             lineHeight: 1.7,
+            textWrap: "balance",
             color: ink,
             opacity: 0.88,
           }}

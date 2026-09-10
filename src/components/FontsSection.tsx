@@ -209,12 +209,12 @@ export const FontsSection = ({ gymId, gymName, palette, canEdit, embedded = fals
             <div className="rounded-xl p-4" style={{ background: tint(ink, 0.95) }}>
               <div
                 className="mb-2 leading-tight"
-                style={{ fontFamily: `'${p.heading_font}', sans-serif`, fontWeight: Number(p.heading_weight), fontSize: 30, color: ink }}
+                style={{ fontFamily: `'${p.heading_font}', sans-serif`, fontWeight: Number(p.heading_weight), fontSize: 30, color: ink, textWrap: "balance" }}
               >
                 {p.sample_heading || gymName}
               </div>
               <div
-                style={{ fontFamily: `'${p.body_font}', sans-serif`, fontWeight: Number(p.body_weight), fontSize: 15, color: shade(ink, 0.05), lineHeight: 1.65 }}
+                style={{ fontFamily: `'${p.body_font}', sans-serif`, fontWeight: Number(p.body_weight), fontSize: 15, color: shade(ink, 0.05), lineHeight: 1.65, textWrap: "balance" }}
               >
                 {p.sample_body || "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789"}
               </div>
@@ -356,10 +356,10 @@ export const FontsSection = ({ gymId, gymName, palette, canEdit, embedded = fals
             {/* Live, so she can judge the pair before saving it. */}
             {editing.heading_font && editing.body_font && (
               <div className="mt-3 rounded-xl p-4" style={{ background: tint(ink, 0.95) }}>
-                <div style={{ fontFamily: `'${editing.heading_font}', sans-serif`, fontWeight: Number(editing.heading_weight || 700), fontSize: 28, color: ink }}>
+                <div style={{ fontFamily: `'${editing.heading_font}', sans-serif`, fontWeight: Number(editing.heading_weight || 700), fontSize: 28, color: ink, textWrap: "balance" }}>
                   {editing.sample_heading || gymName}
                 </div>
-                <div style={{ fontFamily: `'${editing.body_font}', sans-serif`, fontWeight: Number(editing.body_weight || 400), fontSize: 15, color: shade(ink, 0.05), lineHeight: 1.6 }}>
+                <div style={{ fontFamily: `'${editing.body_font}', sans-serif`, fontWeight: Number(editing.body_weight || 400), fontSize: 15, color: shade(ink, 0.05), lineHeight: 1.6, textWrap: "balance" }}>
                   {editing.sample_body || "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789"}
                 </div>
               </div>
