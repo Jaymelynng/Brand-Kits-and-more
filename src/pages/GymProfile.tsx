@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
+import { LogoCarouselFrame } from "@/components/LogoCarouselFrame";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser, Check, FolderInput, Rows3, Tag as TagIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -97,14 +97,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
   const [viewMode, setViewMode] = useState<'variations' | 'carousel' | 'grid' | 'list' | 'masonry'>('grid');
-
-  /**
-   * Autoplay was built inline in the JSX, so every render of this page
-   * produced a brand new plugin instance, Embla re-initialised and the timer
-   * went back to zero - it never survived the 4s delay, which is why the reel
-   * sat still no matter which stop conditions were set. One instance per
-   * carousel, created once, and it runs.
-   */
 
   const [elementViewMode, setElementViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('grid');
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -1052,79 +1044,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const renderCarousel = (
     items: typeof filteredLogos,
     basis = "md:basis-1/2 lg:basis-1/3",
+    contained = false,
   ) => (
-                <div style={{ perspective: "3000px" }} className="w-full overflow-hidden py-8">
-                  <Carousel 
-                    className="w-full max-w-5xl mx-auto px-16" 
-                    // containScroll defaults to "trimSnaps", which deletes the
-                    // snap points at both ends. With three primaries filling
-                    // the track that leaves exactly one, so autoplay had
-                    // nowhere to advance and the carousel sat still. Keeping
-                    // them lets a short set rotate; a long set is unaffected.
-                    opts={{ align: "center", loop: true, containScroll: false }}
-                    plugins={[Autoplay({ delay: 4000, stopOnMouseEnter: false, stopOnInteraction: false, stopOnFocusIn: false })]}
-                    setApi={(api) => {
-                      if (!api) return;
-
-                      // The plugin instance is reused so Embla does not
-                      // re-initialise on every render - but that also means
-                      // playOnInit only ever fired against an Embla instance
-                      // that has since been replaced, leaving isPlaying()
-                      // false and the reel motionless. Start it explicitly.
-                      const auto = api.plugins()?.autoplay as
-                        { isPlaying: () => boolean; play: () => void } | undefined;
-                      if (auto && !auto.isPlaying()) auto.play();
-
-                      
-                      const updateSlides = () => {
-                        const selectedIndex = api.selectedScrollSnap();
-                        const slides = api.slideNodes();
-                        
-                        slides.forEach((slide, index) => {
-                          const distance = index - selectedIndex;
-                          const card = slide.querySelector('[data-card]');
-                          
-                          if (card) {
-                            let rotateY = 0;
-                            let scale = 1;
-                            let opacity = 1;
-                            
-                            if (distance === 0) {
-                              // Center slide
-                              rotateY = 0;
-                              scale = 1;
-                              opacity = 1;
-                            } else if (distance < 0) {
-                              // Left slides
-                              rotateY = Math.max(-55, distance * 45);
-                              scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
-                              opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
-                            } else {
-                              // Right slides
-                              rotateY = Math.min(55, distance * 45);
-                              scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
-                              opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
-                            }
-                            
-                            (card as HTMLElement).style.transform = `rotateY(${rotateY}deg) scale(${scale})`;
-                            (card as HTMLElement).style.opacity = opacity.toString();
-                          }
-                        });
-                      };
-                      
-                      // Make cards clickable to navigate
-                      const slides = api.slideNodes();
-                      slides.forEach((slide, index) => {
-                        slide.style.cursor = 'pointer';
-                        slide.addEventListener('click', () => {
-                          api.scrollTo(index);
-                        });
-                      });
-                      
-                      api.on('select', updateSlides);
-                      api.on('reInit', updateSlides);
-                      updateSlides();
-                    }}
+                <div style={{ perspective: "3000px" }} className="relative isolate w-full min-w-0 overflow-hidden py-8">
+                  <LogoCarouselFrame
+                    contained={contained}
+                    className="w-full max-w-5xl mx-auto px-16"
                   >
                     <CarouselContent>
                       {items.map((logo, index) => (
@@ -1320,7 +1245,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         boxShadow: `0 4px 12px ${primaryColor}40`
                       }}
                     />
-                  </Carousel>
+                  </LogoCarouselFrame>
                 </div>
   );
 
@@ -1470,7 +1395,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
           </Sheet>
 
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-8 max-w-6xl mx-auto" data-brand-overview>
             {/* Left Column: Logo + Brand Assets Stats */}
             <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
               <BrandCardContent className="p-6">
@@ -1507,19 +1432,19 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 <div className="border-t-2 pt-5" style={{ borderColor: `${primaryColor}15` }}>
                   <div className="text-lg font-semibold text-foreground mb-3">📊 Brand Assets</div>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-4 rounded-2xl border-2 shadow-lg bg-gym-primary text-gym-primary-foreground border-gym-primary-foreground/25">
+                    <div className="text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-gym-primary text-gym-primary-foreground border-gym-primary-foreground/25">
                       <div className="text-3xl font-bold mb-1">
                         {gym.logos.length}
                       </div>
                       <div className="text-sm font-semibold text-gym-primary-foreground/90">Logo Variations</div>
                     </div>
-                    <div className="text-center p-4 rounded-2xl border-2 shadow-lg bg-gym-secondary text-gym-secondary-foreground border-gym-secondary-foreground/25">
+                    <div className="text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-gym-secondary text-gym-secondary-foreground border-gym-secondary-foreground/25">
                       <div className="text-3xl font-bold mb-1">
                         {gym.colors.length}
                       </div>
                       <div className="text-sm font-semibold text-gym-secondary-foreground/90">Brand Colors</div>
                     </div>
-                    <div className="text-center p-4 rounded-2xl border-2 shadow-lg bg-primary text-primary-foreground border-primary-foreground/25">
+                    <div className="text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-primary text-primary-foreground border-primary-foreground/25">
                       <div className="text-3xl font-bold mb-1">
                         {gym.elements?.length || 0}
                       </div>
@@ -1737,15 +1662,15 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   {/* 60 / 40. Fonts used to be their own full-width slab, which
                       pushed the logos below the fold - the thing she opens the
                       kit for sat behind a wall of type. */}
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-                    <div className="min-w-0 lg:w-[60%]">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start">
+                    <div className="min-w-0 md:w-[60%]">
                       <CardTitle className="mb-2 text-2xl text-white">Primary logos</CardTitle>
                       {/* Half-width slides, not thirds: in the narrower column
                           thirds shrank the cards until the buttons stopped
                           being readable. */}
-                      {renderCarousel(reel, "basis-4/5 sm:basis-1/2")}
+                      {renderCarousel(reel, "basis-4/5 lg:basis-1/2", true)}
                     </div>
-                    <div className="min-w-0 lg:w-[40%]">
+                    <div className="min-w-0 md:w-[40%]">
                       {/* The carousel was titled and the type was not, so
                           nothing on screen said the panel beside it was the
                           brand's fonts. */}
@@ -1893,7 +1818,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 <CardTitle className="text-2xl text-white">
                   {isDragOver ? '⬇️ Drop files to upload' : `📁 Logo Gallery (${filteredLogos.length} files)`}
                 </CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {/* Download All as ZIP */}
                   <Button
                     onClick={handleDownloadAllAsZip}

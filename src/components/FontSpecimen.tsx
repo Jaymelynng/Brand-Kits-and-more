@@ -154,7 +154,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
           style={{
             fontFamily: `'${p.heading_font}', sans-serif`,
             fontWeight: Number(p.heading_weight),
-            fontSize: "clamp(44px, 5.4vw, 82px)",
+            fontSize: "clamp(42px, 5.4vw, 82px)",
             color: ink,
           }}
         >
