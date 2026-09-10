@@ -78,6 +78,8 @@ export const LogoTagManager = () => {
     });
   };
 
+  const enabled = !!newName.trim() && !add.isPending;
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading tags...</p>;
 
   return (
@@ -100,8 +102,12 @@ export const LogoTagManager = () => {
         <Button
           onClick={submitNew}
           disabled={!newName.trim() || add.isPending}
-          className="text-white hover:opacity-90"
-          style={{ background: "hsl(var(--brand-rose-gold))" }}
+          className="border-2 text-white disabled:text-[#8A97A4] hover:opacity-90"
+          style={{
+            background: enabled ? "hsl(var(--brand-rose-gold))" : "#EDF1F5",
+            borderColor: enabled ? "hsl(var(--brand-rose-gold))" : "#D7DEE6",
+            opacity: 1,
+          }}
         >
           <Plus className="w-4 h-4 mr-1" /> Add
         </Button>

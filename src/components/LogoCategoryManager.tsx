@@ -78,6 +78,8 @@ export const LogoCategoryManager = () => {
     });
   };
 
+  const enabled = !!newName.trim() && !add.isPending;
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading categories...</p>;
 
   return (
@@ -173,8 +175,12 @@ export const LogoCategoryManager = () => {
         <Button
           onClick={submitNew}
           disabled={!newName.trim() || add.isPending}
-          className="text-white hover:opacity-90"
-          style={{ background: ROSE }}
+          className="border-2 text-white disabled:text-[#8A97A4] hover:opacity-90"
+          style={{
+            background: enabled ? ROSE : "#EDF1F5",
+            borderColor: enabled ? ROSE : "#D7DEE6",
+            opacity: 1,
+          }}
         >
           <Plus className="mr-1 h-4 w-4" /> Add category
         </Button>
