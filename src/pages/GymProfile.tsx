@@ -728,19 +728,23 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       .sort((a, b) => a.order_index - b.order_index);
   }, [gymAssets, categories]);
 
-  // The variants this gym actually has, in a sensible reading order.
-  const VARIANT_ORDER = ['Primary', 'White / Reverse', 'Dark', 'Mono', 'Icon',
-    'Wordmark inline', 'Wordmark stacked', 'Hero', 'Divider', 'Framed variant'];
+  // The variants this gym actually has, in a sensible reading order. These are
+  // the six that exist after the simplification - the old eight (Primary,
+  // White / Reverse, Dark, Mono, Icon, Wordmark ...) are gone, and leaving them
+  // listed here meant a real file could land under a chip named for a category
+  // that no longer existed.
+  const VARIANT_ORDER = ['Main logo', 'Variations', 'Themed', 'Email size',
+    'Animation', 'Retired', 'Unsorted'];
   // Assets still being judged are back-of-house. A visitor following a shared
   // /gym/CODE link must never see them - they only exist for the review bench.
   const visibleLogos = useMemo(() => {
     if (!gym) return [];
     if (isAdmin) return gym.logos;
-    return gym.logos.filter(l => (l.variant || 'Primary') !== 'Needs review');
+    return gym.logos.filter(l => (l.variant || 'Unsorted') !== 'Needs review');
   }, [gym, isAdmin]);
 
   const availableVariants = useMemo(() => {
-    const seen = new Set(visibleLogos.map(l => l.variant || 'Primary'));
+    const seen = new Set(visibleLogos.map(l => l.variant || 'Unsorted'));
     return VARIANT_ORDER.filter(v => seen.has(v))
       .concat([...seen].filter(v => !VARIANT_ORDER.includes(v)).sort());
   }, [visibleLogos]);
@@ -748,7 +752,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   // Filter logos by active variant
   const filteredLogos = useMemo(() => {
     if (activeCategoryFilter === 'all') return visibleLogos;
-    return visibleLogos.filter(l => (l.variant || 'Primary') === activeCategoryFilter);
+    return visibleLogos.filter(l => (l.variant || 'Unsorted') === activeCategoryFilter);
   }, [visibleLogos, activeCategoryFilter]);
 
   if (isLoading) {
@@ -1380,7 +1384,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   </button>
                   {availableVariants.map(variantName => {
                     const cat = { id: variantName, name: variantName };
-                    const count = gym.logos.filter(l => (l.variant || 'Primary') === variantName).length;
+                    const count = gym.logos.filter(l => (l.variant || 'Unsorted') === variantName).length;
                     return (
                       <button
                         key={cat.id}
