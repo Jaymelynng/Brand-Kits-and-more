@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useGyms } from "@/hooks/useGyms";
+import { useAuth } from "@/hooks/useAuth";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ExternalLink, Home } from "lucide-react";
+import { ExternalLink, Home, LayoutGrid, Settings } from "lucide-react";
 
 interface GymPillStripProps {
   // Dashboard mode props (only used on front page)
@@ -43,6 +44,7 @@ export const GymPillStrip = ({
   onScrollToGym,
 }: GymPillStripProps) => {
   const { data: gyms = [] } = useGyms();
+  const { isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { gymCode: activeGymCode } = useParams<{ gymCode: string }>();
@@ -143,6 +145,29 @@ export const GymPillStrip = ({
           >
             HOME
           </span>
+        </div>
+      )}
+
+      {/* Only rendered when signed in as admin. Logged out - which is what a
+          vendor following a /kit/ link is - none of this exists in the DOM. */}
+      {isAdmin && (
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 self-center pl-3">
+          <button
+            onClick={() => navigate("/review")}
+            title="Review bench"
+            className="flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-150 hover:scale-110"
+            style={{ background: "#2A3945", color: ACCENT, border: `1.5px solid ${ACCENT}55` }}
+          >
+            <LayoutGrid className="h-4 w-4" strokeWidth={2.5} />
+          </button>
+          <button
+            onClick={() => navigate("/admin")}
+            title="Settings"
+            className="flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-150 hover:scale-110 hover:rotate-45"
+            style={{ background: ACCENT, color: "#06231F" }}
+          >
+            <Settings className="h-4 w-4" strokeWidth={2.5} />
+          </button>
         </div>
       )}
 
