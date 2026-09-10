@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useGyms } from "@/hooks/useGyms";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ExternalLink, Home, LayoutGrid, Settings } from "lucide-react";
+import { ExternalLink, Home, LayoutGrid, LogIn, Settings } from "lucide-react";
 
 interface GymPillStripProps {
   // Dashboard mode props (only used on front page)
@@ -92,7 +92,7 @@ export const GymPillStrip = ({
   return (
     <div
       ref={stripRef}
-      className="sticky top-0 z-50 flex flex-nowrap items-center justify-center gap-x-2 px-4 py-3"
+      className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 px-4 py-3"
       style={{
         background: `linear-gradient(180deg, #1B222B 0%, ${SHELL} 60%, #10151B 100%)`,
         borderBottom: "1px solid #0A0E13",
@@ -124,8 +124,8 @@ export const GymPillStrip = ({
       {!isDashboard && (
         <div
           onClick={() => navigate("/")}
-          className="flex min-w-0 flex-1 cursor-pointer flex-col items-stretch gap-1"
-          style={{ maxWidth: 76 }}
+          className="flex flex-1 cursor-pointer flex-col items-stretch gap-1"
+          style={{ minWidth: 54, maxWidth: 76 }}
           title="Back to Dashboard"
         >
           <div
@@ -150,8 +150,27 @@ export const GymPillStrip = ({
 
       {/* Only rendered when signed in as admin. Logged out - which is what a
           vendor following a /kit/ link is - none of this exists in the DOM. */}
+      {/* Signed out, this is the only way in, so it is a labelled button and
+          not a gesture. It costs a vendor nothing to see - it just says the
+          site has an owner - and it costs her nothing to find. */}
+      {!isAdmin && isDashboard && (
+        <button
+          onClick={() => navigate("/auth")}
+          title="Sign in"
+          className="order-first flex shrink-0 items-center gap-1.5 self-center rounded-full px-3 py-2 text-[11px] font-extrabold transition-transform duration-150 hover:scale-105"
+          style={{
+            background: "transparent",
+            color: "#8FA3B4",
+            border: "1.5px solid #35424F",
+          }}
+        >
+          <LogIn className="h-3.5 w-3.5" strokeWidth={2.5} />
+          SIGN IN
+        </button>
+      )}
+
       {isAdmin && (
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 self-center pl-3">
+        <div className="order-first flex shrink-0 items-center gap-1.5 self-center pr-2">
           <button
             onClick={() => navigate("/review")}
             title="Review bench"

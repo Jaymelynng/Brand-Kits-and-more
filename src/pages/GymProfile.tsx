@@ -856,15 +856,21 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
           {/* Hero Video or Compact Hero Header */}
           {gym.hero_video_url ? (
             <HeroVideoBackground videoUrl={gym.hero_video_url} overlayOpacity={0.5}>
-              <HeroLogo
-                logoUrl={mainLogo?.file_url || gym.logos[0]?.file_url}
-                animationUrl={logoAnimation?.file_url}
-                onTap={onSecretTap}
-                tapsLeft={tapsLeft}
-                name={gym.name}
-                color={primaryColor}
-                onDark
-              />
+              {/* If the mark is already composited into the video, painting
+                  another one over it just doubles the logo. */}
+              {(gym as any).hero_includes_logo ? (
+                <div className="h-full w-full" onClick={onSecretTap} />
+              ) : (
+                <HeroLogo
+                  logoUrl={mainLogo?.file_url || gym.logos[0]?.file_url}
+                  animationUrl={logoAnimation?.file_url}
+                  onTap={onSecretTap}
+                  tapsLeft={tapsLeft}
+                  name={gym.name}
+                  color={primaryColor}
+                  onDark
+                />
+              )}
             </HeroVideoBackground>
           ) : (
             <>
