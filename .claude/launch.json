@@ -2,10 +2,19 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "//": "Attach to the vite server already running on 8080 rather than starting a second one. The port is fixed on purpose: the Supabase session lives in localStorage keyed to the http://localhost:8080 origin, so moving the port signs the admin out and re-triggers the PIN gate. npm run dev passes --port 8080 --strictPort, so autoPort must stay false.",
       "name": "brand-kit",
+      "url": "http://localhost:8080",
+      "port": 8080,
+      "autoPort": false
+    },
+    {
+      "//": "Use this one when nothing is serving 8080 yet.",
+      "name": "brand-kit-start",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 8080
+      "port": 8080,
+      "autoPort": false
     }
   ]
 }

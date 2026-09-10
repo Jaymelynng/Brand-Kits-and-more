@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { GymPillStrip } from "@/components/GymPillStrip";
 import { FloatingNavRail } from "@/components/FloatingNavRail";
+import type { GymLogo } from "@/hooks/useGyms";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo, useRenameLogo, useRenameElement } from "@/hooks/useGyms";
 import { InlineRename } from "@/components/shared/InlineRename";
 import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
@@ -18,6 +19,7 @@ import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, L
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { copyText } from "@/lib/copyText";
+import { FilingTray } from "@/components/FilingTray";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -94,6 +96,9 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [selectedLogos, setSelectedLogos] = useState<Set<string>>(new Set());
   const [downloadingSelected, setDownloadingSelected] = useState(false);
   const [copyFallbackText, setCopyFallbackText] = useState<string | null>(null);
+  // Dragging a logo carries it, or the whole ticked set if it is one of them.
+  const [dragIds, setDragIds] = useState<string[]>([]);
+  const [dragging, setDragging] = useState(false);
   const [showRenamer, setShowRenamer] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark'>('light');
   const [downloadingZip, setDownloadingZip] = useState(false);
@@ -783,6 +788,49 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       }
     });
   }, [gym, selectedLogos, toast]);
+
+  /**
+   * Make a logo card draggable. Spread onto every card in every view so the
+   * gesture works the same whichever way she is looking at the library.
+   */
+  const dragPropsFor = (logo: GymLogo) => ({
+    draggable: true,
+    onDragStart: (e: React.DragEvent) => {
+      // Grabbing a ticked card takes the whole selection; grabbing an
+      // unticked one takes just that file. Either way the tray gets a list.
+      const ids = selectedLogos.has(logo.id) ? [...selectedLogos] : [logo.id];
+      setDragIds(ids);
+      setDragging(true);
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", ids.join(","));
+    },
+    onDragEnd: () => { setDragging(false); setDragIds([]); },
+  });
+
+  const fileIntoCategory = (ids: string[], name: string) => {
+    bulkSetCategory.mutate({ logoIds: ids, name }, {
+      onSuccess: () => {
+        toast({ description: `${ids.length} filed under ${name}` });
+        setSelectedLogos(new Set());
+      },
+      onError: () => toast({ variant: "destructive", description: "Could not move those" }),
+    });
+  };
+
+  const applyTag = (ids: string[], tag: { id: string; name: string }) => {
+    // A tag every one of them already carries comes off instead, so the same
+    // bucket both adds and removes without a second control.
+    const chosen = (gym?.logos || []).filter(l => ids.includes(l.id));
+    const all = chosen.length > 0 && chosen.every(l => (l.tags || []).includes(tag.name));
+    bulkToggleTag.mutate({ logoIds: ids, tagId: tag.id, on: !all }, {
+      onSuccess: () => toast({
+        description: all
+          ? `${tag.name} removed from ${ids.length}`
+          : `${tag.name} added to ${ids.length}`,
+      }),
+      onError: () => toast({ variant: "destructive", description: "Tagging failed" }),
+    });
+  };
 
   // Build asset-to-category map for filtering (file_url -> category name)
   const assetCategoryMap = useMemo(() => {
@@ -1739,6 +1787,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           >
                              <Card 
                               data-card
+                              {...dragPropsFor(logo)}
                               onClick={() => { if (!selectionMode) setExpandedLogo(logo); }}
                               className={cn(
                                 "relative shadow-2xl transition-all duration-700 border-2",
@@ -1922,6 +1971,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 
+                      {...dragPropsFor(logo)}
                       className={cn(
                         "relative border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
@@ -2061,6 +2111,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 
+                      {...dragPropsFor(logo)}
                       className={cn(
                         "relative border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
@@ -2172,6 +2223,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 
+                      {...dragPropsFor(logo)}
                       className={cn(
                         "relative break-inside-avoid border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
@@ -2866,6 +2918,22 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Filing happens by dragging onto a big target, not by hunting a
+          checkbox. Shown whenever an admin is filing or dragging. */}
+      {isAdmin && !solo && (dragging || selectionMode) && gym && (
+        <FilingTray
+          categories={logoCategories}
+          tags={logoTags}
+          logos={gym.logos}
+          selectedIds={selectedLogos}
+          dragging={dragging}
+          getDragIds={() => dragIds}
+          onDropCategory={fileIntoCategory}
+          onDropTag={applyTag}
+          primaryColor={primaryColor}
+        />
       )}
 
       <FloatingNavRail solo={solo} />
