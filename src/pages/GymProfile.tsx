@@ -15,12 +15,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser, Check, FolderInput, Tag as TagIcon } from "lucide-react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser, Check, FolderInput, Rows3, Tag as TagIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { copyText } from "@/lib/copyText";
 import { FilingTray } from "@/components/FilingTray";
-import { GalleryControls } from "@/components/GalleryControls";
+import { CategoryRail } from "@/components/CategoryRail";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -1510,6 +1510,69 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     {downloadingZip ? 'Zipping...' : 'Download All'}
                   </Button>
 
+                  {tagFacets.length > 0 && (
+                    <Button
+                      onClick={() => setTagSheetOpen(true)}
+                      variant="outline"
+                      size="sm"
+                      className="font-semibold shadow-lg bg-white text-foreground border-white/50 hover:bg-white/90"
+                    >
+                      <TagIcon className="w-4 h-4 mr-2" />
+                      Tags
+                      {activeTags.length > 0 && (
+                        <span
+                          className="ml-2 inline-flex min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-black text-white"
+                          style={{ background: primaryColor }}
+                        >
+                          {activeTags.length}
+                        </span>
+                      )}
+                    </Button>
+                  )}
+
+                  {/* One icon per view. A dropdown hid a browseable set of
+                      five behind a click; these are the same five, visible. */}
+                  <div className="flex items-center gap-0.5 rounded-md bg-white/95 p-0.5 shadow-lg">
+                    {([
+                      ['carousel', LayoutGrid, 'Carousel'],
+                      ['grid', Grid3X3, 'Grid'],
+                      ['masonry', Columns, 'Masonry'],
+                      ['list', List, 'List'],
+                      ['variations', Rows3, 'Variations'],
+                    ] as const).map(([key, Icon, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => setViewMode(key as any)}
+                        title={label}
+                        aria-label={label}
+                        className="rounded p-1.5 transition-colors"
+                        style={viewMode === key
+                          ? { background: primaryColor, color: '#fff' }
+                          : { background: 'transparent', color: '#41505F' }}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </button>
+                    ))}
+                  </div>
+
+                  {isAdmin && (
+                    <Button
+                      onClick={() => {
+                        setSelectionMode(v => !v);
+                        if (selectionMode) setSelectedLogos(new Set());
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="font-semibold shadow-lg border-white/50"
+                      style={selectionMode
+                        ? { background: primaryColor, color: '#fff', borderColor: primaryColor }
+                        : { background: '#fff', color: 'hsl(var(--foreground))' }}
+                    >
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      {selectionMode ? 'Done' : 'Select'}
+                    </Button>
+                  )}
+
                   <Button
                     onClick={handleToggleUpload}
                     variant="outline"
@@ -1528,72 +1591,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       </>
                     )}
                   </Button>
-                  <Select value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
-                    <SelectTrigger className="w-48 bg-white border-white/50 text-foreground font-semibold shadow-lg">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background/95 border-gym-primary/30 backdrop-blur-sm">
-                      <SelectItem value="variations">
-                        <div className="flex items-center gap-2">
-                          <Columns className="w-4 h-4" />
-                          Variations
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="carousel">
-                        <div className="flex items-center gap-2">
-                          <LayoutGrid className="w-4 h-4" />
-                          Carousel View
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="grid">
-                        <div className="flex items-center gap-2">
-                          <Grid3X3 className="w-4 h-4" />
-                          Grid View
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="list">
-                        <div className="flex items-center gap-2">
-                          <List className="w-4 h-4" />
-                          List View
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="masonry">
-                        <div className="flex items-center gap-2">
-                          <Columns className="w-4 h-4" />
-                          Masonry View
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
-              {availableVariants.length > 1 && (
-                <GalleryControls
-                  categories={availableVariants.map(name => ({
-                    name,
-                    count: gym.logos.filter(l => (l.variant || 'Uncategorized') === name).length,
-                  }))}
-                  activeCategories={activeCategories}
-                  onToggleCategory={(name) => setActiveCategories(prev =>
-                    prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name])}
-                  onClearCategories={() => { setActiveCategories([]); setActiveTags([]); }}
-                  tagFacets={tagFacets}
-                  activeTags={activeTags}
-                  onToggleTag={(name) => setActiveTags(prev =>
-                    prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name])}
-                  onClearTags={() => setActiveTags([])}
-                  shown={filteredLogos.length}
-                  total={visibleLogos.length}
-                  palette={gym.colors.map(c => c.color_hex)}
-                  isAdmin={isAdmin}
-                  selectionMode={selectionMode}
-                  onToggleSelection={() => {
-                    setSelectionMode(v => !v);
-                    if (selectionMode) setSelectedLogos(new Set());
-                  }}
-                  onOpenTags={() => setTagSheetOpen(true)}
-                />
-              )}
 
               {/* The tag drawer, now opened from the panel above. */}
               <Sheet open={tagSheetOpen} onOpenChange={setTagSheetOpen}>
@@ -1651,6 +1650,25 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               </Sheet>
             </CardHeader>
             <CardContent>
+              <div className="flex gap-4">
+                {/* Categories live down the side now - a column stays beside
+                    the logos where a row of pills wrapped and scrolled away. */}
+                {availableVariants.length > 1 && (
+                  <CategoryRail
+                    categories={availableVariants.map(name => ({
+                      name,
+                      count: gym.logos.filter(l => (l.variant || 'Uncategorized') === name).length,
+                    }))}
+                    activeCategories={activeCategories}
+                    onToggleCategory={(name) => setActiveCategories(prev =>
+                      prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name])}
+                    onClearCategories={() => { setActiveCategories([]); setActiveTags([]); }}
+                    total={visibleLogos.length}
+                    palette={gym.colors.map(c => c.color_hex)}
+                  />
+                )}
+
+                <div className="min-w-0 flex-1">
               {viewMode === 'variations' ? (
                 <VariationBrowser
                   logos={filteredLogos}
@@ -2289,6 +2307,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   ))}
                 </div>
               )}
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}

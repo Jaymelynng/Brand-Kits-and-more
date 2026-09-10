@@ -1,4 +1,4 @@
-import { CheckSquare, Tag as TagIcon } from "lucide-react";
+import { CheckSquare, Columns, Grid3X3, LayoutGrid, List, Rows3, Tag as TagIcon } from "lucide-react";
 import { shade, readableOn, luminance, tint } from "@/lib/shade";
 
 interface Facet { name: string; count: number }
@@ -20,7 +20,19 @@ interface GalleryControlsProps {
   selectionMode: boolean;
   onToggleSelection: () => void;
   onOpenTags: () => void;
+  viewMode: string;
+  onViewMode: (v: string) => void;
 }
+
+/** Five ways to look at the same files. Icons rather than a dropdown, because
+ *  a dropdown hides a browseable set behind a click. */
+const VIEWS = [
+  { key: "carousel", label: "Carousel", Icon: LayoutGrid },
+  { key: "grid", label: "Grid", Icon: Grid3X3 },
+  { key: "masonry", label: "Masonry", Icon: Columns },
+  { key: "list", label: "List", Icon: List },
+  { key: "variations", label: "Variations", Icon: Rows3 },
+];
 
 /**
  * The filter row. Five things were wrong with the version before this and
@@ -43,6 +55,7 @@ export const GalleryControls = ({
   categories, activeCategories, onToggleCategory, onClearCategories,
   tagFacets, activeTags, onToggleTag, onClearTags,
   shown, total, palette, isAdmin, selectionMode, onToggleSelection, onOpenTags,
+  viewMode, onViewMode,
 }: GalleryControlsProps) => {
   const filtering = activeCategories.length > 0 || activeTags.length > 0;
 
@@ -108,8 +121,13 @@ export const GalleryControls = ({
 
   return (
     <div
-      className="mt-4 rounded-2xl bg-white p-4"
-      style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.30), 0 8px 20px rgba(0,0,0,0.20)" }}
+      className="sticky z-30 mt-4 rounded-2xl bg-white p-4"
+      style={{
+        // Sits just under the gym strip, which publishes its own height, so
+        // the filters travel down the page with her instead of scrolling away.
+        top: "calc(var(--strip-h, 96px) + 8px)",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.30), 0 8px 20px rgba(0,0,0,0.20)",
+      }}
     >
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         {/* The count is what a filter is for, so it gets hero weight - in ink,
@@ -131,39 +149,7 @@ export const GalleryControls = ({
 
         <div className="h-9 w-px shrink-0" style={{ background: tint(ink, 0.78) }} />
 
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5">
-          <button
-            onClick={onClearCategories}
-            className="rounded-full px-4 py-2 text-[15px] transition-all duration-150 active:translate-y-[2px]"
-            style={activeCategories.length === 0 ? chosenPill : restingPill}
-          >
-            All
-          </button>
-
-          {categories.map(c => {
-            const on = activeCategories.includes(c.name);
-            const waiting = c.name === "Uncategorized" && c.count > 0;
-            return (
-              <button
-                key={c.name}
-                onClick={() => onToggleCategory(c.name)}
-                title={c.name === "Uncategorized"
-                  ? (c.count ? `${c.count} waiting to be filed` : "Nothing waiting — everything is filed")
-                  : undefined}
-                className="flex items-center gap-2 rounded-full py-2 pl-4 pr-2 text-[15px] transition-all duration-150 active:translate-y-[2px]"
-                style={on ? chosenPill : waiting ? waitingPill : restingPill}
-              >
-                {c.name}
-                <span
-                  className="inline-flex min-w-[24px] items-center justify-center rounded-full px-1.5 py-0.5 text-[12px] font-black tabular-nums"
-                  style={countChip(on, waiting)}
-                >
-                  {c.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <div className="min-w-0 flex-1" />
 
         {/* Actions, not filters - so they are filled, not outlined, and never
             white on the white panel. */}
@@ -186,6 +172,29 @@ export const GalleryControls = ({
               )}
             </button>
           )}
+
+          <div
+            className="flex items-center gap-1 rounded-full p-1"
+            style={{ background: tint(ink, 0.90) }}
+          >
+            {VIEWS.map(({ key, label, Icon }) => {
+              const on = viewMode === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => onViewMode(key)}
+                  title={label}
+                  aria-label={label}
+                  className="rounded-full p-2 transition-all duration-150"
+                  style={on
+                    ? { background: ink, color: onInk, boxShadow: lift(shade(ink, 0.45)) }
+                    : { background: "transparent", color: ink }}
+                >
+                  <Icon className="h-4 w-4" />
+                </button>
+              );
+            })}
+          </div>
 
           {isAdmin && (
             <button
