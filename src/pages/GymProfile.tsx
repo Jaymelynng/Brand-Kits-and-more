@@ -1009,7 +1009,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 <div style={{ perspective: "3000px" }} className="w-full overflow-hidden py-8">
                   <Carousel 
                     className="w-full max-w-5xl mx-auto px-16" 
-                    opts={{ align: "center", loop: true }}
+                    // containScroll defaults to "trimSnaps", which deletes the
+                    // snap points at both ends. With three primaries filling
+                    // the track that leaves exactly one, so autoplay had
+                    // nowhere to advance and the carousel sat still. Keeping
+                    // them lets a short set rotate; a long set is unaffected.
+                    opts={{ align: "center", loop: true, containScroll: false }}
                     plugins={[
                       Autoplay({
                         delay: 4000,
@@ -1654,28 +1659,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       {/* Content Section */}
       <div className="container mx-auto px-6 pb-12">
 
-          {/* The brand at a glance: the same carousel, showing only the
-              primaries. The library below is the workbench. */}
-          {(() => {
-            const primaries = visibleLogos.filter(l => l.variant === 'Primary logos');
-            if (primaries.length === 0) return null;
-            return (
-              <Card className="mb-4 bg-white shadow-xl border-2" style={{ borderColor: `${primaryColor}40` }}>
-                <CardHeader className="pb-0">
-                  <div className="flex items-baseline gap-3">
-                    <CardTitle className="text-2xl">Primary logos</CardTitle>
-                    <span className="text-sm font-semibold text-muted-foreground">
-                      {primaries.length === 1 ? 'the mark' : `${primaries.length} approved marks`}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  {renderCarousel(primaries)}
-                </CardContent>
-              </Card>
-            );
-          })()}
-
 
         {/* Upload Interface - Always visible for admins when no logos exist */}
         {(gym.logos.length === 0 || showUpload) && isAdmin && (
@@ -1984,6 +1967,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 )}
 
                 <div className="min-w-0 flex-1">
+              {/* The primaries ride at the top of the gallery in the carousel,
+                  with the rail beside them and the grid directly under. One
+                  card, not two - which is what she asked for three times. */}
+              {(() => {
+                const primaries = visibleLogos.filter(l => l.variant === 'Primary logos');
+                return primaries.length > 0 ? renderCarousel(primaries) : null;
+              })()}
+
               {viewMode === 'variations' ? (
                 <VariationBrowser
                   logos={filteredLogos}
