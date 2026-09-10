@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { copyText } from "@/lib/copyText";
 import { LogoMedia } from "@/components/LogoMedia";
+import { FontsSection } from "@/components/FontsSection";
 import { luminance, shade } from "@/lib/shade";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
@@ -1701,6 +1702,16 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
       {/* Content Section */}
       <div className="container mx-auto px-6 pb-12">
+
+          {/* Typography sits with the colours: both are the brand rather than
+              an asset, and both are what someone opens the kit to find. */}
+          <FontsSection
+            gymId={gym.id}
+            gymName={gym.name}
+            palette={gym.colors.map(c => c.color_hex)}
+            canEdit={isAdmin}
+          />
+
 
           {/* Its own area. The primaries are the brand; the gallery below is
               the library. Sharing one card squeezed the carousel into the

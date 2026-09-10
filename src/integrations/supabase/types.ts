@@ -531,6 +531,57 @@ export type Database = {
         }
         Relationships: []
       }
+      gym_font_pairings: {
+        Row: {
+          accent_font: string | null
+          accent_weight: string | null
+          body_font: string
+          body_weight: string
+          created_at: string
+          email_fallback: string
+          gym_id: string
+          heading_font: string
+          heading_weight: string
+          id: string
+          is_preferred: boolean
+          name: string
+          notes: string | null
+          order_index: number
+        }
+        Insert: {
+          accent_font?: string | null
+          accent_weight?: string | null
+          body_font: string
+          body_weight?: string
+          created_at?: string
+          email_fallback?: string
+          gym_id: string
+          heading_font: string
+          heading_weight?: string
+          id?: string
+          is_preferred?: boolean
+          name?: string
+          notes?: string | null
+          order_index?: number
+        }
+        Update: {
+          accent_font?: string | null
+          accent_weight?: string | null
+          body_font?: string
+          body_weight?: string
+          created_at?: string
+          email_fallback?: string
+          gym_id?: string
+          heading_font?: string
+          heading_weight?: string
+          id?: string
+          is_preferred?: boolean
+          name?: string
+          notes?: string | null
+          order_index?: number
+        }
+        Relationships: []
+      }
       personal_brand_colors: {
         Row: {
           color_hex: string
