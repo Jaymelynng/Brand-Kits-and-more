@@ -75,19 +75,6 @@ export const CategoryRail = ({
       </div>
 
       <div className="flex flex-col gap-2">
-        <button
-          onClick={onClearCategories}
-          className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[14px] transition-all duration-150 active:translate-y-[2px]"
-          style={row(activeCategories.length === 0, false)}
-        >
-          All
-          <span
-            className="ml-2 inline-flex min-w-[26px] items-center justify-center rounded-full px-1.5 py-0.5 text-[12px] font-black tabular-nums"
-            style={chip(activeCategories.length === 0, false)}
-          >
-            {total}
-          </span>
-        </button>
 
         {categories.map(c => {
           const on = activeCategories.includes(c.name);
@@ -112,6 +99,20 @@ export const CategoryRail = ({
             </button>
           );
         })}
+
+        <button
+          onClick={onClearCategories}
+          className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[14px] transition-all duration-150 active:translate-y-[2px]"
+          style={row(activeCategories.length === 0, false)}
+        >
+          All
+          <span
+            className="ml-2 inline-flex min-w-[26px] items-center justify-center rounded-full px-1.5 py-0.5 text-[12px] font-black tabular-nums"
+            style={chip(activeCategories.length === 0, false)}
+          >
+            {total}
+          </span>
+        </button>
       </div>
     </div>
   );

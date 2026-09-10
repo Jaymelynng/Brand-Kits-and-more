@@ -19,6 +19,7 @@ import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, L
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { copyText } from "@/lib/copyText";
+import { LogoMedia } from "@/components/LogoMedia";
 import { luminance, shade } from "@/lib/shade";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
@@ -1180,8 +1181,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                     backgroundColor: logoBgColor,
                                   }}
                                 >
-                                  <img 
-                                    src={logo.file_url} 
+                                  <LogoMedia
+                                    url={logo.file_url}
                                     alt={logo.filename}
                                     className="max-w-full max-h-full object-contain p-4"
                                   />
@@ -2006,11 +2007,15 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               <div className="flex gap-4">
                 {/* Categories live down the side now - a column stays beside
                     the logos where a row of pills wrapped and scrolled away. */}
-                {availableVariants.length > 1 && (
+                {logoCategories.length > 0 && (
                   <CategoryRail
-                    categories={availableVariants.map(name => ({
-                      name,
-                      count: gym.logos.filter(l => (l.variant || 'Uncategorized') === name).length,
+                    // Every category from the table, empty ones included. It
+                    // used to list only categories that already had files,
+                    // so the moment a gym was cleared down to Uncategorized
+                    // the rail vanished and there was nothing to file into.
+                    categories={logoCategories.map(c => ({
+                      name: c.name,
+                      count: gym.logos.filter(l => (l.variant || 'Uncategorized') === c.name).length,
                     }))}
                     activeCategories={activeCategories}
                     onToggleCategory={(name) => setActiveCategories(prev =>
@@ -2092,11 +2097,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
                           style={{ backgroundColor: logoBgColor }}
                         >
-                          <img 
-                            src={logo.file_url} 
-                            alt={logo.filename}
-                            className="max-w-full max-h-full object-contain p-4"
-                          />
+                          <LogoMedia
+                                    url={logo.file_url}
+                                    alt={logo.filename}
+                                    className="max-w-full max-h-full object-contain p-4"
+                                  />
                         </div>
                         
                         {/* Logo Info */}
@@ -2201,11 +2206,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                             className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-gym-primary/35 flex-shrink-0"
                             style={{ backgroundColor: logoBgColor }}
                           >
-                            <img 
-                              src={logo.file_url} 
-                              alt={logo.filename}
-                              className="max-w-full max-h-full object-contain"
-                            />
+                            <LogoMedia
+                                    url={logo.file_url}
+                                    alt={logo.filename}
+                                    className="max-w-full max-h-full object-contain"
+                                  />
                           </div>
                           
                           {/* Logo Info */}
@@ -2327,11 +2332,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           className="w-full flex items-center justify-center mb-4 rounded-lg border-2 border-gym-primary/35 p-4"
                           style={{ backgroundColor: logoBgColor }}
                         >
-                          <img 
-                            src={logo.file_url} 
-                            alt={logo.filename}
-                            className="w-full h-auto object-contain"
-                          />
+                          <LogoMedia
+                                    url={logo.file_url}
+                                    alt={logo.filename}
+                                    className="w-full h-auto object-contain"
+                                  />
                         </div>
                         
                         {/* Logo Info */}
@@ -2872,8 +2877,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     : { background: expandedGround === "dark" ? "#0B1119" : "#FFFFFF" }
               }
             >
-              <img
-                src={expandedLogo.file_url}
+              <LogoMedia
+                url={expandedLogo.file_url}
                 alt={expandedLogo.filename}
                 className="max-h-[52vh] max-w-full object-contain"
               />
