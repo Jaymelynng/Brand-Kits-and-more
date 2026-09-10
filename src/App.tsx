@@ -26,6 +26,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/gym/:gymCode" element={<GymProfile />} />
+          {/* Solo share link. Same page, but with every route out of it
+              removed - no gym strip, no dashboard link. This is the URL that
+              goes to an outside vendor. */}
+          <Route path="/kit/:gymCode" element={<GymProfile solo />} />
           <Route path="/auth" element={<Auth />} />
           
           <Route path="/assets" element={<Themes />} />

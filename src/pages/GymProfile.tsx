@@ -27,11 +27,18 @@ import { AssetRenamer } from "@/components/AssetRenamer";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HeroVideoBackground } from "@/components/HeroVideoBackground";
 import JSZip from "jszip";
+import { HeroLogo } from "@/components/HeroLogo";
+import { useSecretTap } from "@/hooks/useSecretTap";
 import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
 import AssetModal from "@/components/AssetModal";
 import { Pencil } from "lucide-react";
 
-const GymProfile = () => {
+interface GymProfileProps {
+  /** Solo mode: a shareable single-gym page with no way into the rest of the app. */
+  solo?: boolean;
+}
+
+const GymProfile = ({ solo = false }: GymProfileProps) => {
   const { gymCode } = useParams<{ gymCode: string }>();
   const { data: gyms = [], isLoading, error } = useGyms();
   const { user, isAdmin } = useAuth();
@@ -66,6 +73,15 @@ const GymProfile = () => {
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark'>('light');
   const [downloadingZip, setDownloadingZip] = useState(false);
   const [showVideoManager, setShowVideoManager] = useState(false);
+  // Five taps on the hero mark is the way back in. Signed in as admin it opens
+  // the video manager; otherwise it goes to sign-in and returns you here.
+  const { onTap: onSecretTap, remaining: tapsLeft } = useSecretTap({
+    taps: 5,
+    onUnlock: () => {
+      if (isAdmin) setShowVideoManager(true);
+      else if (!solo) navigate(`/auth?next=/gym/${gymCode}`);
+    },
+  });
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const elementFileInputRef = useRef<HTMLInputElement>(null);
@@ -711,19 +727,25 @@ const GymProfile = () => {
   // The variants this gym actually has, in a sensible reading order.
   const VARIANT_ORDER = ['Primary', 'White / Reverse', 'Dark', 'Mono', 'Icon',
     'Wordmark inline', 'Wordmark stacked', 'Hero', 'Divider', 'Framed variant'];
+  // Assets still being judged are back-of-house. A visitor following a shared
+  // /gym/CODE link must never see them - they only exist for the review bench.
+  const visibleLogos = useMemo(() => {
+    if (!gym) return [];
+    if (isAdmin) return gym.logos;
+    return gym.logos.filter(l => (l.variant || 'Primary') !== 'Needs review');
+  }, [gym, isAdmin]);
+
   const availableVariants = useMemo(() => {
-    if (!gym) return [] as string[];
-    const seen = new Set(gym.logos.map(l => l.variant || 'Primary'));
+    const seen = new Set(visibleLogos.map(l => l.variant || 'Primary'));
     return VARIANT_ORDER.filter(v => seen.has(v))
       .concat([...seen].filter(v => !VARIANT_ORDER.includes(v)).sort());
-  }, [gym]);
+  }, [visibleLogos]);
 
   // Filter logos by active variant
   const filteredLogos = useMemo(() => {
-    if (!gym) return [];
-    if (activeCategoryFilter === 'all') return gym.logos;
-    return gym.logos.filter(l => (l.variant || 'Primary') === activeCategoryFilter);
-  }, [gym, activeCategoryFilter]);
+    if (activeCategoryFilter === 'all') return visibleLogos;
+    return visibleLogos.filter(l => (l.variant || 'Primary') === activeCategoryFilter);
+  }, [visibleLogos, activeCategoryFilter]);
 
   if (isLoading) {
     return (
@@ -740,18 +762,24 @@ const GymProfile = () => {
           <div className="text-destructive text-xl mb-4">
             {error ? 'Error loading gym data' : `Gym "${gymCode}" not found`}
           </div>
-          <Link to="/">
-            <Button className="bg-brand-warm hover:bg-brand-warm/80 text-white">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
+          {!solo && (
+            <Link to="/">
+              <Button className="bg-brand-warm hover:bg-brand-warm/80 text-white">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     );
   }
 
   const mainLogo = gym.logos.find(logo => logo.is_main_logo);
+  // An animated mark, if this gym has one. It is video on pure black and gets
+  // screen-blended over the hero footage, so the gym is never covered up.
+  const logoAnimation = gym.logos.find(l => l.variant === 'Animation');
+
   const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
   const secondaryColor = gym.colors[1]?.color_hex || '#9CA3AF';
   const logoBgColor = logoBgMode === 'dark' ? '#1a1a2e' : `${primaryColor}08`;
@@ -787,7 +815,7 @@ const GymProfile = () => {
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <div className="sticky top-0 z-50">
-        <GymPillStrip />
+        {!solo && <GymPillStrip />}
       </div>
       <div 
         className="min-h-screen"
@@ -805,40 +833,37 @@ const GymProfile = () => {
       <div className="relative overflow-hidden">
         <div className="relative container mx-auto px-6 py-8">
           {/* Navigation */}
-          <div className="flex items-center gap-4 mb-8">
-            <Link to="/">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="backdrop-blur-sm font-semibold bg-white/90 hover:bg-white border shadow-md"
-                style={{ 
-                  borderColor: `${primaryColor}50`,
-                  color: primaryColor 
-                }}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Dashboard
-              </Button>
-            </Link>
-          </div>
+          {!solo && (
+            <div className="flex items-center gap-4 mb-8">
+              <Link to="/">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="backdrop-blur-sm font-semibold bg-white/90 hover:bg-white border shadow-md"
+                  style={{
+                    borderColor: `${primaryColor}50`,
+                    color: primaryColor
+                  }}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Hero Video or Compact Hero Header */}
           {gym.hero_video_url ? (
             <HeroVideoBackground videoUrl={gym.hero_video_url} overlayOpacity={0.5}>
-              <div className="inline-flex items-center gap-3 mb-4">
-                <span 
-                  className="px-4 py-2 rounded-full text-white font-bold text-lg tracking-wider"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {gym.code}
-                </span>
-              </div>
-              <h1 className="text-5xl md:text-6xl font-bold mb-4 text-white">
-                {gym.name}
-              </h1>
-              <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
-                Official brand hub with complete asset library, color palette, and logo collection
-              </p>
+              <HeroLogo
+                logoUrl={mainLogo?.file_url || gym.logos[0]?.file_url}
+                animationUrl={logoAnimation?.file_url}
+                onTap={onSecretTap}
+                tapsLeft={tapsLeft}
+                name={gym.name}
+                color={primaryColor}
+                onDark
+              />
             </HeroVideoBackground>
           ) : (
             <>
@@ -866,22 +891,16 @@ const GymProfile = () => {
                 ))}
               </div>
               <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-3 mb-4">
-                  <span 
-                    className="px-4 py-2 rounded-full text-white font-bold text-lg tracking-wider"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    {gym.code}
-                  </span>
-                </div>
                 
-                <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                  {gym.name}
-                </h1>
+                <HeroLogo
+                  logoUrl={mainLogo?.file_url || gym.logos[0]?.file_url}
+                  animationUrl={logoAnimation?.file_url}
+                onTap={onSecretTap}
+                tapsLeft={tapsLeft}
+                  name={gym.name}
+                  color={primaryColor}
+                />
                 
-                <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-                  Official brand hub with complete asset library, color palette, and logo collection
-                </p>
               </div>
             </>
           )}
@@ -2314,7 +2333,7 @@ const GymProfile = () => {
       )}
 
       {/* Floating Nav Rail */}
-      <FloatingNavRail />
+      <FloatingNavRail solo={solo} />
 
       {/* Asset Modal */}
       <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />

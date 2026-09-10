@@ -283,13 +283,18 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
         className="rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-full mx-auto"
         style={{
           background: '#737373',
-          opacity: selected ? 1 : 0.62,
+          // Never dim an unpicked card. Picked adds light: a ring and a glow in
+          // the gym's own colour, lifted slightly. Unpicked is simply normal.
+          opacity: 1,
           borderColor: editMode
             ? 'hsl(var(--brand-rose-gold))'
             : selected
-              ? '#16B8A0'
+              ? primaryColor
               : 'rgba(0,0,0,0.12)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6)',
+          boxShadow: selected
+            ? `0 0 0 3px ${primaryColor}55, 0 10px 34px ${primaryColor}88, 0 2px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.6)`
+            : '0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6)',
+          transform: selected ? 'translateY(-3px)' : 'none',
         }}
         id={`gym-${gym.code}`}
       >
@@ -298,7 +303,8 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
           className="flex items-center justify-between py-2.5 px-4 border-b border-border/40 cursor-pointer select-none"
           title={selected ? 'Click to unselect' : 'Click to select'}
           style={{
-            background: selected ? 'rgba(22,184,160,0.35)' : 'rgba(0,0,0,0.15)',
+            background: selected ? `${primaryColor}66` : 'rgba(0,0,0,0.15)',
+            transition: 'background 260ms ease',
           }}>
           <h3 className="text-base font-bold" style={{ color: '#ffffff' }}>
             {gym.name}

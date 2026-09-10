@@ -7,7 +7,8 @@ import { GymPillStrip } from "@/components/GymPillStrip";
 import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
 import { AdminToolkit } from "@/components/AdminToolkit";
-import { SelectionRail } from "@/components/SelectionRail";
+import { BulkActionBar } from "@/components/BulkActionBar";
+import { useSecretTap } from "@/hooks/useSecretTap";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronUp, Shield } from "lucide-react";
@@ -24,6 +25,13 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Five taps on the gym counter is the admin door. Signed in it opens the
+  // toolkit; otherwise it goes to sign-in. Nothing on the page advertises it.
+  const { onTap: onSecretTap, remaining: tapsLeft } = useSecretTap({
+    taps: 5,
+    onUnlock: () => navigate(isAdmin ? "/admin" : "/auth"),
+  });
 
   const filteredGyms = useMemo(() => {
     if (!searchQuery.trim()) return gyms;
@@ -58,10 +66,7 @@ const Index = () => {
     setEditMode(false);
   };
 
-  useEffect(() => {
-    // Initialize with all gyms selected for perfect 10/10 state
-    setSelectedGyms(new Set(gyms.map(gym => gym.code)));
-  }, [gyms.length]);
+  // Start empty. She picks what she wants; nothing is chosen for her.
 
   useEffect(() => {
     const handleScroll = () => {
@@ -254,23 +259,27 @@ const Index = () => {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #e5e7eb 0%, #e6e6e6 50%, #d6c5bf 100%)' }}>
-      <div className="flex min-h-screen flex-col lg:flex-row">
-      <SelectionRail
+      <div className="flex min-h-screen flex-col">
+      <GymPillStrip
+        selectedGyms={selectedGyms}
+        onToggleGymSelection={toggleGymSelection}
+        onScrollToGym={scrollToGym}
+      />
+
+      <BulkActionBar
         gyms={gyms}
         selectedCodes={selectedGyms}
-        onToggle={toggleGymSelection}
-        onJumpTo={scrollToGym}
         onSelectAll={selectAllGyms}
         onClearAll={deselectAllGyms}
-        searchQuery={searchQuery}
-        onSearch={setSearchQuery}
+        onSecretTap={onSecretTap}
+        tapsLeft={tapsLeft}
       />
 
       <div className="min-w-0 flex-1" style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d6c5bf 100%)' }}>
 
         {/* Main Content */}
-        <div className="pt-5 pb-16">
-          <div className="w-full px-4 sm:px-6 lg:pl-8 lg:pr-6 2xl:pl-10 2xl:pr-8">
+        <div className="pt-4 pb-16">
+          <div className="w-full px-4 sm:px-6 2xl:px-8">
 
             {/* Gym Grid */}
             <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] justify-items-center gap-6 xl:gap-8 2xl:grid-cols-[repeat(auto-fill,minmax(min(100%,400px),1fr))] items-stretch">

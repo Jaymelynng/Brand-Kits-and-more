@@ -23,12 +23,24 @@ export function HeroVideoBackground({
         <source src={videoUrl} type="video/mp4" />
       </video>
       
-      <div 
-        className="absolute inset-0 bg-black"
-        style={{ opacity: overlayOpacity }}
+      {/* A scrim, not a sheet. Dark where the type sits, clear through the
+          middle so the gym itself is still visible behind the mark. */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(180deg,
+            rgba(0,0,0,${overlayOpacity * 0.85}) 0%,
+            rgba(0,0,0,${overlayOpacity * 0.30}) 34%,
+            rgba(0,0,0,${overlayOpacity * 0.30}) 58%,
+            rgba(0,0,0,${overlayOpacity * 0.95}) 100%)`,
+        }}
       />
       
-      <div className="relative z-10 h-full flex flex-col items-center justify-center text-white">
+      {/* No z-index here on purpose. A z-index would open a new stacking
+          context, and mix-blend-mode only blends inside its own context — an
+          animated mark on black would then screen against nothing and keep its
+          black box. DOM order already paints this above the scrim. */}
+      <div className="relative h-full flex flex-col items-center justify-center text-white">
         {children}
       </div>
     </div>

@@ -1,7 +1,12 @@
 import { Home, ChevronUp, ChevronDown } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-export const FloatingNavRail = () => {
+interface FloatingNavRailProps {
+  /** Solo share pages must not offer a way into the rest of the app. */
+  solo?: boolean;
+}
+
+export const FloatingNavRail = ({ solo = false }: FloatingNavRailProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,18 +28,20 @@ export const FloatingNavRail = () => {
         border: "1px solid hsl(var(--brand-rose-gold) / 0.28)",
       }}
     >
-      <button
-        onClick={() => navigate("/")}
-        className={buttonBase}
-        style={{
-          background: "linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))",
-          color: "hsl(var(--brand-white))",
-          boxShadow: "0 10px 20px -14px hsl(var(--brand-rose-gold) / 0.9)",
-        }}
-        title="Back to Dashboard"
-      >
-        <Home className="w-4.5 h-4.5" />
-      </button>
+      {!solo && (
+        <button
+          onClick={() => navigate("/")}
+          className={buttonBase}
+          style={{
+            background: "linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))",
+            color: "hsl(var(--brand-white))",
+            boxShadow: "0 10px 20px -14px hsl(var(--brand-rose-gold) / 0.9)",
+          }}
+          title="Back to Dashboard"
+        >
+          <Home className="w-4.5 h-4.5" />
+        </button>
+      )}
 
       <button
         onClick={scrollToTop}

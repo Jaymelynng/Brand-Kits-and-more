@@ -1,7 +1,7 @@
-import { useGyms, GymWithColors } from "@/hooks/useGyms";
+import { useEffect, useRef } from "react";
+import { useGyms } from "@/hooks/useGyms";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Check, ExternalLink, Home } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ExternalLink, Home } from "lucide-react";
 
 interface GymPillStripProps {
   // Dashboard mode props (only used on front page)
@@ -9,6 +9,33 @@ interface GymPillStripProps {
   onToggleGymSelection?: (gymCode: string) => void;
   onScrollToGym?: (gymCode: string) => void;
 }
+
+const SHELL = "#161C24";
+const ACCENT = "#16B8A0";
+
+/**
+ * The strip is near-black, so a dark brand colour glows invisibly against it.
+ * Lift any colour to a fixed high lightness, keeping its hue, so every gym's
+ * glow reads - navy gyms included - while still looking like their own colour.
+ */
+const glowOf = (hex: string) => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return "#7FD8FF";
+  const n = parseInt(m[1], 16);
+  let [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const max = Math.max(r, g, b);
+  if (max < 200) {
+    const k = 200 / Math.max(max, 1);
+    [r, g, b] = [r * k, g * k, b * k].map((v) => Math.min(255, Math.round(v))) as number[];
+  }
+  // pull it toward white a little so even a saturated hue stays luminous
+  [r, g, b] = [r, g, b].map((v) => Math.round(v + (255 - v) * 0.25));
+  // MUST be hex: callers append an alpha suffix like `${glow}55`, and
+  // "rgb(...)55" is invalid CSS - the browser silently drops the whole
+  // declaration and the glow never appears.
+  const h = (v: number) => v.toString(16).padStart(2, "0");
+  return `#${h(r)}${h(g)}${h(b)}`;
+};
 
 export const GymPillStrip = ({
   selectedGyms,
@@ -21,6 +48,20 @@ export const GymPillStrip = ({
   const { gymCode: activeGymCode } = useParams<{ gymCode: string }>();
 
   const isDashboard = location.pathname === "/";
+
+  // Publish this strip's real height so the bar below can pin directly under
+  // it. A hardcoded offset breaks the moment the tiles change size.
+  const stripRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const publish = () =>
+      document.documentElement.style.setProperty("--strip-h", `${el.offsetHeight}px`);
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [gyms.length]);
 
   const handlePillClick = (gymCode: string) => {
     if (isDashboard && onToggleGymSelection) {
@@ -48,29 +89,58 @@ export const GymPillStrip = ({
 
   return (
     <div
-      className="flex flex-nowrap gap-5 px-6 py-3 justify-center overflow-x-auto rounded-none"
+      ref={stripRef}
+      className="sticky top-0 z-50 flex flex-nowrap items-center justify-center gap-x-2 px-4 py-3"
       style={{
-        background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.12))',
-        borderBottom: '1px solid hsl(var(--brand-rose-gold) / 0.22)',
-        boxShadow: '0 10px 22px -18px hsl(var(--brand-navy) / 0.35), inset 0 -1px 0 hsl(var(--brand-rose-gold) / 0.14)',
+        background: `linear-gradient(180deg, #1B222B 0%, ${SHELL} 60%, #10151B 100%)`,
+        borderBottom: "1px solid #0A0E13",
+        boxShadow:
+          "0 14px 28px -12px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.07)",
       }}
     >
+      {/* Say what this row IS, at a size that can actually be read. */}
+      {isDashboard && (
+        <div
+          className="mr-2 flex shrink-0 flex-col justify-center pr-4"
+          style={{ borderRight: "1px solid #2B3945" }}
+        >
+          <span
+            className="text-[11px] font-extrabold leading-none tracking-[0.2em]"
+            style={{ color: ACCENT }}
+          >
+            BULK
+          </span>
+          <span className="mt-1.5 flex items-baseline gap-1 leading-none">
+            <span className="text-[26px] font-extrabold text-white">
+              {selectedGyms?.size ?? 0}
+            </span>
+            <span className="text-[13px] font-bold text-slate-400">/ {gyms.length}</span>
+          </span>
+        </div>
+      )}
+
       {!isDashboard && (
         <div
-          onClick={() => navigate('/')}
-          className="flex flex-col items-center gap-1 px-2 py-2 cursor-pointer rounded-xl transition-all duration-300"
-          style={{
-            border: '2px solid hsl(var(--brand-rose-gold) / 0.35)',
-            background: 'linear-gradient(180deg, hsl(var(--brand-white)), hsl(var(--brand-rose-gold) / 0.08))',
-            boxShadow: '0 12px 20px -18px hsl(var(--brand-navy) / 0.35), 0 6px 14px -12px hsl(var(--brand-rose-gold) / 0.75)',
-            minWidth: '56px',
-          }}
+          onClick={() => navigate("/")}
+          className="flex min-w-0 flex-1 cursor-pointer flex-col items-stretch gap-1"
+          style={{ maxWidth: 76 }}
           title="Back to Dashboard"
         >
-          <div className="w-11 h-11 flex items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, hsl(var(--brand-rose-gold)), hsl(var(--brand-rose-gold-dark)))', boxShadow: '0 10px 18px -14px hsl(var(--brand-rose-gold) / 0.8)' }}>
-            <Home className="w-5 h-5 text-white" />
+          <div
+            className="flex items-center justify-center rounded-lg transition-all duration-150 active:translate-y-[2px]"
+            style={{
+              height: "clamp(40px, 4.2vw, 56px)",
+              background: "#FFFFFF",
+              border: "2.5px solid #FFFFFF",
+              boxShadow: "0 3px 0 #0A0E13, 0 5px 12px rgba(0,0,0,0.5)",
+            }}
+          >
+            <Home className="h-5 w-5" style={{ color: SHELL }} />
           </div>
-          <span className="text-[10px] font-bold tracking-wider" style={{ color: 'hsl(var(--brand-navy) / 0.72)' }}>
+          <span
+            className="rounded-full py-1 text-center text-[9px] font-extrabold leading-none tracking-[0.1em] text-white"
+            style={{ background: "#4A5A6A", boxShadow: "0 2px 6px rgba(0,0,0,0.5)" }}
+          >
             HOME
           </span>
         </div>
@@ -80,81 +150,76 @@ export const GymPillStrip = ({
         const isSelected = isDashboard
           ? selectedGyms?.has(gym.code) ?? false
           : gym.code === activeGymCode;
-        const primaryColor = gym.colors[0]?.color_hex || '#667eea';
-        const mainLogo = gym.logos.find(l => l.is_main_logo);
+        const primaryColor = gym.colors[0]?.color_hex || "#334155";
+        const glow = glowOf(primaryColor);
+        const mainLogo = gym.logos.find((l) => l.is_main_logo);
         const logoUrl = mainLogo?.file_url || gym.logos[0]?.file_url;
 
         return (
-          <div
-            key={gym.id}
-            onClick={() => handlePillClick(gym.code)}
-            className={cn(
-              "group flex flex-col items-center gap-1 px-2 py-2 cursor-pointer",
-              "rounded-xl transition-all duration-300 relative",
-              isSelected ? "scale-105" : "hover:scale-102"
-            )}
-            style={{
-              border: isSelected ? `3px solid ${primaryColor}` : '2px solid hsl(var(--brand-rose-gold) / 0.3)',
-              background: '#ffffff',
-              boxShadow: isSelected
-                ? `0 4px 15px ${primaryColor}40, 0 2px 6px rgba(0,0,0,0.15)`
-                : '0 2px 8px rgba(0,0,0,0.08)',
-              minWidth: '60px',
-            }}
-            title={isDashboard
-              ? `${isSelected ? 'Deselect' : 'Select'} ${gym.name}`
-              : `Go to ${gym.name}`
-            }
-          >
-            {/* Checkmark badge */}
-            {isSelected && (
-              <div
-                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center z-10"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <Check className="w-3 h-3 text-white" />
-              </div>
-            )}
+          <div key={gym.id} className="group flex min-w-0 flex-1 flex-col items-stretch gap-1"
+            style={{ maxWidth: 76 }}>
+            {/* Logo tile — click to select */}
+            <button
+              onClick={() => handlePillClick(gym.code)}
+              title={
+                isDashboard
+                  ? `${isSelected ? "Deselect" : "Select"} ${gym.name}`
+                  : `Go to ${gym.name}`
+              }
+              className="relative flex items-center justify-center rounded-lg px-1.5 py-1 active:translate-y-[2px]"
+              style={{
+                height: "clamp(40px, 4.2vw, 56px)",
+                // Picked = a ring plus a real halo in the gym's own colour,
+                // lifted off the strip. The strip no longer scrolls, so nothing
+                // clips the halo.
+                background: "#FFFFFF",
+                border: `3px solid ${isSelected ? glow : "#E3E8EE"}`,
+                boxShadow: isSelected
+                  ? `0 0 0 4px ${glow}55, 0 0 24px 4px ${glow}, 0 0 48px 12px ${glow}66, 0 5px 0 #0A0E13`
+                  : "0 2px 0 #0A0E13",
+                opacity: 1,
+                transform: isSelected ? "translateY(-3px) scale(1.05)" : "none",
+                transition: "box-shadow 220ms ease, transform 220ms ease, background 220ms ease, border-color 220ms ease",
+              }}
+            >
+              {isDashboard && (
+                <span
+                  className="absolute -right-1 -top-1 z-10 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                  style={{ backgroundColor: primaryColor }}
+                  onClick={(e) => handleProfileClick(e, gym.code)}
+                  title={`Go to ${gym.name} profile`}
+                >
+                  <ExternalLink className="h-2.5 w-2.5 text-white" />
+                </span>
+              )}
 
-            {/* Profile link overlay (dashboard only) */}
-            {isDashboard && (
-              <div
-                className="absolute bottom-6 right-0.5 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 cursor-pointer"
-                style={{ backgroundColor: primaryColor }}
-                onClick={(e) => handleProfileClick(e, gym.code)}
-                title={`Go to ${gym.name} profile`}
-              >
-                <ExternalLink className="w-3 h-3 text-white" />
-              </div>
-            )}
-
-            {/* Logo thumbnail */}
-            <div className="w-11 h-11 flex items-center justify-center rounded-lg overflow-hidden">
               {logoUrl ? (
                 <img
                   src={logoUrl}
                   alt={gym.code}
-                  className="w-full h-full object-contain"
+                  className="max-h-full max-w-full object-contain"
                 />
               ) : (
-                <div
-                  className="w-full h-full flex items-center justify-center rounded-lg text-xs font-bold text-white"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {gym.code}
-                </div>
+                <span className="text-[9px] font-bold text-slate-400">{gym.code}</span>
               )}
-            </div>
+            </button>
 
-            {/* Gym code */}
-            <span
-              className="text-[10px] font-bold tracking-wider cursor-pointer hover:underline"
-              style={{ color: isSelected ? primaryColor : 'hsl(var(--brand-navy) / 0.6)' }}
+            {/* Code label — click to jump to that gym */}
+            <button
               onClick={(e) => handleCodeClick(e, gym.code)}
-              title={isDashboard ? `Scroll to ${gym.code} card` : `Go to ${gym.code}`}
+              title={isDashboard ? `Scroll to ${gym.code}` : `Go to ${gym.code}`}
+              className="rounded-full py-1 text-center text-[10px] font-extrabold leading-none tracking-[0.1em] transition-transform duration-150 hover:scale-105"
+              style={{
+                // Always filled. The halo on the tile above already says what is
+                // picked, so the label does not need to carry state too - it
+                // just names the gym in the gym's colour.
+                background: glow,
+                color: "#0A0E13",
+                border: `1.5px solid ${glow}`,
+              }}
             >
               {gym.code}
-            </span>
+            </button>
           </div>
         );
       })}
