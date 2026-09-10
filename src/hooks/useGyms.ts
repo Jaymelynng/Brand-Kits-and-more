@@ -202,7 +202,8 @@ export const useUploadLogo = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ gymId, file, isMain = false }: { gymId: string; file: File; isMain?: boolean }) => {
+    mutationFn: async ({ gymId, file, isMain = false, variant = 'Uncategorized' }:
+      { gymId: string; file: File; isMain?: boolean; variant?: string }) => {
       console.log('Starting logo upload for gym:', gymId, 'file:', file.name);
       
       try {
@@ -248,6 +249,10 @@ export const useUploadLogo = () => {
             filename: file.name,
             file_url: publicUrl,
             is_main_logo: isMain,
+            // Categorised at upload, so it is one step rather than two. An
+            // upload that skips the picker lands in Uncategorized, which is a
+            // real chip in the gallery rather than an invisible NULL.
+            variant,
           })
           .select()
           .single();

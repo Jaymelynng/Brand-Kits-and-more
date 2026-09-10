@@ -9,10 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft, Users, Building2, Database, Shield, Pencil, Check, X,
-  MapPin, Phone, Mail, Globe, ExternalLink, PlusCircle, Trash2, Search, Sparkles
+  MapPin, Phone, Mail, Globe, ExternalLink, PlusCircle, Trash2, Search, Sparkles, Tags
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { AddGymModal } from "@/components/AddGymModal";
+import { LogoCategoryManager } from "@/components/LogoCategoryManager";
 
 const Admin = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -21,7 +22,7 @@ const Admin = () => {
   const { toast } = useToast();
   const updateGymInfoMutation = useUpdateGymInfo();
 
-  const [activeTab, setActiveTab] = useState<'gyms' | 'users' | 'bulk'>('gyms');
+  const [activeTab, setActiveTab] = useState<'gyms' | 'categories' | 'users' | 'bulk'>('gyms');
   const [editingCell, setEditingCell] = useState<{ gymId: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -115,6 +116,7 @@ const Admin = () => {
 
   const tabs = [
     { id: 'gyms' as const, label: 'Manage Gyms', icon: Building2 },
+    { id: 'categories' as const, label: 'Logo Categories', icon: Tags },
     { id: 'users' as const, label: 'Users & Roles', icon: Users },
     { id: 'bulk' as const, label: 'Bulk Data', icon: Database },
   ];
@@ -318,6 +320,23 @@ const Admin = () => {
                     </tbody>
                   </table>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Logo Categories Tab */}
+        {activeTab === 'categories' && (
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Tags className="w-5 h-5" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
+                  Logo Categories
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LogoCategoryManager />
               </CardContent>
             </Card>
           </div>

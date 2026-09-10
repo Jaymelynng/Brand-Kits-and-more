@@ -33,6 +33,7 @@ import { useSecretTap } from "@/hooks/useSecretTap";
 import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
 import AssetModal from "@/components/AssetModal";
 import { Pencil } from "lucide-react";
+import { useLogoCategories } from "@/hooks/useLogoCategories";
 
 interface GymProfileProps {
   /** Solo mode: a shareable single-gym page with no way into the rest of the app. */
@@ -51,6 +52,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   // Asset system hooks
   const { data: gymAssets = [] } = useGymAssets(gym?.id);
   const { data: categories = [] } = useAssetCategories();
+  const { data: logoCategories = [] } = useLogoCategories();
+  // Which category the next drop gets. Chosen before the files land, so
+  // uploading and filing are one action instead of two.
+  const [uploadCategory, setUploadCategory] = useState('Uncategorized');
 
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
@@ -433,7 +438,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       setUploadingFiles(prev => ({ ...prev, [fileKey]: 0 }));
 
       uploadLogoMutation.mutate(
-        { gymId: gym.id, file },
+        { gymId: gym.id, file, variant: uploadCategory },
         {
           onSuccess: () => {
             setUploadingFiles(prev => {
@@ -728,31 +733,31 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       .sort((a, b) => a.order_index - b.order_index);
   }, [gymAssets, categories]);
 
-  // The variants this gym actually has, in a sensible reading order. These are
-  // the six that exist after the simplification - the old eight (Primary,
-  // White / Reverse, Dark, Mono, Icon, Wordmark ...) are gone, and leaving them
-  // listed here meant a real file could land under a chip named for a category
-  // that no longer existed.
-  const VARIANT_ORDER = ['Main logo', 'Variations', 'Themed', 'Email size',
-    'Animation', 'Retired', 'Unsorted'];
+  // The reading order comes from the logo_categories table, never a hardcoded
+  // array. A literal list here is what silently swallowed six real uploads:
+  // the categories were renamed and the array kept naming ones that were gone.
+  const VARIANT_ORDER = useMemo(
+    () => logoCategories.map(c => c.name),
+    [logoCategories]
+  );
   // Assets still being judged are back-of-house. A visitor following a shared
   // /gym/CODE link must never see them - they only exist for the review bench.
   const visibleLogos = useMemo(() => {
     if (!gym) return [];
     if (isAdmin) return gym.logos;
-    return gym.logos.filter(l => (l.variant || 'Unsorted') !== 'Needs review');
+    return gym.logos.filter(l => (l.variant || 'Uncategorized') !== 'Needs review');
   }, [gym, isAdmin]);
 
   const availableVariants = useMemo(() => {
-    const seen = new Set(visibleLogos.map(l => l.variant || 'Unsorted'));
+    const seen = new Set(visibleLogos.map(l => l.variant || 'Uncategorized'));
     return VARIANT_ORDER.filter(v => seen.has(v))
       .concat([...seen].filter(v => !VARIANT_ORDER.includes(v)).sort());
-  }, [visibleLogos]);
+  }, [visibleLogos, VARIANT_ORDER]);
 
   // Filter logos by active variant
   const filteredLogos = useMemo(() => {
     if (activeCategoryFilter === 'all') return visibleLogos;
-    return visibleLogos.filter(l => (l.variant || 'Unsorted') === activeCategoryFilter);
+    return visibleLogos.filter(l => (l.variant || 'Uncategorized') === activeCategoryFilter);
   }, [visibleLogos, activeCategoryFilter]);
 
   if (isLoading) {
@@ -1227,6 +1232,32 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               </div>
             </CardHeader>
             <CardContent>
+              {/* Pick the category first, then drop. One step, not two. */}
+              <div className="mb-4">
+                <div className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground mb-2">
+                  File these as
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {logoCategories.map(c => {
+                    const on = uploadCategory === c.name;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setUploadCategory(c.name)}
+                        className="rounded-full px-4 py-2 text-xs font-extrabold transition-all duration-150"
+                        style={{
+                          background: on ? primaryColor : '#F1F4F8',
+                          color: on ? '#FFFFFF' : '#41505F',
+                          boxShadow: on ? `0 0 0 3px ${primaryColor}44` : 'none',
+                        }}
+                      >
+                        {c.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div
                 className={cn(
                   "border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer",
@@ -1251,6 +1282,9 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 </div>
                 <div className="text-lg text-muted-foreground mb-6">
                   Drag and drop or click to upload PNG, JPG, SVG files
+                </div>
+                <div className="text-sm font-bold mb-6" style={{ color: primaryColor }}>
+                  Filed as {uploadCategory}
                 </div>
                 <input
                   ref={fileInputRef}
@@ -1384,7 +1418,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   </button>
                   {availableVariants.map(variantName => {
                     const cat = { id: variantName, name: variantName };
-                    const count = gym.logos.filter(l => (l.variant || 'Unsorted') === variantName).length;
+                    const count = gym.logos.filter(l => (l.variant || 'Uncategorized') === variantName).length;
                     return (
                       <button
                         key={cat.id}

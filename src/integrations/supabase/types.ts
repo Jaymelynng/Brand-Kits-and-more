@@ -468,6 +468,30 @@ export type Database = {
         }
         Relationships: []
       }
+      logo_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_protected: boolean
+          name: string
+          order_index: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_protected?: boolean
+          name: string
+          order_index?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_protected?: boolean
+          name?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
       personal_brand_colors: {
         Row: {
           color_hex: string
