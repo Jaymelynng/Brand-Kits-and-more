@@ -40,6 +40,13 @@ export interface GymLogo {
   width?: number | null;
   height?: number | null;
   has_alpha?: boolean | null;
+  /**
+   * What this file IS, as opposed to where it lives. A logo sits in exactly
+   * one category but wears as many tags as fit - Circle, Transparent, Email
+   * size. Every one is derived from a measured fact or the generator's own
+   * treatment name, never typed in by hand.
+   */
+  tags?: string[];
   created_at?: string;
 }
 
@@ -92,6 +99,34 @@ export const useGyms = () => {
 
       if (elementsError) throw elementsError;
 
+      // Supabase caps a select at 1000 rows and returns the truncated set
+      // without an error. There are already more tag rows than that, so a
+      // plain select made Transparent read 13 for TIG when the real number
+      // is 63 - a wrong count that looks exactly like a right one. Page it.
+      const allTagRows: { logo_id: string; tag_id: string }[] = [];
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from('gym_logo_tags')
+          .select('logo_id, tag_id')
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        allTagRows.push(...data);
+        if (data.length < PAGE) break;
+      }
+      const tagRows = allTagRows;
+      const { data: tagDefs } = await supabase.from('logo_tags').select('id, name');
+      const tagName = new Map((tagDefs || []).map(t => [t.id, t.name]));
+      const tagsByLogo = new Map<string, string[]>();
+      (tagRows || []).forEach(r => {
+        const name = tagName.get(r.tag_id);
+        if (!name) return;
+        const list = tagsByLogo.get(r.logo_id) || [];
+        list.push(name);
+        tagsByLogo.set(r.logo_id, list);
+      });
+
       return gyms.map(gym => {
         // Two locations of one brand share a palette. It lives on the family so
         // a correction is made once - but a gym that sets its own colours still
@@ -103,7 +138,9 @@ export const useGyms = () => {
         return {
           ...gym,
           colors: own.length > 0 ? own : family,
-          logos: logos.filter(logo => logo.gym_id === gym.id),
+          logos: logos
+            .filter(logo => logo.gym_id === gym.id)
+            .map(logo => ({ ...logo, tags: tagsByLogo.get(logo.id) || [] })),
           elements: elements?.filter(element => element.gym_id === gym.id) || [],
         };
       });

@@ -492,6 +492,45 @@ export type Database = {
         }
         Relationships: []
       }
+      logo_tags: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          order_index: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          name: string
+          order_index?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
+      gym_logo_tags: {
+        Row: {
+          logo_id: string
+          tag_id: string
+        }
+        Insert: {
+          logo_id: string
+          tag_id: string
+        }
+        Update: {
+          logo_id?: string
+          tag_id?: string
+        }
+        Relationships: []
+      }
       personal_brand_colors: {
         Row: {
           color_hex: string

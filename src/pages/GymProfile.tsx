@@ -34,6 +34,7 @@ import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
 import AssetModal from "@/components/AssetModal";
 import { Pencil } from "lucide-react";
 import { useLogoCategories } from "@/hooks/useLogoCategories";
+import { useLogoTags } from "@/hooks/useLogoTags";
 
 interface GymProfileProps {
   /** Solo mode: a shareable single-gym page with no way into the rest of the app. */
@@ -53,9 +54,13 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const { data: gymAssets = [] } = useGymAssets(gym?.id);
   const { data: categories = [] } = useAssetCategories();
   const { data: logoCategories = [] } = useLogoCategories();
+  const { data: logoTags = [] } = useLogoTags();
   // Which category the next drop gets. Chosen before the files land, so
   // uploading and filing are one action instead of two.
   const [uploadCategory, setUploadCategory] = useState('Uncategorized');
+  // Tags narrow whatever category is showing. A logo lives in one category
+  // but wears many tags, so these stack: Circle + Transparent means both.
+  const [activeTags, setActiveTags] = useState<string[]>([]);
 
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [isDragOver, setIsDragOver] = useState(false);
@@ -754,11 +759,35 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       .concat([...seen].filter(v => !VARIANT_ORDER.includes(v)).sort());
   }, [visibleLogos, VARIANT_ORDER]);
 
-  // Filter logos by active variant
+  // Category first, then tags narrow it. Tags are AND, not OR - picking
+  // Circle and Transparent means files that are both, which is how someone
+  // actually hunts for a file.
   const filteredLogos = useMemo(() => {
-    if (activeCategoryFilter === 'all') return visibleLogos;
-    return visibleLogos.filter(l => (l.variant || 'Uncategorized') === activeCategoryFilter);
-  }, [visibleLogos, activeCategoryFilter]);
+    const inCategory = activeCategoryFilter === 'all'
+      ? visibleLogos
+      : visibleLogos.filter(l => (l.variant || 'Uncategorized') === activeCategoryFilter);
+    if (activeTags.length === 0) return inCategory;
+    return inCategory.filter(l => activeTags.every(t => (l.tags || []).includes(t)));
+  }, [visibleLogos, activeCategoryFilter, activeTags]);
+
+  // Only offer tags that would actually return something, with the count of
+  // what is left after the tags already picked - never a chip leading to zero.
+  const tagFacets = useMemo(() => {
+    const inCategory = activeCategoryFilter === 'all'
+      ? visibleLogos
+      : visibleLogos.filter(l => (l.variant || 'Uncategorized') === activeCategoryFilter);
+    const byKind = new Map<string, { name: string; count: number }[]>();
+    logoTags.forEach(t => {
+      const others = activeTags.filter(x => x !== t.name);
+      const pool = inCategory.filter(l => others.every(x => (l.tags || []).includes(x)));
+      const count = pool.filter(l => (l.tags || []).includes(t.name)).length;
+      if (count === 0) return;
+      const list = byKind.get(t.kind) || [];
+      list.push({ name: t.name, count });
+      byKind.set(t.kind, list);
+    });
+    return [...byKind.entries()];
+  }, [visibleLogos, activeCategoryFilter, activeTags, logoTags]);
 
   if (isLoading) {
     return (
@@ -1406,7 +1435,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               {availableVariants.length > 1 && (
                 <div className="flex items-center gap-2 mt-4 flex-wrap">
                   <button
-                    onClick={() => setActiveCategoryFilter('all')}
+                    onClick={() => { setActiveCategoryFilter('all'); setActiveTags([]); }}
                     className={cn(
                       "px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border",
                       activeCategoryFilter === 'all'
@@ -1422,7 +1451,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     return (
                       <button
                         key={cat.id}
-                        onClick={() => setActiveCategoryFilter(cat.name)}
+                        onClick={() => { setActiveCategoryFilter(cat.name); setActiveTags([]); }}
                         className={cn(
                           "px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border",
                           activeCategoryFilter === cat.name
@@ -1434,6 +1463,48 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       </button>
                     );
                   })}
+                </div>
+              )}
+
+              {/* Tags narrow the category. Grouped by kind so the row reads as
+                  Shape / Background / Size / Style rather than one pile. Every
+                  chip shows what it would leave, and a chip that would leave
+                  nothing is not offered at all. */}
+              {tagFacets.length > 0 && (
+                <div className="mt-3 flex flex-col gap-2">
+                  {tagFacets.map(([kind, tags]) => (
+                    <div key={kind} className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-white/50 w-20 shrink-0">
+                        {kind}
+                      </span>
+                      {tags.map(t => {
+                        const on = activeTags.includes(t.name);
+                        return (
+                          <button
+                            key={t.name}
+                            onClick={() => setActiveTags(prev =>
+                              on ? prev.filter(x => x !== t.name) : [...prev, t.name])}
+                            className={cn(
+                              "px-3 py-1 rounded-full text-xs font-bold transition-all duration-150 border",
+                              on
+                                ? "bg-white text-foreground border-white shadow-md"
+                                : "bg-white/10 text-white/70 border-white/20 hover:bg-white/20 hover:text-white"
+                            )}
+                          >
+                            {t.name} ({t.count})
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                  {activeTags.length > 0 && (
+                    <button
+                      onClick={() => setActiveTags([])}
+                      className="self-start text-[11px] font-bold text-white/60 underline hover:text-white"
+                    >
+                      Clear {activeTags.length} tag{activeTags.length === 1 ? '' : 's'} · showing {filteredLogos.length}
+                    </button>
+                  )}
                 </div>
               )}
             </CardHeader>
