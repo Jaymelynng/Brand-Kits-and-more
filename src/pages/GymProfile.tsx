@@ -1733,26 +1733,23 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   borderColor: showcaseInk,
                 }}
               >
-                <CardHeader className="pb-0">
-                  <div className="flex items-baseline gap-3">
-                    <CardTitle className="text-2xl text-white">Primary logos</CardTitle>
-                    <span className="text-sm font-semibold text-white/70">
-                      {primaries.length === 1 ? 'the mark' : `${primaries.length} approved marks`}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
+                <CardContent className="pt-6">
                   {/* 60 / 40. Fonts used to be their own full-width slab, which
                       pushed the logos below the fold - the thing she opens the
                       kit for sat behind a wall of type. */}
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
                     <div className="min-w-0 lg:w-[60%]">
+                      <CardTitle className="mb-2 text-2xl text-white">Primary logos</CardTitle>
                       {/* Half-width slides, not thirds: in the narrower column
                           thirds shrank the cards until the buttons stopped
                           being readable. */}
                       {renderCarousel(reel, "basis-4/5 sm:basis-1/2")}
                     </div>
                     <div className="min-w-0 lg:w-[40%]">
+                      {/* The carousel was titled and the type was not, so
+                          nothing on screen said the panel beside it was the
+                          brand's fonts. */}
+                      <CardTitle className="mb-2 text-2xl text-white">Fonts</CardTitle>
                       <FontSpecimen
                         gymId={gym.id}
                         gymName={gym.name}
