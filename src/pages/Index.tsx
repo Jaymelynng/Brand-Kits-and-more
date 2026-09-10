@@ -7,7 +7,7 @@ import { GymPillStrip } from "@/components/GymPillStrip";
 import { GymCard } from "@/components/GymCard";
 import { AddGymModal } from "@/components/AddGymModal";
 import { AdminToolkit } from "@/components/AdminToolkit";
-import { GymSearchBar } from "@/components/GymSearchBar";
+import { SelectionRail } from "@/components/SelectionRail";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronUp, Shield } from "lucide-react";
@@ -95,18 +95,23 @@ const Index = () => {
 
   const scrollToGym = (gymCode: string) => {
     const gymElement = document.getElementById(`gym-${gymCode}`);
-    if (gymElement) {
-      gymElement.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center' 
-      });
-      
-      // Add highlight effect
-      gymElement.style.boxShadow = '0 0 20px rgba(196, 164, 164, 0.8)';
-      setTimeout(() => {
-        gymElement.style.boxShadow = '';
-      }, 2000);
-    }
+    if (!gymElement) return;
+
+    // Set scrollTop directly. Smooth behaviour and rAF both silently do
+    // nothing in some contexts; this always lands on the card.
+    const scroller = document.scrollingElement || document.documentElement;
+    const target =
+      scroller.scrollTop +
+      gymElement.getBoundingClientRect().top -
+      Math.max(0, (window.innerHeight - gymElement.offsetHeight) / 2);
+    scroller.scrollTop = Math.max(0, target);
+
+    gymElement.style.outline = '3px solid #16B8A0';
+    gymElement.style.outlineOffset = '3px';
+    setTimeout(() => {
+      gymElement.style.outline = '';
+      gymElement.style.outlineOffset = '';
+    }, 1600);
   };
 
   const copyAllGyms = () => {
@@ -249,52 +254,34 @@ const Index = () => {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #e5e7eb 0%, #e6e6e6 50%, #d6c5bf 100%)' }}>
-      {/* Sticky pill strip + navigation */}
-      <div className="sticky top-0 z-40 shadow-sm" style={{ background: 'hsl(var(--brand-white))' }}>
-        <GymPillStrip
-          selectedGyms={selectedGyms}
-          onToggleGymSelection={toggleGymSelection}
-          onScrollToGym={scrollToGym}
-        />
-        <GymNavigation 
-          gyms={gyms} 
-          onScrollToGym={scrollToGym}
-          onCopySelected={handleCopySelected}
-          onCopyAll={copyAllGyms}
-          onCopyLogoUrls={handleCopyLogoUrls}
-          onCopyColorsAndLogos={handleCopyColorsAndLogos}
-          selectedGyms={selectedGyms}
-          onToggleGymSelection={toggleGymSelection}
-          onSelectAllGyms={selectAllGyms}
-          onDeselectAllGyms={deselectAllGyms}
-          user={user}
-          isAdmin={isAdmin}
-          onAdminClick={handleAdminClick}
-          onSignOut={handleSignOut}
-        />
-      </div>
+      <div className="flex min-h-screen flex-col lg:flex-row">
+      <SelectionRail
+        gyms={gyms}
+        selectedCodes={selectedGyms}
+        onToggle={toggleGymSelection}
+        onJumpTo={scrollToGym}
+        onSelectAll={selectAllGyms}
+        onClearAll={deselectAllGyms}
+        searchQuery={searchQuery}
+        onSearch={setSearchQuery}
+      />
 
-      {/* Main content area - Soft background with your colors */}
-      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d6c5bf 100%)' }}>
+      <div className="min-w-0 flex-1" style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d6c5bf 100%)' }}>
 
         {/* Main Content */}
-        <div className="pt-2 pb-16">
-          <div className="w-full px-4 sm:px-5 lg:px-6">
-            {/* Search Bar */}
-            <GymSearchBar 
-              onSearch={setSearchQuery} 
-              resultCount={filteredGyms.length} 
-              totalCount={gyms.length} 
-            />
+        <div className="pt-5 pb-16">
+          <div className="w-full px-4 sm:px-6 lg:pl-8 lg:pr-6 2xl:pl-10 2xl:pr-8">
 
             {/* Gym Grid */}
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(460px,1fr))] justify-items-center gap-8 lg:gap-9 items-stretch">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] justify-items-center gap-6 xl:gap-8 2xl:grid-cols-[repeat(auto-fill,minmax(min(100%,400px),1fr))] items-stretch">
               {filteredGyms.map((gym) => (
-                <GymCard 
-                  key={gym.id} 
-                  gym={gym} 
+                <GymCard
+                  key={gym.id}
+                  gym={gym}
                   editMode={editMode}
                   showAllLogos={false}
+                  selected={selectedGyms.has(gym.code)}
+                  onToggleSelect={toggleGymSelection}
                 />
               ))}
               {filteredGyms.length === 0 && searchQuery && (
@@ -304,14 +291,9 @@ const Index = () => {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="mt-16 text-center">
-              <p className="text-sm leading-relaxed max-w-4xl mx-auto" style={{ color: 'hsl(var(--brand-text-primary) / 0.8)' }}>
-                Click gym buttons in the dashboard to jump to each gym • Use sparkling diamonds to select specific gyms for copying • Copy individual colors, single gyms, selected groups, or all at once • Click main logo area or upload section to add logos • Click any uploaded logo to set it as the main display logo • Edit mode allows you to modify colors and add new gyms
-              </p>
-            </div>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Add Gym Modal */}

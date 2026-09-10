@@ -13,6 +13,7 @@ interface ColorSwatchProps {
   onEdit?: () => void;
   onDelete?: () => void;
   editMode?: boolean;
+  compact?: boolean;
   className?: string;
 }
 
@@ -25,6 +26,7 @@ export const ColorSwatch = ({
   onEdit, 
   onDelete,
   editMode = false,
+  compact = false,
   className 
 }: ColorSwatchProps) => {
   const [copied, setCopied] = useState<string | null>(null);
@@ -57,12 +59,14 @@ export const ColorSwatch = ({
 
   if (layout === 'cell') {
     const light = isLightColor(color);
-    const SWATCH = 'clamp(92px, 6.8vw, 112px)';
+    const SWATCH = compact ? 'clamp(46px, 3.4vw, 62px)' : 'clamp(92px, 6.8vw, 112px)';
     const CONTROL_ROW = SWATCH;
     return (
       <div
         className={cn(
-          "flex flex-col items-center gap-1.5 p-2.5 rounded-lg border relative",
+          compact
+            ? "flex flex-col items-center gap-1 p-1.5 rounded-lg border relative"
+            : "flex flex-col items-center gap-1.5 p-2.5 rounded-lg border relative",
           "border-border/70",
           className
         )}
@@ -91,19 +95,24 @@ export const ColorSwatch = ({
         />
         
         {/* Hex code */}
-        <div className="font-mono text-[11px] font-bold text-foreground select-all leading-none">
+        <div
+          className={cn(
+            "font-mono font-bold text-foreground select-all leading-none",
+            compact ? "text-[8px]" : "text-[11px]"
+          )}
+        >
           {color}
         </div>
         
         {/* Label */}
-        {label && (
+        {label && !compact && (
           <div className="text-[10px] text-muted-foreground font-medium leading-none text-center">
             {label}
           </div>
         )}
 
         {/* Copy buttons */}
-        {showControls && (
+        {showControls && !compact && (
           <div className="grid grid-cols-2 gap-1 mx-auto" style={{ width: CONTROL_ROW }}>
             <button
               onClick={() => copyColor(color, true)}
@@ -183,7 +192,7 @@ export const ColorSwatch = ({
           <div className="font-mono text-sm font-bold text-foreground select-all">
             {color}
           </div>
-          {label && (
+          {label && !compact && (
             <div className="text-xs text-muted-foreground font-medium">
               {label}
             </div>

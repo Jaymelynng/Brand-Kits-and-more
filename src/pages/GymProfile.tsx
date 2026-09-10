@@ -708,15 +708,22 @@ const GymProfile = () => {
       .sort((a, b) => a.order_index - b.order_index);
   }, [gymAssets, categories]);
 
-  // Filter logos by active category
+  // The variants this gym actually has, in a sensible reading order.
+  const VARIANT_ORDER = ['Primary', 'White / Reverse', 'Dark', 'Mono', 'Icon',
+    'Wordmark inline', 'Wordmark stacked', 'Hero', 'Divider', 'Framed variant'];
+  const availableVariants = useMemo(() => {
+    if (!gym) return [] as string[];
+    const seen = new Set(gym.logos.map(l => l.variant || 'Primary'));
+    return VARIANT_ORDER.filter(v => seen.has(v))
+      .concat([...seen].filter(v => !VARIANT_ORDER.includes(v)).sort());
+  }, [gym]);
+
+  // Filter logos by active variant
   const filteredLogos = useMemo(() => {
     if (!gym) return [];
     if (activeCategoryFilter === 'all') return gym.logos;
-    return gym.logos.filter(logo => {
-      const cat = assetCategoryMap.get(logo.file_url);
-      return cat === activeCategoryFilter;
-    });
-  }, [gym, activeCategoryFilter, assetCategoryMap]);
+    return gym.logos.filter(l => (l.variant || 'Primary') === activeCategoryFilter);
+  }, [gym, activeCategoryFilter]);
 
   if (isLoading) {
     return (
@@ -1323,7 +1330,7 @@ const GymProfile = () => {
                 </div>
               </div>
               {/* Theme/Category Filter Tabs */}
-              {availableCategories.length > 1 && (
+              {availableVariants.length > 1 && (
                 <div className="flex items-center gap-2 mt-4 flex-wrap">
                   <button
                     onClick={() => setActiveCategoryFilter('all')}
@@ -1336,8 +1343,9 @@ const GymProfile = () => {
                   >
                     All ({gym.logos.length})
                   </button>
-                  {availableCategories.map(cat => {
-                    const count = gym.logos.filter(l => assetCategoryMap.get(l.file_url) === cat.name).length;
+                  {availableVariants.map(variantName => {
+                    const cat = { id: variantName, name: variantName };
+                    const count = gym.logos.filter(l => (l.variant || 'Primary') === variantName).length;
                     return (
                       <button
                         key={cat.id}
@@ -1546,7 +1554,7 @@ const GymProfile = () => {
                                     {copiedStates[logo.file_url] ? "Copied!" : "Copy URL"}
                                   </Button>
                                   
-                                  {!logo.is_main_logo && (
+                                  {isAdmin && !logo.is_main_logo && (
                                     <Button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -1561,6 +1569,7 @@ const GymProfile = () => {
                                     </Button>
                                   )}
                                   
+                                  {isAdmin && (<>
                                   <Button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -1590,6 +1599,7 @@ const GymProfile = () => {
                                     <Trash2 className="w-4 h-4 mr-2" />
                                     Delete
                                   </Button>
+                                  </>)}
                                 </div>
                               </CardContent>
                             </Card>
@@ -1708,7 +1718,7 @@ const GymProfile = () => {
                             {copiedStates[logo.file_url] ? "Copied!" : "Copy URL"}
                           </Button>
                           
-                          {!logo.is_main_logo && (
+                          {isAdmin && !logo.is_main_logo && (
                             <Button
                               onClick={() => setMainLogo(logo.id)}
                               size="sm"
@@ -1720,6 +1730,7 @@ const GymProfile = () => {
                             </Button>
                           )}
                           
+                          {isAdmin && (<>
                           <Button
                             onClick={() => handleRemoveBackground(logo)}
                             size="sm"
@@ -1743,6 +1754,7 @@ const GymProfile = () => {
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
                           </Button>
+                          </>)}
                         </div>
                       </CardContent>
                     </Card>
@@ -1821,7 +1833,7 @@ const GymProfile = () => {
                               <Copy className="w-4 h-4" />
                             </Button>
                             
-                            {!logo.is_main_logo && (
+                            {isAdmin && !logo.is_main_logo && (
                               <Button
                                 onClick={() => setMainLogo(logo.id)}
                                 size="sm"
@@ -1832,6 +1844,7 @@ const GymProfile = () => {
                               </Button>
                             )}
                             
+                            {isAdmin && (<>
                             <Button
                               onClick={() => handleRemoveBackground(logo)}
                               size="sm"
@@ -1851,6 +1864,7 @@ const GymProfile = () => {
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
+                            </>)}
                           </div>
                         </div>
                       </CardContent>
@@ -1928,7 +1942,7 @@ const GymProfile = () => {
                             <Copy className="w-4 h-4" />
                           </Button>
                           
-                          {!logo.is_main_logo && (
+                          {isAdmin && !logo.is_main_logo && (
                             <Button
                               onClick={() => setMainLogo(logo.id)}
                               size="sm"
@@ -1939,6 +1953,7 @@ const GymProfile = () => {
                             </Button>
                           )}
                           
+                          {isAdmin && (<>
                           <Button
                             onClick={() => handleRemoveBackground(logo)}
                             size="sm"
@@ -1958,6 +1973,7 @@ const GymProfile = () => {
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
+                          </>)}
                         </div>
                       </CardContent>
                     </Card>
@@ -2094,6 +2110,7 @@ const GymProfile = () => {
                             Copy SVG Code
                           </Button>
                           
+                          {isAdmin && (<>
                           <Button
                             onClick={() => handleDeleteElement(element.id, element.element_type)}
                             size="sm"
@@ -2103,6 +2120,7 @@ const GymProfile = () => {
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
                           </Button>
+                          </>)}
                         </div>
                       </CardContent>
                     </Card>
@@ -2111,7 +2129,7 @@ const GymProfile = () => {
               )}
             </CardContent>
           </Card>
-        ) : (
+        ) : isAdmin ? (
           <Card className="bg-white shadow-2xl mb-8 border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
               <CardTitle className="text-2xl">📦 Brand Elements</CardTitle>
@@ -2132,7 +2150,7 @@ const GymProfile = () => {
               </div>
             </CardContent>
           </Card>
-        )}
+        ) : null}
 
         {/* Element Upload Interface */}
         {showElementUpload && (

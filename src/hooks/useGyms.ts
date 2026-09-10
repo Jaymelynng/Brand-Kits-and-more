@@ -30,6 +30,8 @@ export interface GymLogo {
   filename: string;
   file_url: string;
   is_main_logo: boolean;
+  /** Primary | White / Reverse | Dark | Mono | Icon | Wordmark … */
+  variant?: string | null;
   created_at?: string;
 }
 

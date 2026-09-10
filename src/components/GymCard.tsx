@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { GymWithColors, useUpdateGymColor, useUploadLogo, useSetMainLogo, useDeleteLogo, useAddGymColor, useDeleteGymColor } from "@/hooks/useGyms";
-import { Upload, Star, X, Copy, Eye, Download, Plus } from "lucide-react";
+import { Upload, Star, X, Copy, Eye, Download, Plus, ChevronDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { GymColorProvider } from "./shared/GymColorProvider";
@@ -14,9 +15,11 @@ interface GymCardProps {
   gym: GymWithColors;
   editMode: boolean;
   showAllLogos?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (code: string) => void;
 }
 
-export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) => {
+export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false, onToggleSelect }: GymCardProps) => {
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [uploadProgress, setUploadProgress] = useState<{ total: number; completed: number } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -30,6 +33,18 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   const deleteLogoMutation = useDeleteLogo();
   const addColorMutation = useAddGymColor();
   const deleteColorMutation = useDeleteGymColor();
+
+  // A gym's second colour is sometimes near-white, which made the Download
+  // button look disabled. Fall back to the primary when it can't carry text.
+  const readableOn = (hex: string, fallback: string) => {
+    const c = hex.replace('#', '');
+    if (c.length < 6) return fallback;
+    const r = parseInt(c.slice(0, 2), 16);
+    const g = parseInt(c.slice(2, 4), 16);
+    const b = parseInt(c.slice(4, 6), 16);
+    const luminance = (r * 299 + g * 587 + b * 114) / 1000;
+    return luminance > 120 ? fallback : hex;
+  };
 
   const showCopyFeedback = (key: string, message: string) => {
     setCopiedStates(prev => ({ ...prev, [key]: true }));
@@ -76,6 +91,31 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
     
     document.body.appendChild(input);
     input.click();
+  };
+
+  const downloadLogo = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+      toast({ description: `Downloaded ${filename}!`, duration: 2000 });
+    } catch (err) {
+      console.error('Download failed:', err);
+      toast({ title: "Download Failed", description: "Could not download the logo.", variant: "destructive" });
+    }
+  };
+
+  const downloadAllLogos = async () => {
+    for (const l of gym.logos || []) {
+      await downloadLogo(l.file_url, l.filename);
+    }
   };
 
   const copyLogoUrl = (url: string, filename: string) => {
@@ -240,20 +280,26 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
         <BrandCard 
-        className="rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-[clamp(460px,36vw,620px)] mx-auto"
+        className="rounded-xl transition-all duration-300 hover:shadow-xl group border flex flex-col h-full w-full max-w-full mx-auto"
         style={{
           background: '#737373',
-          borderColor: editMode 
-            ? 'hsl(var(--brand-rose-gold))' 
-            : 'rgba(0,0,0,0.12)',
+          opacity: selected ? 1 : 0.62,
+          borderColor: editMode
+            ? 'hsl(var(--brand-rose-gold))'
+            : selected
+              ? '#16B8A0'
+              : 'rgba(0,0,0,0.12)',
           boxShadow: '0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.6)',
         }}
         id={`gym-${gym.code}`}
       >
-        <div className="flex items-center justify-between py-2.5 px-4 border-b border-border/40"
-             style={{
-               background: 'rgba(0,0,0,0.15)',
-             }}>
+        <div
+          onClick={() => onToggleSelect?.(gym.code)}
+          className="flex items-center justify-between py-2.5 px-4 border-b border-border/40 cursor-pointer select-none"
+          title={selected ? 'Click to unselect' : 'Click to select'}
+          style={{
+            background: selected ? 'rgba(22,184,160,0.35)' : 'rgba(0,0,0,0.15)',
+          }}>
           <h3 className="text-base font-bold" style={{ color: '#ffffff' }}>
             {gym.name}
           </h3>
@@ -361,13 +407,14 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
                 </Button>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
               {gym.colors.map((color, index) => (
                 <ColorSwatch
                   key={color.id}
                   color={color.color_hex}
                   label={`Color ${index + 1}`}
                   layout="cell"
+                  compact
                   showControls={true}
                   editMode={editMode}
                   onEdit={() => editColor(color.id, color.color_hex)}
@@ -377,91 +424,79 @@ export const GymCard = ({ gym, editMode, showAllLogos = false }: GymCardProps) =
             </div>
           </div>
 
-          {/* Action Buttons — fixed compact width, Profile on its own row */}
-          <div className="w-full space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                onClick={copyColorsWithName}
-                variant="outline"
-                size="sm"
-                className="h-9 text-xs text-white font-semibold"
-                style={{
-                  background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
-                  border: 'none',
-                  boxShadow: `0 3px 6px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)`
-                }}
-              >
-                <Copy className="w-3 h-3 mr-1" />
-                w/ Name
-              </Button>
-              <Button
-                onClick={copyColorsHexOnly}
-                variant="outline"
-                size="sm"
-                className="h-9 text-xs font-semibold"
-                style={{
-                  background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
-                  border: `1.5px solid ${primaryColor}`,
-                  color: primaryColor,
-                  boxShadow: `0 3px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)`
-                }}
-              >
-                <Copy className="w-3 h-3 mr-1" />
-                HEX Only
-              </Button>
-            </div>
-
-            {mainLogo && (
-              <div className="grid grid-cols-2 gap-2">
+          {/* Two verbs. Each opens its own short list. */}
+          <div className="w-full grid grid-cols-2 gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch(mainLogo.file_url);
-                      const blob = await response.blob();
-                      const url = URL.createObjectURL(blob);
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.download = mainLogo.filename;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                      URL.revokeObjectURL(url);
-                      toast({ description: `Downloaded ${mainLogo.filename}!`, duration: 2000 });
-                    } catch (err) {
-                      console.error('Download failed:', err);
-                      toast({ title: "Download Failed", description: "Could not download the logo.", variant: "destructive" });
-                    }
-                  }}
                   variant="outline"
                   size="sm"
                   className="h-9 text-xs text-white font-semibold"
                   style={{
-                    background: `linear-gradient(to bottom, ${secondaryColor}, color-mix(in srgb, ${secondaryColor} 65%, black))`,
+                    background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
                     border: 'none',
-                    boxShadow: `0 3px 6px ${secondaryColor}44, inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.2)`
+                    boxShadow: `0 3px 6px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)`
                   }}
                 >
-                  <Download className="w-3 h-3 mr-1" />
-                  Logo
+                  <Copy className="w-3 h-3 mr-1" />
+                  Copy
+                  <ChevronDown className="w-3 h-3 ml-1 opacity-80" />
                 </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-52 p-1.5">
+                <button onClick={copyColorsHexOnly} className="w-full rounded px-2 py-2 text-left text-xs font-semibold hover:bg-muted">
+                  Hex codes
+                </button>
+                <button onClick={copyColorsWithName} className="w-full rounded px-2 py-2 text-left text-xs font-semibold hover:bg-muted">
+                  Hex codes + gym name
+                </button>
+                {mainLogo && (
+                  <button
+                    onClick={() => copyLogoUrl(mainLogo.file_url, mainLogo.filename)}
+                    className="w-full rounded px-2 py-2 text-left text-xs font-semibold hover:bg-muted"
+                  >
+                    Main logo link
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button
-                  onClick={() => copyLogoUrl(mainLogo.file_url, mainLogo.filename)}
                   variant="outline"
                   size="sm"
                   className="h-9 text-xs font-semibold"
                   style={{
                     background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
-                    border: `1.5px solid ${secondaryColor}`,
-                    color: secondaryColor,
+                    border: `1.5px solid ${readableOn(secondaryColor, primaryColor)}`,
+                    color: readableOn(secondaryColor, primaryColor),
                     boxShadow: `0 3px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)`
                   }}
                 >
-                  <Copy className="w-3 h-3 mr-1" />
-                  {copiedStates[`url-${mainLogo.file_url}`] ? "Copied!" : "Copy URL"}
+                  <Download className="w-3 h-3 mr-1" />
+                  Download
+                  <ChevronDown className="w-3 h-3 ml-1 opacity-70" />
                 </Button>
-              </div>
-            )}
-
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-52 p-1.5">
+                {mainLogo ? (
+                  <button
+                    onClick={() => downloadLogo(mainLogo.file_url, mainLogo.filename)}
+                    className="w-full rounded px-2 py-2 text-left text-xs font-semibold hover:bg-muted"
+                  >
+                    Main logo
+                  </button>
+                ) : (
+                  <p className="px-2 py-2 text-xs text-muted-foreground">No logo yet</p>
+                )}
+                {(gym.logos?.length || 0) > 1 && (
+                  <button onClick={downloadAllLogos} className="w-full rounded px-2 py-2 text-left text-xs font-semibold hover:bg-muted">
+                    All {gym.logos!.length} logos
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Logo Gallery */}

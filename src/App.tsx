@@ -10,6 +10,7 @@ import Themes from "./pages/Themes";
 import ThemeDetail from "./pages/ThemeDetail";
 
 import Admin from "./pages/Admin";
+import Review from "./pages/Review";
 import MyBrand from "./pages/MyBrand";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/themes" element={<Themes />} />
           <Route path="/themes/:categoryId" element={<ThemeDetail />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/review" element={<Review />} />
           <Route path="/my-brand" element={<MyBrand />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -383,6 +383,7 @@ export type Database = {
           gym_id: string | null
           id: string
           is_main_logo: boolean | null
+          variant: string | null
         }
         Insert: {
           created_at?: string | null
@@ -391,6 +392,7 @@ export type Database = {
           gym_id?: string | null
           id?: string
           is_main_logo?: boolean | null
+          variant?: string | null
         }
         Update: {
           created_at?: string | null
@@ -399,6 +401,7 @@ export type Database = {
           gym_id?: string | null
           id?: string
           is_main_logo?: boolean | null
+          variant?: string | null
         }
         Relationships: [
           {
