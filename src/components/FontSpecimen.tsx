@@ -150,15 +150,15 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
           natural height the type sat in the top third with a void beneath. */}
       <div className="flex flex-col gap-3 py-1">
         <div
-          className="leading-[0.92]"
+          className="break-words leading-[1.02]"
           style={{
             fontFamily: `'${p.heading_font}', sans-serif`,
             fontWeight: Number(p.heading_weight),
-            fontSize: "clamp(42px, 5.4vw, 82px)",
+            fontSize: p.sample_heading ? "clamp(30px, 4vw, 60px)" : "clamp(42px, 5.4vw, 82px)",
             color: ink,
           }}
         >
-          {gymName}
+          {p.sample_heading || gymName}
         </div>
         <div
           style={{
@@ -170,8 +170,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
             opacity: 0.88,
           }}
         >
-          Classes for every age and level, from first steps on the floor to
-          competitive team. Come and see the gym for yourself.
+          {p.sample_body || "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789"}
         </div>
         {/* The alphabet, which is what a specimen is actually for. */}
         <div
@@ -196,9 +195,10 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
               color: accent,
             }}
           >
-            Summer camp starts June 3rd
+            Aa Bb Cc 0123456789
           </div>
         )}
+        {p.sample_source && <p className="text-xs leading-relaxed" style={{ color: ink }}>Campaign example · {p.sample_source}</p>}
       </div>
 
       {/* Names and controls, compact, under the sample. */}

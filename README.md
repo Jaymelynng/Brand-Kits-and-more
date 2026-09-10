@@ -24,6 +24,13 @@ Multi-location gym brand asset management tool. Manage brand colors, logos, elem
 - Logo gallery with carousel view, theme tag filters, upload, set-as-main, background removal, delete
 - Brand elements grid (SVG icons, banners) with copy URL/SVG/delete
 
+### Brand Kit Download (`/gym/:code` and `/kit/:code`)
+- **Download brand kit** exports a ZIP with a visual PDF guide, the saved Primary logos, font files and licenses, HEX/RGB palettes, and a file inventory. **PDF guide** downloads the guide alone.
+- Export reads current gym data and font pairings. Retired, uncategorized, themed and animation files remain in the full gallery, outside the core package. Required-file failures stop the export and show an error instead of returning a partial ZIP.
+- Font samples are editable fields on each pairing (`sample_heading`, `sample_body`, `sample_source`) and are shared by the panel, editor and PDF. Empty samples use neutral type specimens, not invented campaign claims.
+- Licensed fonts packaged in `public/fonts` are listed in `src/lib/brandKitFonts.ts`. A saved font without a bundled file receives an official source link and a visible note; its file is never claimed as included. Source and license details live with the fonts.
+- PNG originals remain PNGs. Dimensions and transparency are measured during export; the guide identifies when a vector master is still needed for production.
+
 ### Asset Hub (`/assets`)
 - Cross-gym asset management with rotating thumbnail cards
 - Section-based layout by asset type (Logo, Email Asset, Social Media, Marketing)

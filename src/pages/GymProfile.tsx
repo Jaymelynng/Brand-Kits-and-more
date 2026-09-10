@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { copyText } from "@/lib/copyText";
 import { LogoMedia } from "@/components/LogoMedia";
 import { FontSpecimen } from "@/components/FontSpecimen";
+import { BrandKitDownload } from "@/components/BrandKitDownload";
 import { luminance, shade } from "@/lib/shade";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
@@ -1427,6 +1428,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     </Button>
                   </div>
                 )}
+
+                <BrandKitDownload gym={gym} />
 
                 {/* Brand Assets Stats */}
                 <div className="border-t-2 pt-5" style={{ borderColor: `${primaryColor}15` }}>

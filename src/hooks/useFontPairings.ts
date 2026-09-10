@@ -17,6 +17,9 @@ export interface FontPairing {
   is_preferred: boolean;
   order_index: number;
   notes: string | null;
+  sample_heading: string | null;
+  sample_body: string | null;
+  sample_source: string | null;
 }
 
 export const useFontPairings = (gymId?: string) =>

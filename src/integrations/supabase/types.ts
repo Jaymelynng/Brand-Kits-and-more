@@ -533,6 +533,9 @@ export type Database = {
       }
       gym_font_pairings: {
         Row: {
+          sample_heading: string | null
+          sample_body: string | null
+          sample_source: string | null
           accent_font: string | null
           accent_weight: string | null
           body_font: string
@@ -549,6 +552,9 @@ export type Database = {
           order_index: number
         }
         Insert: {
+          sample_heading?: string | null
+          sample_body?: string | null
+          sample_source?: string | null
           accent_font?: string | null
           accent_weight?: string | null
           body_font: string
@@ -565,6 +571,9 @@ export type Database = {
           order_index?: number
         }
         Update: {
+          sample_heading?: string | null
+          sample_body?: string | null
+          sample_source?: string | null
           accent_font?: string | null
           accent_weight?: string | null
           body_font?: string

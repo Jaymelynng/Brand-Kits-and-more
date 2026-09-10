@@ -211,20 +211,19 @@ export const FontsSection = ({ gymId, gymName, palette, canEdit, embedded = fals
                 className="mb-2 leading-tight"
                 style={{ fontFamily: `'${p.heading_font}', sans-serif`, fontWeight: Number(p.heading_weight), fontSize: 30, color: ink }}
               >
-                {gymName}
+                {p.sample_heading || gymName}
               </div>
               <div
                 style={{ fontFamily: `'${p.body_font}', sans-serif`, fontWeight: Number(p.body_weight), fontSize: 15, color: shade(ink, 0.05), lineHeight: 1.65 }}
               >
-                Classes for every age and level, from first steps on the floor to
-                competitive team. Come and see the gym for yourself.
+                {p.sample_body || "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789"}
               </div>
               {p.accent_font && (
                 <div
                   className="mt-3"
                   style={{ fontFamily: `'${p.accent_font}', cursive`, fontWeight: Number(p.accent_weight || 400), fontSize: 24, color: accent }}
                 >
-                  Summer camp starts June 3rd
+                  Aa Bb Cc 0123456789
                 </div>
               )}
             </div>
@@ -336,6 +335,13 @@ export const FontsSection = ({ gymId, gymName, palette, canEdit, embedded = fals
                 </div>
               ))}
 
+              {([['Sample headline', 'sample_heading', 140], ['Sample body', 'sample_body', 400], ['Sample source', 'sample_source', 240]] as const).map(([label, key, maxLength]) => (
+                <label key={key} className="text-xs font-bold sm:col-span-2">
+                  {label}
+                  <Input className="mt-1" value={editing[key] || ''} maxLength={maxLength}
+                    onChange={e => setEditing({ ...editing, [key]: e.target.value })} />
+                </label>
+              ))}
               <label className="text-xs font-bold sm:col-span-2">
                 Note (optional)
                 <Input
@@ -351,10 +357,10 @@ export const FontsSection = ({ gymId, gymName, palette, canEdit, embedded = fals
             {editing.heading_font && editing.body_font && (
               <div className="mt-3 rounded-xl p-4" style={{ background: tint(ink, 0.95) }}>
                 <div style={{ fontFamily: `'${editing.heading_font}', sans-serif`, fontWeight: Number(editing.heading_weight || 700), fontSize: 28, color: ink }}>
-                  {gymName}
+                  {editing.sample_heading || gymName}
                 </div>
                 <div style={{ fontFamily: `'${editing.body_font}', sans-serif`, fontWeight: Number(editing.body_weight || 400), fontSize: 15, color: shade(ink, 0.05), lineHeight: 1.6 }}>
-                  Classes for every age and level, from first steps to competitive team.
+                  {editing.sample_body || "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789"}
                 </div>
               </div>
             )}
