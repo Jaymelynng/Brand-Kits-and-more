@@ -14,6 +14,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { AddGymModal } from "@/components/AddGymModal";
 import { LogoCategoryManager } from "@/components/LogoCategoryManager";
+import { LogoTagManager } from "@/components/LogoTagManager";
 
 const Admin = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -116,7 +117,7 @@ const Admin = () => {
 
   const tabs = [
     { id: 'gyms' as const, label: 'Manage Gyms', icon: Building2 },
-    { id: 'categories' as const, label: 'Logo Categories', icon: Tags },
+    { id: 'categories' as const, label: 'Categories & Tags', icon: Tags },
     { id: 'users' as const, label: 'Users & Roles', icon: Users },
     { id: 'bulk' as const, label: 'Bulk Data', icon: Database },
   ];
@@ -337,6 +338,21 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <LogoCategoryManager />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Tags className="w-5 h-5" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
+                  Tags
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  A logo lives in one category but wears as many tags as fit.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <LogoTagManager />
               </CardContent>
             </Card>
           </div>

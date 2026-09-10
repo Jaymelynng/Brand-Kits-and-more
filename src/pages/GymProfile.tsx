@@ -34,7 +34,7 @@ import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
 import AssetModal from "@/components/AssetModal";
 import { Pencil } from "lucide-react";
 import { useLogoCategories } from "@/hooks/useLogoCategories";
-import { useLogoTags } from "@/hooks/useLogoTags";
+import { useLogoTags, useToggleLogoTag } from "@/hooks/useLogoTags";
 
 interface GymProfileProps {
   /** Solo mode: a shareable single-gym page with no way into the rest of the app. */
@@ -55,6 +55,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const { data: categories = [] } = useAssetCategories();
   const { data: logoCategories = [] } = useLogoCategories();
   const { data: logoTags = [] } = useLogoTags();
+  const toggleTag = useToggleLogoTag();
   // Which category the next drop gets. Chosen before the files land, so
   // uploading and filing are one action instead of two.
   const [uploadCategory, setUploadCategory] = useState('Uncategorized');
@@ -2474,7 +2475,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       {/* Floating Nav Rail */}
       {/* Clicked a card: see it big, on whichever ground you need it to survive,
           then take it. Escape or a click outside closes. */}
-      {expandedLogo && (
+      {expandedLogo && (() => {
+        // The lightbox holds a snapshot. After a tag toggle the query
+        // refetches, so read the live row back or the chip never lights up.
+        const live = gym.logos.find(l => l.id === expandedLogo.id) || expandedLogo;
+        const liveTags = live.tags || [];
+        return (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           style={{ background: "rgba(6,10,16,0.75)", backdropFilter: "blur(4px)" }}
@@ -2541,13 +2547,46 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               >
                 <Download className="mr-1.5 h-3.5 w-3.5" /> Download
               </Button>
+              {/* What this file is. An admin can change it here; everyone
+                  else just reads it. */}
+              <div className="basis-full border-t pt-3">
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground mb-1.5">
+                  Tags
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {(isAdmin ? logoTags : logoTags.filter(t => liveTags.includes(t.name))).map(t => {
+                    const on = liveTags.includes(t.name);
+                    return (
+                      <button
+                        key={t.id}
+                        disabled={!isAdmin || toggleTag.isPending}
+                        onClick={() => toggleTag.mutate({ logoId: live.id, tagId: t.id, on: !on })}
+                        title={isAdmin ? (on ? `Remove ${t.name}` : `Add ${t.name}`) : t.kind}
+                        className="rounded-full px-2.5 py-1 text-[11px] font-bold transition-all duration-150 border disabled:cursor-default"
+                        style={{
+                          background: on ? primaryColor : "#F1F4F8",
+                          color: on ? "#FFFFFF" : "#697887",
+                          borderColor: on ? primaryColor : "#DCE3EB",
+                        }}
+                      >
+                        {t.name}
+                      </button>
+                    );
+                  })}
+                  {liveTags.length === 0 && !isAdmin && (
+                    <span className="text-xs text-muted-foreground">No tags yet</span>
+                  )}
+                </div>
+              </div>
+
               <Button size="sm" variant="ghost" onClick={() => setExpandedLogo(null)}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       <FloatingNavRail solo={solo} />
 
