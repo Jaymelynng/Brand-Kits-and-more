@@ -21,7 +21,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { copyText } from "@/lib/copyText";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
-import { PrimaryShowcase } from "@/components/PrimaryShowcase";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -1000,6 +999,281 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const primaryHsl = hexToHsl(primaryColor);
   const secondaryHsl = hexToHsl(secondaryColor);
 
+  /**
+   * The carousel, defined once and used twice: the primary logos above
+   * the library, and the library's own carousel view. Rewriting it a
+   * second time is what made the showcase look nothing like this one.
+   * It closes over the handlers, so there is no second copy to drift.
+   */
+  const renderCarousel = (items: typeof filteredLogos) => (
+                <div style={{ perspective: "3000px" }} className="w-full overflow-hidden py-8">
+                  <Carousel 
+                    className="w-full max-w-5xl mx-auto px-16" 
+                    opts={{ align: "center", loop: true }}
+                    plugins={[
+                      Autoplay({
+                        delay: 4000,
+                        // It used to keep advancing while she was reaching for
+                        // a card, so the card she aimed at slid away mid-click.
+                        // Pausing on hover fixes that - but stopping for good
+                        // on interaction overshot: one click and it never
+                        // rotated again. It pauses while she is on it and
+                        // picks back up when she leaves.
+                        stopOnMouseEnter: true,
+                        stopOnInteraction: false,
+                        stopOnFocusIn: true,
+                      }),
+                    ]}
+                    setApi={(api) => {
+                      if (!api) return;
+                      
+                      const updateSlides = () => {
+                        const selectedIndex = api.selectedScrollSnap();
+                        const slides = api.slideNodes();
+                        
+                        slides.forEach((slide, index) => {
+                          const distance = index - selectedIndex;
+                          const card = slide.querySelector('[data-card]');
+                          
+                          if (card) {
+                            let rotateY = 0;
+                            let scale = 1;
+                            let opacity = 1;
+                            
+                            if (distance === 0) {
+                              // Center slide
+                              rotateY = 0;
+                              scale = 1;
+                              opacity = 1;
+                            } else if (distance < 0) {
+                              // Left slides
+                              rotateY = Math.max(-55, distance * 45);
+                              scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
+                              opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
+                            } else {
+                              // Right slides
+                              rotateY = Math.min(55, distance * 45);
+                              scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
+                              opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
+                            }
+                            
+                            (card as HTMLElement).style.transform = `rotateY(${rotateY}deg) scale(${scale})`;
+                            (card as HTMLElement).style.opacity = opacity.toString();
+                          }
+                        });
+                      };
+                      
+                      // Make cards clickable to navigate
+                      const slides = api.slideNodes();
+                      slides.forEach((slide, index) => {
+                        slide.style.cursor = 'pointer';
+                        slide.addEventListener('click', () => {
+                          api.scrollTo(index);
+                        });
+                      });
+                      
+                      api.on('select', updateSlides);
+                      api.on('reInit', updateSlides);
+                      updateSlides();
+                    }}
+                  >
+                    <CarouselContent>
+                      {items.map((logo, index) => (
+                        <CarouselItem 
+                          key={logo.id} 
+                          className="md:basis-1/2 lg:basis-1/3"
+                          style={{
+                            transformStyle: "preserve-3d",
+                          }}
+                        >
+                          <div 
+                            className="p-1"
+                            style={{
+                              transformStyle: "preserve-3d",
+                            }}
+                          >
+                             <Card 
+                              data-card
+                              {...dragPropsFor(logo)}
+                              className={cn(
+                                "relative shadow-2xl transition-all duration-700 border-2",
+                                !selectionMode && "cursor-zoom-in",
+                                selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
+                              )}
+                              style={{
+                                transformStyle: "preserve-3d",
+                                transform: "rotateY(0deg)",
+                                borderColor: `${primaryColor}35`,
+                                backgroundColor: '#ffffff',
+                                boxShadow: `
+                                  0 20px 60px -10px ${primaryColor}40,
+                                  0 10px 30px -5px ${primaryColor}50
+                                `,
+                              }}
+                            >
+                              <CardContent className="p-6">
+                                {/* Selection Checkbox */}
+                                {selectionMode && (
+                                  <div className="absolute top-3 left-3 z-10">
+                                    <Checkbox
+                                      checked={selectedLogos.has(logo.id)}
+                                      onCheckedChange={() => toggleLogoSelection(logo.id)}
+                                      className="h-5 w-5 border-2"
+                                    />
+                                  </div>
+                                )}
+                                
+                                {/* Main Logo Badge */}
+                                {logo.is_main_logo && (
+                                  <div 
+                                    className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1 shadow-lg z-10"
+                                    style={{ backgroundColor: primaryColor }}
+                                  >
+                                    <Star className="w-3 h-3" />
+                                    On display
+                                  </div>
+                                )}
+                                
+                                {/* Theme Tag Badge */}
+                                {(() => {
+                                  const assetMatch = gymAssets.find(a => a.file_url === logo.file_url);
+                                  const catName = assetMatch?.category?.name;
+                                  return catName ? (
+                                    <div className="absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-[10px] font-bold"
+                                      style={{ background: 'hsl(var(--brand-rose-gold) / 0.2)', color: 'hsl(var(--brand-navy))' }}
+                                    >{catName}</div>
+                                  ) : null;
+                                })()}
+                                
+                                {/* Edit Pencil */}
+                                {!selectionMode && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); openAssetModal(logo.file_url); }}
+                                    className="absolute bottom-3 right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center bg-white/90 hover:bg-white shadow-md transition-all hover:scale-110"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+                                  </button>
+                                )}
+                                
+                                {/* Logo Display with 3D effect */}
+                                <div 
+                                  className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
+                                  style={{ 
+                                    backgroundColor: logoBgColor,
+                                  }}
+                                >
+                                  <img 
+                                    src={logo.file_url} 
+                                    alt={logo.filename}
+                                    className="max-w-full max-h-full object-contain p-4"
+                                  />
+                                </div>
+                                
+                                {/* Logo Info */}
+                                <div className="text-sm font-bold text-foreground mb-4">
+                                  <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
+                                </div>
+                                
+                                {/* Action Buttons */}
+                                <div className="flex flex-col gap-2">
+                                  <Button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      downloadLogo(logo.file_url, logo.filename);
+                                    }}
+                                    size="sm"
+                                    className="w-full text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                    style={{ backgroundColor: primaryColor }}
+                                  >
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Download
+                                  </Button>
+                                  
+                                  <Button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      copyUrl(logo.file_url);
+                                    }}
+                                    size="sm"
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 hover:scale-105 transition-all",
+                                      copiedStates[logo.file_url] && "bg-gym-primary/20 border-gym-primary/50 text-foreground"
+                                    )}
+                                  >
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    {copiedStates[logo.file_url] ? "Copied!" : "Copy URL"}
+                                  </Button>
+                                  
+                                  {isAdmin && !logo.is_main_logo && (
+                                    <Button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMainLogo(logo.id);
+                                      }}
+                                      size="sm"
+                                      variant="outline"
+                                      className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
+                                    >
+                                      <Star className="w-4 h-4 mr-2" />
+                                      Use as display
+                                    </Button>
+                                  )}
+                                  
+                                  {isAdmin && (<>
+                                  <Button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveBackground(logo);
+                                    }}
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
+                                    disabled={removingBgLogoId === logo.id}
+                                  >
+                                    {removingBgLogoId === logo.id ? (
+                                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{bgRemovalStatus || 'Processing...'}</>
+                                    ) : (
+                                      <><Eraser className="w-4 h-4 mr-2" />Remove BG</>
+                                    )}
+                                  </Button>
+
+                                  <Button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteLogo(logo.id, logo.filename);
+                                    }}
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive hover:text-destructive hover:scale-105 transition-all"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete
+                                  </Button>
+                                  </>)}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious 
+                      className="left-4 bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
+                      style={{ 
+                        boxShadow: `0 4px 12px ${primaryColor}50`
+                      }}
+                    />
+                    <CarouselNext 
+                      className="right-4 bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
+                      style={{ 
+                        boxShadow: `0 4px 12px ${primaryColor}40`
+                      }}
+                    />
+                  </Carousel>
+                </div>
+  );
+
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
       <div className="sticky top-0 z-50">
@@ -1380,15 +1654,28 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       {/* Content Section */}
       <div className="container mx-auto px-6 pb-12">
 
-          {/* The brand at a glance, above the workbench. */}
-          <PrimaryShowcase
-            logos={visibleLogos.filter(l => l.variant === 'Primary logos')}
-            palette={gym.colors.map(c => c.color_hex)}
-            isAdmin={isAdmin}
-            onDownload={downloadLogo}
-            onCopy={copyUrl}
-            onSetDisplay={setMainLogo}
-          />
+          {/* The brand at a glance: the same carousel, showing only the
+              primaries. The library below is the workbench. */}
+          {(() => {
+            const primaries = visibleLogos.filter(l => l.variant === 'Primary logos');
+            if (primaries.length === 0) return null;
+            return (
+              <Card className="mb-4 bg-white shadow-xl border-2" style={{ borderColor: `${primaryColor}40` }}>
+                <CardHeader className="pb-0">
+                  <div className="flex items-baseline gap-3">
+                    <CardTitle className="text-2xl">Primary logos</CardTitle>
+                    <span className="text-sm font-semibold text-muted-foreground">
+                      {primaries.length === 1 ? 'the mark' : `${primaries.length} approved marks`}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  {renderCarousel(primaries)}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
 
         {/* Upload Interface - Always visible for admins when no logos exist */}
         {(gym.logos.length === 0 || showUpload) && isAdmin && (
@@ -1705,268 +1992,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   secondaryColor={secondaryColor}
                 />
               ) : viewMode === 'carousel' ? (
-                <div style={{ perspective: "3000px" }} className="w-full overflow-hidden py-8">
-                  <Carousel 
-                    className="w-full max-w-5xl mx-auto px-16" 
-                    opts={{ align: "center", loop: true }}
-                    plugins={[
-                      Autoplay({
-                        delay: 4000,
-                        // It used to keep advancing while she was reaching for a
-                        // card, so the card she aimed at slid away mid-click.
-                        stopOnMouseEnter: true,
-                        stopOnInteraction: true,
-                        stopOnFocusIn: true,
-                      }),
-                    ]}
-                    setApi={(api) => {
-                      if (!api) return;
-                      
-                      const updateSlides = () => {
-                        const selectedIndex = api.selectedScrollSnap();
-                        const slides = api.slideNodes();
-                        
-                        slides.forEach((slide, index) => {
-                          const distance = index - selectedIndex;
-                          const card = slide.querySelector('[data-card]');
-                          
-                          if (card) {
-                            let rotateY = 0;
-                            let scale = 1;
-                            let opacity = 1;
-                            
-                            if (distance === 0) {
-                              // Center slide
-                              rotateY = 0;
-                              scale = 1;
-                              opacity = 1;
-                            } else if (distance < 0) {
-                              // Left slides
-                              rotateY = Math.max(-55, distance * 45);
-                              scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
-                              opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
-                            } else {
-                              // Right slides
-                              rotateY = Math.min(55, distance * 45);
-                              scale = Math.max(0.75, 1 - Math.abs(distance) * 0.15);
-                              opacity = Math.max(0.5, 1 - Math.abs(distance) * 0.25);
-                            }
-                            
-                            (card as HTMLElement).style.transform = `rotateY(${rotateY}deg) scale(${scale})`;
-                            (card as HTMLElement).style.opacity = opacity.toString();
-                          }
-                        });
-                      };
-                      
-                      // Make cards clickable to navigate
-                      const slides = api.slideNodes();
-                      slides.forEach((slide, index) => {
-                        slide.style.cursor = 'pointer';
-                        slide.addEventListener('click', () => {
-                          api.scrollTo(index);
-                        });
-                      });
-                      
-                      api.on('select', updateSlides);
-                      api.on('reInit', updateSlides);
-                      updateSlides();
-                    }}
-                  >
-                    <CarouselContent>
-                      {filteredLogos.map((logo, index) => (
-                        <CarouselItem 
-                          key={logo.id} 
-                          className="md:basis-1/2 lg:basis-1/3"
-                          style={{
-                            transformStyle: "preserve-3d",
-                          }}
-                        >
-                          <div 
-                            className="p-1"
-                            style={{
-                              transformStyle: "preserve-3d",
-                            }}
-                          >
-                             <Card 
-                              data-card
-                              {...dragPropsFor(logo)}
-                              className={cn(
-                                "relative shadow-2xl transition-all duration-700 border-2",
-                                !selectionMode && "cursor-zoom-in",
-                                selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
-                              )}
-                              style={{
-                                transformStyle: "preserve-3d",
-                                transform: "rotateY(0deg)",
-                                borderColor: `${primaryColor}35`,
-                                backgroundColor: '#ffffff',
-                                boxShadow: `
-                                  0 20px 60px -10px ${primaryColor}40,
-                                  0 10px 30px -5px ${primaryColor}50
-                                `,
-                              }}
-                            >
-                              <CardContent className="p-6">
-                                {/* Selection Checkbox */}
-                                {selectionMode && (
-                                  <div className="absolute top-3 left-3 z-10">
-                                    <Checkbox
-                                      checked={selectedLogos.has(logo.id)}
-                                      onCheckedChange={() => toggleLogoSelection(logo.id)}
-                                      className="h-5 w-5 border-2"
-                                    />
-                                  </div>
-                                )}
-                                
-                                {/* Main Logo Badge */}
-                                {logo.is_main_logo && (
-                                  <div 
-                                    className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1 shadow-lg z-10"
-                                    style={{ backgroundColor: primaryColor }}
-                                  >
-                                    <Star className="w-3 h-3" />
-                                    On display
-                                  </div>
-                                )}
-                                
-                                {/* Theme Tag Badge */}
-                                {(() => {
-                                  const assetMatch = gymAssets.find(a => a.file_url === logo.file_url);
-                                  const catName = assetMatch?.category?.name;
-                                  return catName ? (
-                                    <div className="absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-[10px] font-bold"
-                                      style={{ background: 'hsl(var(--brand-rose-gold) / 0.2)', color: 'hsl(var(--brand-navy))' }}
-                                    >{catName}</div>
-                                  ) : null;
-                                })()}
-                                
-                                {/* Edit Pencil */}
-                                {!selectionMode && (
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); openAssetModal(logo.file_url); }}
-                                    className="absolute bottom-3 right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center bg-white/90 hover:bg-white shadow-md transition-all hover:scale-110"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-                                  </button>
-                                )}
-                                
-                                {/* Logo Display with 3D effect */}
-                                <div 
-                                  className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
-                                  style={{ 
-                                    backgroundColor: logoBgColor,
-                                  }}
-                                >
-                                  <img 
-                                    src={logo.file_url} 
-                                    alt={logo.filename}
-                                    className="max-w-full max-h-full object-contain p-4"
-                                  />
-                                </div>
-                                
-                                {/* Logo Info */}
-                                <div className="text-sm font-bold text-foreground mb-4">
-                                  <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
-                                </div>
-                                
-                                {/* Action Buttons */}
-                                <div className="flex flex-col gap-2">
-                                  <Button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      downloadLogo(logo.file_url, logo.filename);
-                                    }}
-                                    size="sm"
-                                    className="w-full text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                                    style={{ backgroundColor: primaryColor }}
-                                  >
-                                    <Download className="w-4 h-4 mr-2" />
-                                    Download
-                                  </Button>
-                                  
-                                  <Button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      copyUrl(logo.file_url);
-                                    }}
-                                    size="sm"
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 hover:scale-105 transition-all",
-                                      copiedStates[logo.file_url] && "bg-gym-primary/20 border-gym-primary/50 text-foreground"
-                                    )}
-                                  >
-                                    <Copy className="w-4 h-4 mr-2" />
-                                    {copiedStates[logo.file_url] ? "Copied!" : "Copy URL"}
-                                  </Button>
-                                  
-                                  {isAdmin && !logo.is_main_logo && (
-                                    <Button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setMainLogo(logo.id);
-                                      }}
-                                      size="sm"
-                                      variant="outline"
-                                      className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
-                                    >
-                                      <Star className="w-4 h-4 mr-2" />
-                                      Use as display
-                                    </Button>
-                                  )}
-                                  
-                                  {isAdmin && (<>
-                                  <Button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleRemoveBackground(logo);
-                                    }}
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-foreground hover:scale-105 transition-all"
-                                    disabled={removingBgLogoId === logo.id}
-                                  >
-                                    {removingBgLogoId === logo.id ? (
-                                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{bgRemovalStatus || 'Processing...'}</>
-                                    ) : (
-                                      <><Eraser className="w-4 h-4 mr-2" />Remove BG</>
-                                    )}
-                                  </Button>
-
-                                  <Button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteLogo(logo.id, logo.filename);
-                                    }}
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive hover:text-destructive hover:scale-105 transition-all"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete
-                                  </Button>
-                                  </>)}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious 
-                      className="left-4 bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
-                      style={{ 
-                        boxShadow: `0 4px 12px ${primaryColor}50`
-                      }}
-                    />
-                    <CarouselNext 
-                      className="right-4 bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
-                      style={{ 
-                        boxShadow: `0 4px 12px ${primaryColor}40`
-                      }}
-                    />
-                  </Carousel>
-                </div>
+                renderCarousel(filteredLogos)
               ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {filteredLogos.map((logo) => (
