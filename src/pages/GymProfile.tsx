@@ -17,6 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser, Check, FolderInput, Tag as TagIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { copyText } from "@/lib/copyText";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -91,6 +92,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [expandedLogo, setExpandedLogo] = useState<typeof gym.logos[0] | null>(null);
   const [expandedGround, setExpandedGround] = useState<"light" | "dark" | "brand" | "check">("light");
   const [selectedLogos, setSelectedLogos] = useState<Set<string>>(new Set());
+  const [downloadingSelected, setDownloadingSelected] = useState(false);
+  const [copyFallbackText, setCopyFallbackText] = useState<string | null>(null);
   const [showRenamer, setShowRenamer] = useState(false);
   const [logoBgMode, setLogoBgMode] = useState<'light' | 'dark'>('light');
   const [downloadingZip, setDownloadingZip] = useState(false);
@@ -348,8 +351,9 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   };
 
   const copyUrl = (url: string) => {
-    navigator.clipboard.writeText(url).then(() => {
-      showCopyFeedback(url, 'URL copied to clipboard!');
+    copyText(url).then(ok => {
+      if (ok) toast({ description: "Link copied" });
+      else setCopyFallbackText(url);
     });
   };
 
@@ -720,6 +724,65 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       setDownloadingZip(false);
     }
   }, [gym, toast]);
+
+  /**
+   * Zip whatever is selected. The existing Download All takes the whole gym;
+   * this takes the selection, so filtering down to "Variations + Circle" and
+   * sending exactly those 13 files is one action.
+   */
+  const handleDownloadSelected = useCallback(async () => {
+    if (!gym || selectedLogos.size === 0) return;
+    const chosen = gym.logos.filter(l => selectedLogos.has(l.id));
+    setDownloadingSelected(true);
+    let failed = 0;
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(`${gym.code}-logos`);
+      for (const logo of chosen) {
+        try {
+          const response = await fetch(logo.file_url);
+          folder?.file(logo.filename, await response.blob());
+        } catch {
+          failed += 1;
+        }
+      }
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `${gym.code}-logos-${chosen.length}.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      // Never claim a clean run that was not one - say what did not make it.
+      toast({
+        description: failed
+          ? `${chosen.length - failed} of ${chosen.length} downloaded · ${failed} could not be fetched`
+          : `${chosen.length} logo${chosen.length === 1 ? '' : 's'} downloaded`,
+        variant: failed ? "destructive" : undefined,
+      });
+    } catch {
+      toast({ variant: "destructive", description: "Failed to build the ZIP" });
+    } finally {
+      setDownloadingSelected(false);
+    }
+  }, [gym, selectedLogos, toast]);
+
+  /** Every selected logo's link, one per line, ready to paste. */
+  const handleCopySelectedLinks = useCallback((withNames: boolean) => {
+    if (!gym || selectedLogos.size === 0) return;
+    const chosen = gym.logos.filter(l => selectedLogos.has(l.id));
+    const text = chosen
+      .map(l => withNames ? `${l.filename}\t${l.file_url}` : l.file_url)
+      .join('\n');
+    copyText(text).then(ok => {
+      if (ok) {
+        toast({ description: `${chosen.length} link${chosen.length === 1 ? '' : 's'} copied` });
+      } else {
+        // Never a dead end: if the browser will not take it, put the text
+        // on screen so the links can still be lifted out by hand.
+        setCopyFallbackText(text);
+      }
+    });
+  }, [gym, selectedLogos, toast]);
 
   // Build asset-to-category map for filtering (file_url -> category name)
   const assetCategoryMap = useMemo(() => {
@@ -2576,6 +2639,42 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 </Popover>
 
                 <Button
+                  onClick={handleDownloadSelected}
+                  size="sm"
+                  variant="outline"
+                  disabled={downloadingSelected}
+                  className="gap-2"
+                >
+                  {downloadingSelected
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Download className="w-4 h-4" />}
+                  {downloadingSelected ? 'Zipping...' : 'Download'}
+                </Button>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="outline" className="gap-2">
+                      <Copy className="w-4 h-4" />
+                      Copy links
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-52 p-2" align="center">
+                    <button
+                      onClick={() => handleCopySelectedLinks(false)}
+                      className="w-full rounded px-2 py-1.5 text-left text-sm font-semibold hover:bg-muted"
+                    >
+                      Just the links
+                    </button>
+                    <button
+                      onClick={() => handleCopySelectedLinks(true)}
+                      className="w-full rounded px-2 py-1.5 text-left text-sm font-semibold hover:bg-muted"
+                    >
+                      Filename + link
+                    </button>
+                  </PopoverContent>
+                </Popover>
+
+                <Button
                   onClick={handleOpenRenamer}
                   size="sm"
                   className="gap-2 bg-gym-primary hover:bg-gym-primary/90 text-gym-primary-foreground"
@@ -2735,6 +2834,39 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
         </div>
         );
       })()}
+
+      {/* The clipboard can refuse for reasons that have nothing to do with
+          this app - an unfocused page, an insecure origin. Losing 40 asset
+          links to that is not acceptable, so show them instead. */}
+      {copyFallbackText && (
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+          style={{ background: "rgba(6,10,16,0.72)" }}
+          onClick={() => setCopyFallbackText(null)}
+        >
+          <div
+            className="w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="mb-1 text-sm font-bold">Your browser blocked the clipboard</div>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Nothing is lost — select the text below and copy it yourself.
+            </p>
+            <textarea
+              readOnly
+              autoFocus
+              onFocus={e => e.currentTarget.select()}
+              value={copyFallbackText}
+              className="h-56 w-full resize-none rounded-lg border p-3 font-mono text-xs"
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <Button size="sm" variant="outline" onClick={() => setCopyFallbackText(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <FloatingNavRail solo={solo} />
 
