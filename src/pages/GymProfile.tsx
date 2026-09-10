@@ -1,6 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { GymPillStrip } from "@/components/GymPillStrip";
-import { FloatingNavRail } from "@/components/FloatingNavRail";
 import type { GymLogo } from "@/hooks/useGyms";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo, useRenameLogo, useRenameElement } from "@/hooks/useGyms";
 import { InlineRename } from "@/components/shared/InlineRename";
@@ -2023,6 +2022,13 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     onClearCategories={() => { setActiveCategories([]); setActiveTags([]); }}
                     total={visibleLogos.length}
                     palette={gym.colors.map(c => c.color_hex)}
+                    isAdmin={isAdmin}
+                    selectionMode={selectionMode}
+                    onToggleSelection={() => {
+                      setSelectionMode(v => !v);
+                      if (selectionMode) setSelectedLogos(new Set());
+                    }}
+                    solo={solo}
                   />
                 )}
 
@@ -3014,7 +3020,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
         />
       )}
 
-      <FloatingNavRail solo={solo} />
 
       {/* Asset Modal */}
       <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />

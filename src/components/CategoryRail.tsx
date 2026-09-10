@@ -1,3 +1,5 @@
+import { CheckSquare, ChevronDown, ChevronUp, Home } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { shade, readableOn, luminance, tint } from "@/lib/shade";
 
 interface CategoryRailProps {
@@ -8,6 +10,11 @@ interface CategoryRailProps {
   total: number;
   /** The gym's own palette. Every colour on the rail comes from it. */
   palette: string[];
+  isAdmin: boolean;
+  selectionMode: boolean;
+  onToggleSelection: () => void;
+  /** A share link must not offer a way back into the rest of the app. */
+  solo?: boolean;
 }
 
 /**
@@ -22,7 +29,9 @@ interface CategoryRailProps {
  */
 export const CategoryRail = ({
   categories, activeCategories, onToggleCategory, onClearCategories, total, palette,
+  isAdmin, selectionMode, onToggleSelection, solo = false,
 }: CategoryRailProps) => {
+  const navigate = useNavigate();
   const accent = palette[0] || "#41505F";
   const darkest = [...palette].sort((a, b) => luminance(a) - luminance(b))[0];
   const ink = darkest && luminance(darkest) < 0.5 ? darkest : shade(accent, 0.55);
@@ -112,6 +121,66 @@ export const CategoryRail = ({
           >
             {total}
           </span>
+        </button>
+      </div>
+
+      {/* Selecting used to live only in the header, so filing a card near the
+          bottom of a long gallery meant scrolling all the way up and back
+          again. The rail travels down the page, so the switch travels too. */}
+      {isAdmin && (
+        <button
+          onClick={onToggleSelection}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[14px] font-extrabold transition-all duration-150 active:translate-y-[2px]"
+          style={selectionMode
+            ? {
+                background: accent, color: onAccent, border: `2px solid ${accent}`,
+                boxShadow: liftHigh(shade(accent, 0.4)), transform: "translateY(-2px)",
+              }
+            : { background: ink, color: onInk, border: `2px solid ${ink}`, boxShadow: lift(shade(ink, 0.45)) }}
+        >
+          <CheckSquare className="h-4 w-4" />
+          {selectionMode ? "Done selecting" : "Select"}
+        </button>
+      )}
+
+      {/* Home and the page jumps, in the gym's colours instead of the app's
+          rose, and parked under the categories rather than floating over the
+          logos in the middle of the screen. */}
+      <div
+        className="mt-3 flex items-center justify-center gap-2 border-t pt-3"
+        style={{ borderColor: tint(ink, 0.82) }}
+      >
+        {!solo && (
+          <button
+            onClick={() => navigate("/")}
+            title="Back to dashboard"
+            aria-label="Back to dashboard"
+            className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 active:translate-y-[2px]"
+            // onAccent walks white down to a grey on a mid-orange, which
+            // reads as neither brand nor deliberate. The gym's own dark tone
+            // on its accent is both, and clears 4.5:1.
+            style={{ background: accent, color: ink, boxShadow: lift(shade(accent, 0.4)) }}
+          >
+            <Home className="h-4 w-4" />
+          </button>
+        )}
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          title="Back to top"
+          aria-label="Back to top"
+          className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 active:translate-y-[2px]"
+          style={{ background: "#FFFFFF", color: ink, border: `2px solid ${ink}`, boxShadow: lift(ink) }}
+        >
+          <ChevronUp className="h-4 w-4" />
+        </button>
+        <button
+          onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })}
+          title="Jump to bottom"
+          aria-label="Jump to bottom"
+          className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 active:translate-y-[2px]"
+          style={{ background: "#FFFFFF", color: ink, border: `2px solid ${ink}`, boxShadow: lift(ink) }}
+        >
+          <ChevronDown className="h-4 w-4" />
         </button>
       </div>
     </div>
