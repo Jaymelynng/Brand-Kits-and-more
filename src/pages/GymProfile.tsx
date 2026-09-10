@@ -15,7 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser, Check } from "lucide-react";
+import { ArrowLeft, Download, Copy, Star, Upload, X, Trash2, Loader2, Grid3X3, LayoutGrid, List, Columns, ChevronUp, Plus, Sparkles, CheckSquare, Link as LinkIcon, Code, Moon, Sun, FileArchive, Eraser, Check, FolderInput, Tag as TagIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -33,8 +34,8 @@ import { useSecretTap } from "@/hooks/useSecretTap";
 import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
 import AssetModal from "@/components/AssetModal";
 import { Pencil } from "lucide-react";
-import { useLogoCategories } from "@/hooks/useLogoCategories";
-import { useLogoTags, useToggleLogoTag } from "@/hooks/useLogoTags";
+import { useLogoCategories, useBulkSetLogoCategory } from "@/hooks/useLogoCategories";
+import { useLogoTags, useToggleLogoTag, useBulkToggleLogoTag } from "@/hooks/useLogoTags";
 
 interface GymProfileProps {
   /** Solo mode: a shareable single-gym page with no way into the rest of the app. */
@@ -56,6 +57,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const { data: logoCategories = [] } = useLogoCategories();
   const { data: logoTags = [] } = useLogoTags();
   const toggleTag = useToggleLogoTag();
+  const bulkSetCategory = useBulkSetLogoCategory();
+  const bulkToggleTag = useBulkToggleLogoTag();
   // Which category the next drop gets. Chosen before the files land, so
   // uploading and filing are one action instead of two.
   const [uploadCategory, setUploadCategory] = useState('Uncategorized');
@@ -2427,6 +2430,80 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   Select All
                 </Button>
                 
+                {/* Bulk file. The selection already exists here - this is
+                    where a person is standing when they decide 40 files are
+                    all Themed. */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="outline" className="gap-2">
+                      <FolderInput className="w-4 h-4" />
+                      Move to
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="center">
+                    <div className="mb-1 px-1 text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                      Category
+                    </div>
+                    {logoCategories.map(c => (
+                      <button
+                        key={c.id}
+                        onClick={() => {
+                          const ids = [...selectedLogos];
+                          bulkSetCategory.mutate({ logoIds: ids, name: c.name }, {
+                            onSuccess: () => toast({ description: `${ids.length} moved to ${c.name}` }),
+                            onError: () => toast({ variant: "destructive", description: "Move failed" }),
+                          });
+                        }}
+                        className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm font-semibold hover:bg-muted"
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </PopoverContent>
+                </Popover>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="outline" className="gap-2">
+                      <TagIcon className="w-4 h-4" />
+                      Tag
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="max-h-80 w-64 overflow-y-auto p-2" align="center">
+                    <div className="mb-1 px-1 text-[11px] text-muted-foreground">
+                      Click adds to all {selectedLogos.size}. A tag every one already
+                      has is removed instead.
+                    </div>
+                    {logoTags.map(t => {
+                      const chosen = gym.logos.filter(l => selectedLogos.has(l.id));
+                      const hasIt = chosen.filter(l => (l.tags || []).includes(t.name)).length;
+                      const all = hasIt === chosen.length && chosen.length > 0;
+                      return (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            const ids = [...selectedLogos];
+                            bulkToggleTag.mutate({ logoIds: ids, tagId: t.id, on: !all }, {
+                              onSuccess: () => toast({
+                                description: all
+                                  ? `${t.name} removed from ${ids.length}`
+                                  : `${t.name} added to ${ids.length}`,
+                              }),
+                              onError: () => toast({ variant: "destructive", description: "Tagging failed" }),
+                            });
+                          }}
+                          className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm font-semibold hover:bg-muted"
+                        >
+                          <span className={all ? "text-gym-primary" : ""}>{t.name}</span>
+                          <span className="text-[10px] font-bold text-muted-foreground">
+                            {hasIt}/{chosen.length}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </PopoverContent>
+                </Popover>
+
                 <Button
                   onClick={handleOpenRenamer}
                   size="sm"

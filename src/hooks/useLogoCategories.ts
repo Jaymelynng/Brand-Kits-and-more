@@ -106,3 +106,17 @@ export const useDeleteLogoCategory = () => {
     },
   });
 };
+
+/** Move many logos into one category at once. */
+export const useBulkSetLogoCategory = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ logoIds, name }: { logoIds: string[]; name: string }) => {
+      if (logoIds.length === 0) return;
+      const { error } = await supabase
+        .from("gym_logos").update({ variant: name }).in("id", logoIds);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["gyms"] }),
+  });
+};

@@ -97,7 +97,12 @@ export const LogoTagManager = () => {
         >
           {knownKinds.map(k => <option key={k} value={k}>{k}</option>)}
         </select>
-        <Button onClick={submitNew} disabled={!newName.trim() || add.isPending}>
+        <Button
+          onClick={submitNew}
+          disabled={!newName.trim() || add.isPending}
+          className="text-white hover:opacity-90"
+          style={{ background: "hsl(var(--brand-rose-gold))" }}
+        >
           <Plus className="w-4 h-4 mr-1" /> Add
         </Button>
       </div>

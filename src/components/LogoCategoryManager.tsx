@@ -4,15 +4,20 @@ import {
   useLogoCategories, useAddLogoCategory, useRenameLogoCategory,
   useReorderLogoCategory, useDeleteLogoCategory, LogoCategory,
 } from "@/hooks/useLogoCategories";
+import { LogoTagManager } from "@/components/LogoTagManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowDown, ArrowUp, Check, Lock, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Lock, Pencil, Plus, Tags, Trash2, X } from "lucide-react";
+
+const ROSE = "hsl(var(--brand-rose-gold))";
 
 /**
- * The categories a logo can be filed under, in one place. The gallery chips,
- * the upload picker and this screen all read the same table, so renaming one
- * here moves every file with it instead of stranding them.
+ * Categories read left to right across the top - that IS their order in the
+ * gallery, so the screen looks like the thing it controls. Tags are a second
+ * axis, not a longer list, so they live behind a slide-out instead of
+ * stacking underneath and doubling the height of the page.
  */
 export const LogoCategoryManager = () => {
   const { data: categories = [], isLoading } = useLogoCategories();
@@ -27,7 +32,6 @@ export const LogoCategoryManager = () => {
   const [editing, setEditing] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
-  // How many real files sit in each category, so deleting is never a guess.
   const counts = useMemo(() => {
     const m = new Map<string, number>();
     gyms.forEach(g =>
@@ -40,12 +44,12 @@ export const LogoCategoryManager = () => {
   }, [gyms]);
 
   const fail = (e: unknown) =>
-    toast({ variant: "destructive", description: e instanceof Error ? e.message : "That didn't save" });
+    toast({ variant: "destructive", description: e instanceof Error ? e.message : "That did not save" });
 
   const submitNew = () => {
     if (!newName.trim()) return;
     add.mutate(newName, {
-      onSuccess: () => { setNewName(""); toast({ description: `Added ${newName.trim()}` }); },
+      onSuccess: () => { toast({ description: `Added ${newName.trim()}` }); setNewName(""); },
       onError: fail,
     });
   };
@@ -65,7 +69,7 @@ export const LogoCategoryManager = () => {
   const submitDelete = (c: LogoCategory) => {
     const n = counts.get(c.name) || 0;
     const msg = n
-      ? `Delete "${c.name}"? Its ${n} logo${n === 1 ? "" : "s"} move to Uncategorized. No files are deleted.`
+      ? `Delete "${c.name}"? Its ${n} logo${n === 1 ? "" : "s"} move to Uncategorized. No file is deleted.`
       : `Delete "${c.name}"? It is empty.`;
     if (!window.confirm(msg)) return;
     remove.mutate({ id: c.id, name: c.name }, {
@@ -78,46 +82,19 @@ export const LogoCategoryManager = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <Input
-          value={newName}
-          onChange={e => setNewName(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && submitNew()}
-          placeholder="New category name"
-          className="max-w-xs"
-        />
-        <Button onClick={submitNew} disabled={!newName.trim() || add.isPending}>
-          <Plus className="w-4 h-4 mr-1" /> Add
-        </Button>
-      </div>
-
-      <div className="rounded-lg border divide-y">
+      {/* The row reads the way the gallery reads. */}
+      <div className="flex gap-3 overflow-x-auto pb-3">
         {categories.map((c, i) => {
           const n = counts.get(c.name) || 0;
           const isEditing = editing === c.id;
           return (
-            <div key={c.id} className="flex items-center gap-3 p-3">
-              <div className="flex flex-col">
-                <button
-                  disabled={i === 0}
-                  onClick={() => reorder.mutate({ a: c, b: categories[i - 1] })}
-                  className="disabled:opacity-20"
-                  title="Move up"
-                >
-                  <ArrowUp className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  disabled={i === categories.length - 1}
-                  onClick={() => reorder.mutate({ a: c, b: categories[i + 1] })}
-                  className="disabled:opacity-20"
-                  title="Move down"
-                >
-                  <ArrowDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
+            <div
+              key={c.id}
+              className="group relative shrink-0 overflow-hidden rounded-xl border-2 bg-white px-4 pb-3 pt-4 transition-shadow hover:shadow-md"
+              style={{ borderColor: "#E3E8EE", minWidth: 158 }}
+            >
               {isEditing ? (
-                <>
+                <div className="flex items-center gap-1">
                   <Input
                     autoFocus
                     value={editValue}
@@ -126,43 +103,55 @@ export const LogoCategoryManager = () => {
                       if (e.key === "Enter") submitRename(c);
                       if (e.key === "Escape") setEditing(null);
                     }}
-                    className="max-w-xs h-8"
+                    className="h-8 w-32"
                   />
-                  <Button size="sm" variant="ghost" onClick={() => submitRename(c)}>
-                    <Check className="w-4 h-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                </>
+                  <button onClick={() => submitRename(c)} className="p-1"><Check className="h-4 w-4" /></button>
+                  <button onClick={() => setEditing(null)} className="p-1"><X className="h-4 w-4" /></button>
+                </div>
               ) : (
                 <>
-                  <span className="font-semibold flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 text-sm font-bold">
                     {c.name}
-                    {c.is_protected && (
-                      <Lock className="w-3 h-3 text-muted-foreground" aria-label="Built in - cannot be removed" />
-                    )}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-muted font-bold">{n}</span>
-                  <div className="ml-auto flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
+                    {c.is_protected && <Lock className="h-3 w-3 text-muted-foreground" />}
+                  </div>
+                  <div className="mt-1 text-2xl font-extrabold tabular-nums" style={{ color: ROSE }}>
+                    {n}
+                  </div>
+
+                  {/* Controls stay out of the way until the card is hovered. */}
+                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-white/95 py-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      disabled={i === 0}
+                      onClick={() => reorder.mutate({ a: c, b: categories[i - 1] })}
+                      className="p-1 disabled:opacity-20"
+                      title="Move left"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </button>
+                    <button
                       disabled={c.is_protected}
                       onClick={() => { setEditing(c.id); setEditValue(c.name); }}
-                      title={c.is_protected ? "Built in - cannot be renamed" : "Rename"}
+                      className="p-1 disabled:opacity-20"
+                      title={c.is_protected ? "Built in" : "Rename"}
                     >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
                       disabled={c.is_protected}
                       onClick={() => submitDelete(c)}
-                      title={c.is_protected ? "Built in - cannot be deleted" : "Delete"}
+                      className="p-1 disabled:opacity-20"
+                      title={c.is_protected ? "Built in" : "Delete"}
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                    </Button>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </button>
+                    <button
+                      disabled={i === categories.length - 1}
+                      onClick={() => reorder.mutate({ a: c, b: categories[i + 1] })}
+                      className="p-1 disabled:opacity-20"
+                      title="Move right"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </>
               )}
@@ -171,9 +160,50 @@ export const LogoCategoryManager = () => {
         })}
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          value={newName}
+          onChange={e => setNewName(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && submitNew()}
+          placeholder="New category name"
+          className="max-w-xs"
+        />
+        {/* Rose, not the default near-grey, which sat invisible against the
+            dashboard's own grey. */}
+        <Button
+          onClick={submitNew}
+          disabled={!newName.trim() || add.isPending}
+          className="text-white hover:opacity-90"
+          style={{ background: ROSE }}
+        >
+          <Plus className="mr-1 h-4 w-4" /> Add category
+        </Button>
+
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="ml-auto border-2 bg-white" style={{ borderColor: ROSE, color: ROSE }}>
+              <Tags className="mr-1.5 h-4 w-4" /> Tags
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2">
+                <Tags className="h-5 w-5" style={{ color: ROSE }} /> Tags
+              </SheetTitle>
+              <p className="text-left text-xs text-muted-foreground">
+                A logo lives in one category but wears as many tags as fit.
+              </p>
+            </SheetHeader>
+            <div className="mt-4">
+              <LogoTagManager />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
       <p className="text-xs text-muted-foreground">
-        Renaming a category moves its logos with it. Deleting one moves its logos to
-        Uncategorized — no file is ever deleted here.
+        Hover a card to rename, reorder or delete it. Renaming moves its logos with it;
+        deleting moves them to Uncategorized — no file is ever deleted here.
       </p>
     </div>
   );

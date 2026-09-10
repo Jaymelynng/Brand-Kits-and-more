@@ -90,3 +90,27 @@ export const useToggleLogoTag = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["gyms"] }),
   });
 };
+
+/** Put one tag on many logos at once, or take it off all of them. */
+export const useBulkToggleLogoTag = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ logoIds, tagId, on }: { logoIds: string[]; tagId: string; on: boolean }) => {
+      if (logoIds.length === 0) return;
+      if (on) {
+        // upsert, so re-applying a tag some of them already carry is not an error
+        const { error } = await supabase
+          .from("gym_logo_tags")
+          .upsert(logoIds.map(id => ({ logo_id: id, tag_id: tagId })), {
+            onConflict: "logo_id,tag_id", ignoreDuplicates: true,
+          });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("gym_logo_tags").delete().eq("tag_id", tagId).in("logo_id", logoIds);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["gyms"] }),
+  });
+};
