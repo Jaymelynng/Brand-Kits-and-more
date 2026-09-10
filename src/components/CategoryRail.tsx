@@ -127,7 +127,9 @@ export const CategoryRail = ({
       {/* Selecting used to live only in the header, so filing a card near the
           bottom of a long gallery meant scrolling all the way up and back
           again. The rail travels down the page, so the switch travels too. */}
-      {isAdmin && (
+      {/* A share link is read-only even for an admin who opens it: the whole
+          point of /kit/CODE is that what she sees is what the vendor sees. */}
+      {isAdmin && !solo && (
         <button
           onClick={onToggleSelection}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[14px] font-extrabold transition-all duration-150 active:translate-y-[2px]"

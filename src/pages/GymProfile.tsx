@@ -59,7 +59,15 @@ const VIEW_LABELS: Record<string, string> = {
 const GymProfile = ({ solo = false }: GymProfileProps) => {
   const { gymCode } = useParams<{ gymCode: string }>();
   const { data: gyms = [], isLoading, error } = useGyms();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin: isAdminUser } = useAuth();
+  /**
+   * A /kit/CODE share link is read-only for everyone, the owner included.
+   * Gating the edit controls on isAdmin alone meant opening her own share
+   * link showed Add Logos, Select and a Delete button on all 80 cards - and
+   * "the vendor isn't an admin so they won't see it" is a promise resting on
+   * the vendor never signing in. This makes the URL itself decide.
+   */
+  const isAdmin = isAdminUser && !solo;
   const navigate = useNavigate();
   
   // Find gym
@@ -113,6 +121,16 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   // Clicking a card opens it large. The arrows are for moving.
   const [expandedLogo, setExpandedLogo] = useState<typeof gym.logos[0] | null>(null);
   const [expandedGround, setExpandedGround] = useState<"light" | "dark" | "brand" | "check">("light");
+  const [darkPreviewUrls, setDarkPreviewUrls] = useState<Set<string>>(new Set());
+  const rememberLogoContrast = useCallback((url: string, preferDark: boolean) => {
+    setDarkPreviewUrls(previous => {
+      if (previous.has(url) === preferDark) return previous;
+      const next = new Set(previous);
+      if (preferDark) next.add(url);
+      else next.delete(url);
+      return next;
+    });
+  }, []);
   const [selectedLogos, setSelectedLogos] = useState<Set<string>>(new Set());
   const [downloadingSelected, setDownloadingSelected] = useState(false);
   const [copyFallbackText, setCopyFallbackText] = useState<string | null>(null);
@@ -824,7 +842,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       // Let the card's own buttons - Download, Copy URL, Delete - do their job.
       if ((e.target as HTMLElement).closest('button,a,input,[role="checkbox"]')) return;
       if (selectionMode) toggleLogoSelection(logo.id);
-      else setExpandedLogo(logo);
+      else {
+        setExpandedGround(darkPreviewUrls.has(logo.file_url) ? "dark" : "light");
+        setExpandedLogo(logo);
+      }
     },
     style: { cursor: selectionMode ? 'pointer' : 'zoom-in' } as React.CSSProperties,
     onDragStart: (e: React.DragEvent) => {
@@ -986,6 +1007,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   })();
   const secondaryColor = gym.colors[1]?.color_hex || '#9CA3AF';
   const logoBgColor = logoBgMode === 'dark' ? '#1a1a2e' : `${primaryColor}08`;
+  const logoPreviewBackground = (logo: GymLogo) =>
+    darkPreviewUrls.has(logo.file_url) ? showcaseInk : logoBgColor;
 
   // Convert hex to HSL for better manipulation
   const hexToHsl = (hex: string) => {
@@ -1177,11 +1200,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 <div 
                                   className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
                                   style={{ 
-                                    backgroundColor: logoBgColor,
+                                    backgroundColor: logoPreviewBackground(logo),
                                   }}
                                 >
                                   <LogoMedia
                                     url={logo.file_url}
+                                    onContrast={(preferDark) => rememberLogoContrast(logo.file_url, preferDark)}
                                     alt={logo.filename}
                                     className="max-w-full max-h-full object-contain p-4"
                                   />
@@ -1926,24 +1950,28 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     </Button>
                   )}
 
-                  <Button
-                    onClick={handleToggleUpload}
-                    variant="outline"
-                    size="sm"
-                    className="font-semibold shadow-lg bg-white text-foreground border-white/50 hover:bg-white/90"
-                  >
-                    {showUpload ? (
-                      <>
-                        <X className="w-4 h-4 mr-2" />
-                        Hide Upload
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Logos
-                      </>
-                    )}
-                  </Button>
+                  {/* Never gated at all, so a share link offered Add Logos to
+                      anyone who opened it. */}
+                  {isAdmin && (
+                    <Button
+                      onClick={handleToggleUpload}
+                      variant="outline"
+                      size="sm"
+                      className="font-semibold shadow-lg bg-white text-foreground border-white/50 hover:bg-white/90"
+                    >
+                      {showUpload ? (
+                        <>
+                          <X className="w-4 h-4 mr-2" />
+                          Hide Upload
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Logos
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -2101,10 +2129,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         {/* Logo Display */}
                         <div 
                           className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
-                          style={{ backgroundColor: logoBgColor }}
+                          style={{ backgroundColor: logoPreviewBackground(logo) }}
                         >
                           <LogoMedia
                                     url={logo.file_url}
+                                    onContrast={(preferDark) => rememberLogoContrast(logo.file_url, preferDark)}
                                     alt={logo.filename}
                                     className="max-w-full max-h-full object-contain p-4"
                                   />
@@ -2210,10 +2239,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           {/* Logo Thumbnail */}
                           <div 
                             className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-gym-primary/35 flex-shrink-0"
-                            style={{ backgroundColor: logoBgColor }}
+                            style={{ backgroundColor: logoPreviewBackground(logo) }}
                           >
                             <LogoMedia
                                     url={logo.file_url}
+                                    onContrast={(preferDark) => rememberLogoContrast(logo.file_url, preferDark)}
                                     alt={logo.filename}
                                     className="max-w-full max-h-full object-contain"
                                   />
@@ -2336,10 +2366,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         {/* Logo Display */}
                         <div 
                           className="w-full flex items-center justify-center mb-4 rounded-lg border-2 border-gym-primary/35 p-4"
-                          style={{ backgroundColor: logoBgColor }}
+                          style={{ backgroundColor: logoPreviewBackground(logo) }}
                         >
                           <LogoMedia
                                     url={logo.file_url}
+                                    onContrast={(preferDark) => rememberLogoContrast(logo.file_url, preferDark)}
                                     alt={logo.filename}
                                     className="w-full h-auto object-contain"
                                   />
