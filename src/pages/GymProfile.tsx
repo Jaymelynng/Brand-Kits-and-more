@@ -87,6 +87,15 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
   const [viewMode, setViewMode] = useState<'variations' | 'carousel' | 'grid' | 'list' | 'masonry'>('grid');
+
+  /**
+   * Autoplay was built inline in the JSX, so every render of this page
+   * produced a brand new plugin instance, Embla re-initialised and the timer
+   * went back to zero - it never survived the 4s delay, which is why the reel
+   * sat still no matter which stop conditions were set. One instance per
+   * carousel, created once, and it runs.
+   */
+
   const [elementViewMode, setElementViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('grid');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
@@ -1015,22 +1024,19 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     // nowhere to advance and the carousel sat still. Keeping
                     // them lets a short set rotate; a long set is unaffected.
                     opts={{ align: "center", loop: true, containScroll: false }}
-                    plugins={[
-                      Autoplay({
-                        delay: 4000,
-                        // It used to keep advancing while she was reaching for
-                        // a card, so the card she aimed at slid away mid-click.
-                        // Pausing on hover fixes that - but stopping for good
-                        // on interaction overshot: one click and it never
-                        // rotated again. It pauses while she is on it and
-                        // picks back up when she leaves.
-                        stopOnMouseEnter: true,
-                        stopOnInteraction: false,
-                        stopOnFocusIn: true,
-                      }),
-                    ]}
+                    plugins={[Autoplay({ delay: 4000, stopOnMouseEnter: false, stopOnInteraction: false, stopOnFocusIn: false })]}
                     setApi={(api) => {
                       if (!api) return;
+
+                      // The plugin instance is reused so Embla does not
+                      // re-initialise on every render - but that also means
+                      // playOnInit only ever fired against an Embla instance
+                      // that has since been replaced, leaving isPlaying()
+                      // false and the reel motionless. Start it explicitly.
+                      const auto = api.plugins()?.autoplay as
+                        { isPlaying: () => boolean; play: () => void } | undefined;
+                      if (auto && !auto.isPlaying()) auto.play();
+
                       
                       const updateSlides = () => {
                         const selectedIndex = api.selectedScrollSnap();
@@ -1085,7 +1091,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     <CarouselContent>
                       {items.map((logo, index) => (
                         <CarouselItem 
-                          key={logo.id} 
+                          key={`${logo.id}-${index}`} 
                           className="md:basis-1/2 lg:basis-1/3"
                           style={{
                             transformStyle: "preserve-3d",
@@ -1659,6 +1665,39 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       {/* Content Section */}
       <div className="container mx-auto px-6 pb-12">
 
+          {/* Its own area. The primaries are the brand; the gallery below is
+              the library. Sharing one card squeezed the carousel into the
+              column beside the rail and its cards lost a quarter of their
+              width. */}
+          {(() => {
+            const primaries = visibleLogos.filter(l => l.variant === 'Primary logos');
+            if (primaries.length === 0) return null;
+            // Embla only loops when the slides fill the track more than once.
+            // Three at a third each leave it 373px short, so it parked and
+            // never rotated - and none of the three sat centred. Repeating
+            // them until there are nine gives the loop something to turn
+            // without asking her to go and mark more logos as primary.
+            const reel = primaries.length >= 9
+              ? primaries
+              : Array.from({ length: Math.ceil(9 / primaries.length) }, () => primaries).flat();
+            return (
+              <Card className="mb-6 bg-white shadow-xl border-2" style={{ borderColor: `${primaryColor}40` }}>
+                <CardHeader className="pb-0">
+                  <div className="flex items-baseline gap-3">
+                    <CardTitle className="text-2xl">Primary logos</CardTitle>
+                    <span className="text-sm font-semibold text-muted-foreground">
+                      {primaries.length === 1 ? 'the mark' : `${primaries.length} approved marks`}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  {renderCarousel(reel)}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+
 
         {/* Upload Interface - Always visible for admins when no logos exist */}
         {(gym.logos.length === 0 || showUpload) && isAdmin && (
@@ -1967,14 +2006,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 )}
 
                 <div className="min-w-0 flex-1">
-              {/* The primaries ride at the top of the gallery in the carousel,
-                  with the rail beside them and the grid directly under. One
-                  card, not two - which is what she asked for three times. */}
-              {(() => {
-                const primaries = visibleLogos.filter(l => l.variant === 'Primary logos');
-                return primaries.length > 0 ? renderCarousel(primaries) : null;
-              })()}
-
               {viewMode === 'variations' ? (
                 <VariationBrowser
                   logos={filteredLogos}
