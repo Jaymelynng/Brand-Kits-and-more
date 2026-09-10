@@ -19,7 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { copyText } from "@/lib/copyText";
 import { LogoMedia } from "@/components/LogoMedia";
-import { FontsSection } from "@/components/FontsSection";
+import { FontSpecimen } from "@/components/FontSpecimen";
 import { luminance, shade } from "@/lib/shade";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
@@ -1049,7 +1049,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
    * second time is what made the showcase look nothing like this one.
    * It closes over the handlers, so there is no second copy to drift.
    */
-  const renderCarousel = (items: typeof filteredLogos) => (
+  const renderCarousel = (
+    items: typeof filteredLogos,
+    basis = "md:basis-1/2 lg:basis-1/3",
+  ) => (
                 <div style={{ perspective: "3000px" }} className="w-full overflow-hidden py-8">
                   <Carousel 
                     className="w-full max-w-5xl mx-auto px-16" 
@@ -1127,7 +1130,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       {items.map((logo, index) => (
                         <CarouselItem 
                           key={`${logo.id}-${index}`} 
-                          className="md:basis-1/2 lg:basis-1/3"
+                          className={basis}
                           style={{
                             transformStyle: "preserve-3d",
                           }}
@@ -1703,15 +1706,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       {/* Content Section */}
       <div className="container mx-auto px-6 pb-12">
 
-          {/* Typography sits with the colours: both are the brand rather than
-              an asset, and both are what someone opens the kit to find. */}
-          <FontsSection
-            gymId={gym.id}
-            gymName={gym.name}
-            palette={gym.colors.map(c => c.color_hex)}
-            canEdit={isAdmin}
-          />
-
 
           {/* Its own area. The primaries are the brand; the gallery below is
               the library. Sharing one card squeezed the carousel into the
@@ -1748,7 +1742,25 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  {renderCarousel(reel)}
+                  {/* 60 / 40. Fonts used to be their own full-width slab, which
+                      pushed the logos below the fold - the thing she opens the
+                      kit for sat behind a wall of type. */}
+                  <div className="flex flex-col gap-4 lg:flex-row">
+                    <div className="min-w-0 lg:w-[60%]">
+                      {/* Half-width slides, not thirds: in the narrower column
+                          thirds shrank the cards until the buttons stopped
+                          being readable. */}
+                      {renderCarousel(reel, "basis-4/5 sm:basis-1/2")}
+                    </div>
+                    <div className="min-w-0 lg:w-[40%]">
+                      <FontSpecimen
+                        gymId={gym.id}
+                        gymName={gym.name}
+                        palette={gym.colors.map(c => c.color_hex)}
+                        canEdit={isAdmin}
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             );

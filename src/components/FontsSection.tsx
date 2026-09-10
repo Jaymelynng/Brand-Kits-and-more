@@ -16,6 +16,8 @@ interface FontsSectionProps {
   gymName: string;
   palette: string[];
   canEdit: boolean;
+  /** Inside the specimen's drawer, so it drops its own card chrome. */
+  embedded?: boolean;
 }
 
 const WEIGHTS = ["300", "400", "500", "600", "700", "800", "900"];
@@ -52,7 +54,7 @@ const BLANK = {
  * you nothing about whether two fonts sit well together, and that judgement
  * is the entire point of the section.
  */
-export const FontsSection = ({ gymId, gymName, palette, canEdit }: FontsSectionProps) => {
+export const FontsSection = ({ gymId, gymName, palette, canEdit, embedded = false }: FontsSectionProps) => {
   const { data: pairings = [], isLoading } = useFontPairings(gymId);
   const save = useSaveFontPairing();
   const remove = useDeleteFontPairing();
@@ -96,9 +98,23 @@ export const FontsSection = ({ gymId, gymName, palette, canEdit }: FontsSectionP
     return <p className="text-sm text-muted-foreground">Loading fonts...</p>;
   }
 
+  const Shell = embedded
+    ? ({ children }: { children: React.ReactNode }) => <div className="space-y-4">{children}</div>
+    : ({ children }: { children: React.ReactNode }) => (
+        <Card className="mb-6 bg-white shadow-xl border-2" style={{ borderColor: `${accent}40` }}>
+          {children}
+        </Card>
+      );
+  const Head = embedded
+    ? ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+    : CardHeader;
+  const Body = embedded
+    ? ({ children }: { children: React.ReactNode }) => <div className="space-y-4">{children}</div>
+    : CardContent;
+
   return (
-    <Card className="mb-6 bg-white shadow-xl border-2" style={{ borderColor: `${accent}40` }}>
-      <CardHeader>
+    <Shell>
+      <Head>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-baseline gap-3">
             <CardTitle className="flex items-center gap-2 text-2xl">
@@ -126,9 +142,9 @@ export const FontsSection = ({ gymId, gymName, palette, canEdit }: FontsSectionP
           Starting choices, not rules — the everyday pairing is marked, and anything
           else here is fair game for a campaign.
         </p>
-      </CardHeader>
+      </Head>
 
-      <CardContent className="space-y-4">
+      <Body>
         {pairings.length === 0 && !editing && (
           <p className="rounded-xl border-2 border-dashed p-6 text-center text-sm font-semibold text-muted-foreground">
             No fonts saved for {gymName} yet.
@@ -372,7 +388,7 @@ export const FontsSection = ({ gymId, gymName, palette, canEdit }: FontsSectionP
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </Body>
+    </Shell>
   );
 };
