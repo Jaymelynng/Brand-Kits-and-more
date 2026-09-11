@@ -1060,13 +1060,13 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           key={`${logo.id}-${index}`} 
                           className={cn(basis, "flex")}
                           style={{
-                            transformStyle: "preserve-3d",
+                            transformStyle: contained ? "flat" : "preserve-3d",
                           }}
                         >
                           <div 
                             className="flex w-full min-w-0 p-1"
                             style={{
-                              transformStyle: "preserve-3d",
+                              transformStyle: contained ? "flat" : "preserve-3d",
                             }}
                           >
                              <Card 
@@ -1078,7 +1078,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                               )}
                               style={{
-                                transformStyle: "preserve-3d",
+                                transformStyle: contained ? "flat" : "preserve-3d",
                                 transform: "rotateY(0deg)",
                                 borderColor: `${primaryColor}35`,
                                 backgroundColor: '#ffffff',

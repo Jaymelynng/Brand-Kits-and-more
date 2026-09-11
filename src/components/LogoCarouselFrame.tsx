@@ -34,8 +34,8 @@ export function LogoCarouselFrame({
     align: "center" as const,
     loop: true,
     containScroll: false as const,
-    duration: reducedMotion ? 0 : 30,
-  }), [reducedMotion]);
+    duration: reducedMotion ? 0 : contained ? 42 : 30,
+  }), [contained, reducedMotion]);
 
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -46,17 +46,38 @@ export function LogoCarouselFrame({
 
   useEffect(() => {
     if (!api) return;
+    let slides = api.slideNodes();
+    let cards = slides.map(slide => slide.querySelector<HTMLElement>("[data-card]"));
     const updateSlides = () => {
       const selected = api.selectedScrollSnap();
-      const slides = api.slideNodes();
+      // Read the physical slide positions, including Embla's loop offsets.
+      // Depth follows the same motion as the track instead of running a
+      // separate CSS animation when the destination becomes selected.
+      const viewport = contained ? api.rootNode().getBoundingClientRect() : null;
+      const positions = contained ? slides.map(slide => slide.getBoundingClientRect()) : [];
       slides.forEach((slide, index) => {
         // Use the nearest copy around the loop, including the first/last seam.
         let distance = index - selected;
         if (distance > slides.length / 2) distance -= slides.length;
         if (distance < -slides.length / 2) distance += slides.length;
-        const card = slide.querySelector<HTMLElement>("[data-card]");
+        const card = cards[index];
         slide.dataset.active = String(distance === 0);
         if (!card) return;
+        if (contained && viewport && positions[index].width > 0) {
+          const rect = positions[index];
+          const offset = (rect.left + rect.width / 2 - viewport.left - viewport.width / 2) / rect.width;
+          const proximity = Math.max(0, 1 - Math.abs(offset));
+          const focus = proximity * proximity * (3 - 2 * proximity);
+          const depth = 1 - focus;
+          const angle = reducedMotion ? 0 : Math.sign(offset) * depth * 14;
+          const scale = reducedMotion ? 1 : 1 - depth * 0.14;
+          const drop = reducedMotion ? 0 : depth * 10;
+          card.style.transform = `perspective(1400px) translateY(${drop.toFixed(3)}px) rotateY(${angle.toFixed(3)}deg) scale(${scale.toFixed(5)})`;
+          card.style.opacity = reducedMotion ? "1" : String(1 - depth * 0.28);
+          card.style.transition = "none";
+          slide.style.zIndex = String(Math.round(focus * 100));
+          return;
+        }
         const depth = Math.abs(distance);
         const angle = reducedMotion ? 0 : Math.sign(distance) * Math.min(contained ? 12 : 45, depth * 12);
         const scale = reducedMotion ? 1 : Math.max(0.78, 1 - depth * 0.1);
@@ -66,16 +87,27 @@ export function LogoCarouselFrame({
         slide.style.zIndex = String(Math.max(0, slides.length - depth));
       });
     };
+    const refreshSlides = () => {
+      slides = api.slideNodes();
+      cards = slides.map(slide => slide.querySelector<HTMLElement>("[data-card]"));
+      updateSlides();
+    };
     const pointerDown = () => setDragging(true);
     const pointerUp = () => setDragging(false);
     api.on("select", updateSlides);
-    api.on("reInit", updateSlides);
+    api.on("reInit", refreshSlides);
+    if (contained) {
+      api.on("scroll", updateSlides);
+      api.on("settle", updateSlides);
+    }
     api.on("pointerDown", pointerDown);
     api.on("pointerUp", pointerUp);
     updateSlides();
     return () => {
       api.off("select", updateSlides);
-      api.off("reInit", updateSlides);
+      api.off("reInit", refreshSlides);
+      api.off("scroll", updateSlides);
+      api.off("settle", updateSlides);
       api.off("pointerDown", pointerDown);
       api.off("pointerUp", pointerUp);
     };
