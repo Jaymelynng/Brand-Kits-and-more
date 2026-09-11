@@ -1633,7 +1633,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       {/* The carousel was titled and the type was not, so
                           nothing on screen said the panel beside it was the
                           brand's fonts. */}
-                      <CardTitle className={cn("mb-2 text-2xl text-white", !solo && "flex h-10 items-center")}>Fonts</CardTitle>
+                      <CardTitle className={cn("mb-2 text-center text-2xl text-white", !solo && "flex h-10 items-center justify-center")}>Fonts</CardTitle>
                       <FontSpecimen
                         gymId={gym.id}
                         gymName={gym.name}
