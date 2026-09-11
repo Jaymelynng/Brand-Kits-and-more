@@ -1,8 +1,9 @@
 import type { FontPairing } from '@/hooks/useFontPairings';
-import type { GymLogo, GymWithColors } from '@/hooks/useGyms';
+import type { GymElement, GymLogo, GymWithColors } from '@/hooks/useGyms';
 import { bundledFont, fontSource } from './brandKitFonts';
 import { luminance } from './shade';
 import { compareLogoOrder } from './logoOrder';
+import { elementFilename, loadElementFile } from './brandElements';
 
 export interface KitLogo {
   logo: GymLogo;
@@ -24,10 +25,14 @@ export interface KitFont {
   blob?: Blob;
   license?: string;
 }
+export interface KitElement extends Omit<KitLogo, 'logo'> {
+  element: GymElement;
+}
 export interface BrandKit {
   gym: GymWithColors;
   pairings: FontPairing[];
   logos: KitLogo[];
+  elements: KitElement[];
   fonts: KitFont[];
   palette: string[];
   created: string;
@@ -78,7 +83,7 @@ async function measureLogo(blob: Blob, name: string) {
     return { preview: canvas.toDataURL('image/png'), width: img.naturalWidth, height: img.naturalHeight,
       transparent: clear > 0, lightArtwork: clear > 0 && visible > 0 && brightness / visible > 150,
       colorful: visible > 0 && colored / visible > 0.2 };
-  } catch { throw new Error(`The primary logo ${name} cannot be previewed. Check the file before exporting.`); }
+  } catch { throw new Error(`The artwork ${name} cannot be previewed. Check the file before exporting.`); }
   finally { URL.revokeObjectURL(url); }
 }
 
@@ -105,6 +110,23 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
       return { logo, blob, path, sha256: [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join(''), ...preview };
     })));
   }
+  onProgress('Collecting dividers and graphics…');
+  const elements: KitElement[] = [];
+  const elementPaths = new Set<string>();
+  for (let i = 0; i < gym.elements.length; i += 4) {
+    const plannedElements = gym.elements.slice(i, i + 4).map(element => {
+      const base = elementFilename(element);
+      let name = base, n = 2;
+      while (elementPaths.has(name.toLowerCase())) name = base.replace(/(\.[^.]+)$/, `-${n++}$1`);
+      elementPaths.add(name.toLowerCase());
+      return { element, path: `Graphics/${safeFilename(element.element_type)}/${name}` };
+    });
+    elements.push(...await Promise.all(plannedElements.map(async ({ element, path }) => {
+      const blob = await loadElementFile(element);
+      const [preview, digest] = await Promise.all([measureLogo(blob, element.display_name || element.element_type), crypto.subtle.digest('SHA-256', await blob.arrayBuffer())]);
+      return { element, blob, path, sha256: [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join(''), ...preview };
+    })));
+  }
   onProgress('Preparing fonts…');
   const choices = pairings.flatMap(p => [
     { family: p.heading_font, weight: p.heading_weight },
@@ -125,7 +147,7 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
   if (!pairings.length) notes.push('No font pairings are saved for this gym.');
   if (!logos.some(l => /\.svg$/i.test(l.path))) notes.push('The saved primary logos are raster images. A vector master is still needed for large signs, embroidery or other production that requires vector artwork.');
   fonts.filter(f => !f.blob).forEach(f => notes.push(`${f.family} ${f.weight}: use the source link in Fonts; its installable file is not bundled.`));
-  return { gym, pairings, logos, fonts, palette, created: new Date().toISOString(),
+  return { gym, pairings, logos, elements, fonts, palette, created: new Date().toISOString(),
     url: `${location.origin}/kit/${encodeURIComponent(gym.code)}`, notes };
 }
 
@@ -144,6 +166,7 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
   const root = zip.folder(`${safeFilename(kit.gym.code)}-Brand-Kit`)!;
   root.file(`${safeFilename(kit.gym.code)}-Brand-Guide.pdf`, pdf);
   kit.logos.forEach(l => root.file(l.path, l.blob));
+  kit.elements.forEach(e => root.file(e.path, e.blob));
   kit.fonts.forEach(f => {
     if (f.blob && f.file) {
       root.file(`Fonts/${safeFilename(f.family)}/${f.file}`, f.blob);
@@ -171,6 +194,7 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
     'Start with the PDF guide. Logos contains the saved primary marks in their original formats.',
     'Fonts contains installable files where available, licenses, pairing weights and source links.',
     'Colors contains HEX/RGB values plus CSS, JSON and a GIMP-compatible palette.',
+    ...(kit.elements.length ? [`Graphics contains ${kit.elements.length} saved dividers and supporting graphics in their original formats.`, 'For email, download the PNG or copy its URL from the online kit. Preserve its proportions when sizing it to the email width.'] : []),
     'Transparent logo files have clear pixels, not a printed checkerboard. A white logo needs a dark surface.',
     'Keep logo proportions. Choose a file that reads clearly on its background. Do not enlarge raster files past a useful size.',
     'Themed logos, animation, retired artwork and uncategorized files remain in the online library.',
@@ -179,6 +203,7 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
   ].join('\n'));
   root.file('Contents.json', JSON.stringify({ gym: kit.gym.name, code: kit.gym.code, exported_at: kit.created, source: kit.url,
     logos: kit.logos.map(l => ({ file: l.path, name: l.logo.filename, width: l.width, height: l.height, transparent: l.transparent, sha256: l.sha256, source: l.logo.file_url })),
+    graphics: kit.elements.map(e => ({ file: e.path, name: e.element.display_name, type: e.element.element_type, width: e.width, height: e.height, transparent: e.transparent, sha256: e.sha256 })),
     pairings: kit.pairings.map(({ name, heading_font, heading_weight, body_font, body_weight, accent_font, accent_weight, email_fallback, notes, sample_heading, sample_body, sample_source }) =>
       ({ name, heading_font, heading_weight, body_font, body_weight, accent_font, accent_weight, email_fallback, notes, sample_heading, sample_body, sample_source })),
     colors, notes: kit.notes }, null, 2));

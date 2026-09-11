@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import type { BrandKit, KitLogo } from './brandKit';
+import type { BrandKit, KitLogo, KitElement } from './brandKit';
 import { colorValues, kitInk } from './brandKit';
 import { contrast, readableOn, tint } from './shade';
 
@@ -36,7 +36,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
   const box = (x: number, y: number, w: number, h: number, fill: string, stroke?: string) => {
     doc.setFillColor(fill); doc.setDrawColor(stroke || fill); doc.roundedRect(x, y, w, h, 10, 10, stroke ? 'FD' : 'F');
   };
-  const logoImage = (logo: KitLogo, x: number, y: number, w: number, h: number) => {
+  const logoImage = (logo: KitLogo | KitElement, x: number, y: number, w: number, h: number) => {
     const ratio = Math.min(w / logo.width, h / logo.height);
     const dw = logo.width * ratio, dh = logo.height * ratio;
     doc.addImage(logo.preview, 'PNG', x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, logo.sha256, 'FAST');
@@ -60,7 +60,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
   text(kit.gym.name.toUpperCase(), M, 43, 13, '#FFFFFF');
   text('BRAND KIT', W - 150, 43, 12, '#FFFFFF', 112);
   text('Brand essentials', M, 106, 42, '#FFFFFF');
-  text('Logos. Color. Type. Ready to use together.', M, 136, 15, '#FFFFFF');
+  text(kit.elements.length ? 'Logos. Color. Type. Dividers & graphics.' : 'Logos. Color. Type. Ready to use together.', M, 136, 15, '#FFFFFF');
   const coverLogo = kit.logos.filter(l => l.transparent && l.colorful && l.width / l.height > 2)
     .sort((a, b) => b.width - a.width)[0] || kit.logos.find(l => l.logo.is_main_logo) || kit.logos[0];
   box(M, 164, CW, 192, coverLogo.lightArtwork ? ink : paper, kit.palette[2] || accent);
@@ -130,7 +130,20 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     text('No font pairings are saved for this gym. Add them in the Fonts editor to include them in the next download.', M, 160, 16);
   }
 
-  title('04 / Use the kit', 'From file to finished design', 'Practical starting points for marketing work.');
+  for (let offset = 0; offset < kit.elements.length; offset += 6) {
+    title('04 / Graphics', 'Dividers & graphics', 'Original files are included in Graphics/. Keep their proportions when fitting them to your design.');
+    const gap = 18, cardW = (CW - gap) / 2;
+    kit.elements.slice(offset, offset + 6).forEach((element, n) => {
+      const x = M + (n % 2) * (cardW + gap), y = 136 + Math.floor(n / 2) * 131;
+      box(x, y, cardW, 119, paper, tint(ink, 0.8));
+      box(x + 8, y + 8, cardW - 16, 55, element.lightArtwork && !element.colorful ? ink : paper);
+      logoImage(element, x + 16, y + 11, cardW - 32, 49);
+      text(element.element.display_name || element.element.element_type, x + 12, y + 81, 11, ink, cardW - 24);
+      text(`${element.width} x ${element.height} px`, x + 12, y + 108, 10, ink, cardW - 24);
+    });
+  }
+
+  title(`${kit.elements.length ? '05' : '04'} / Use the kit`, 'From file to finished design', 'Practical starting points for marketing work.');
   const rows = [
     ['Choose the right mark', 'Use a transparent logo for flexible placement, a white mark on a dark surface, and a circle or square for compact placements. The preview background is not added to transparent files.'],
     ['Give the logo room', 'Keep the full mark visible. Start with clear space about one quarter of the logo height, then check it in the actual design. Avoid stretching, squashing or rebuilding the lettering with a font.'],
@@ -147,19 +160,20 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     y = bottom + 25;
   });
 
-  title('05 / Handoff', 'What is in the download', 'Open the ZIP once. Start with the guide.');
+  title(`${kit.elements.length ? '06' : '05'} / Handoff`, 'What is in the download', 'Open the ZIP once. Start with the guide.');
   const included = [
     ['Brand Guide.pdf', 'The visual guide you are reading, with logo previews, colors, font samples and usage notes.'],
     ['Logos/', `${kit.logos.length} saved primary logos, preserved in their original formats and sizes.`],
     ['Fonts/', 'Installable font files where available, family licenses, saved weights and official source links.'],
     ['Colors/', 'HEX/RGB values as text, JSON, CSS variables and a GIMP-compatible palette.'],
+    ...(kit.elements.length ? [['Graphics/', `${kit.elements.length} dividers and supporting graphics in their original formats.`]] : []),
     ['Contents.json', 'A file inventory with dimensions, transparency, source URLs and integrity hashes.'],
   ];
   let iy = 153;
   included.forEach(([name, description]) => {
     text(name, M, iy, 16);
     text(description, M + 170, iy, 12, ink, CW - 170);
-    iy += 55;
+    iy += kit.elements.length ? 46 : 55;
   });
   if (kit.notes.length) {
     text('Production notes', M, 448, 16);

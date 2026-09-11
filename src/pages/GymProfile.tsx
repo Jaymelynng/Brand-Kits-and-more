@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { copyText } from "@/lib/copyText";
 import { LogoMedia } from "@/components/LogoMedia";
 import { FontSpecimen } from "@/components/FontSpecimen";
+import { BrandElements } from '@/components/BrandElements';
 import { BrandKitDownload } from "@/components/BrandKitDownload";
 import { LogoOrderEditor } from "@/components/LogoOrderEditor";
 import { isActiveLogo } from "@/lib/logoOrder";
@@ -103,7 +104,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
   const [viewMode, setViewMode] = useState<'variations' | 'carousel' | 'grid' | 'list' | 'masonry'>('grid');
 
-  const [elementViewMode, setElementViewMode] = useState<'carousel' | 'grid' | 'list' | 'masonry'>('grid');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [showElementUpload, setShowElementUpload] = useState(false);
@@ -716,18 +716,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
   const isUrl = (data: string): boolean => {
     return data.startsWith('http://') || data.startsWith('https://');
-  };
-
-  const copyElementUrl = (url: string) => {
-    navigator.clipboard.writeText(url).then(() => {
-      showCopyFeedback('element-url', 'Element URL copied! Ready to paste in emails 📧');
-    });
-  };
-
-  const copyElementSvgCode = (svgCode: string) => {
-    navigator.clipboard.writeText(svgCode).then(() => {
-      showCopyFeedback('element-svg', 'SVG code copied! Ready to paste in design tools 🎨');
-    });
   };
 
   const handleDownloadAllAsZip = useCallback(async () => {
@@ -1440,12 +1428,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       </div>
                       <div className="text-sm font-semibold text-gym-secondary-foreground/90">Brand Colors</div>
                     </div>
-                    <div className="text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-primary text-primary-foreground border-primary-foreground/25">
+                    <button type="button" aria-label="Go to dividers and graphics" disabled={!gym.elements?.length && !isAdmin}
+                      onClick={() => document.getElementById('brand-elements')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      className="cursor-pointer text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-primary text-primary-foreground border-primary-foreground/25 transition-[filter] hover:brightness-125 disabled:cursor-default">
                       <div className="text-3xl font-bold mb-1">
                         {gym.elements?.length || 0}
                       </div>
-                      <div className="text-sm font-semibold text-primary-foreground/90">Brand Elements</div>
-                    </div>
+                      <div className="text-sm font-semibold text-primary-foreground">Graphics</div>
+                    </button>
                   </div>
                 </div>
               </BrandCardContent>
@@ -2404,176 +2394,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
           </Card>
         )}
 
-        {/* Brand Elements Section */}
-        {gym.elements && gym.elements.length > 0 ? (
-          <Card className="bg-white shadow-2xl mb-8 border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
-            <CardHeader>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <CardTitle className="text-2xl">📦 Brand Elements ({gym.elements.length} files)</CardTitle>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    onClick={() => setShowElementUpload(!showElementUpload)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    {showElementUpload ? "Hide Upload" : "Add Elements"}
-                  </Button>
-                  <Select value={elementViewMode} onValueChange={(value: any) => setElementViewMode(value)}>
-                    <SelectTrigger className="w-[140px] bg-background/85 border-gym-primary/35">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="carousel">
-                        <div className="flex items-center gap-2">
-                          <Carousel className="w-4 h-4" />
-                          Carousel
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="grid">
-                        <div className="flex items-center gap-2">
-                          <Grid3X3 className="w-4 h-4" />
-                          Grid
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="list">
-                        <div className="flex items-center gap-2">
-                          <List className="w-4 h-4" />
-                          List
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="masonry">
-                        <div className="flex items-center gap-2">
-                          <LayoutGrid className="w-4 h-4" />
-                          Masonry
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {elementViewMode === 'grid' && (
-                <div className="grid auto-rows-fr grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {gym.elements.map((element) => (
-                    <Card key={element.id} className="relative h-full min-w-0 bg-white border-2 shadow-lg hover:shadow-xl transition-all duration-300" style={{ borderColor: `${primaryColor}35` }}>
-                      <CardContent className="flex h-full min-w-0 flex-col p-6">
-                        <div 
-                          className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold capitalize"
-                          style={{ backgroundColor: primaryColor }}
-                        >
-                          {element.element_type}
-                        </div>
-                        
-                        <div 
-                          className="aspect-square w-full min-h-0 shrink-0 overflow-hidden flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner bg-background/80"
-                        >
-                          {element.svg_data.startsWith('http') ? (
-                            <img 
-                              src={element.svg_data} 
-                              alt={element.element_type}
-                              className="max-w-full max-h-full object-contain p-4"
-                            />
-                          ) : (
-                            <div 
-                              className="w-full h-full p-4"
-                              dangerouslySetInnerHTML={{ __html: element.svg_data }}
-                            />
-                          )}
-                        </div>
-                        
-                        <div className="text-sm font-bold text-foreground mb-4">
-                          <InlineRename
-                            value={element.display_name || element.element_type}
-                            onSave={(v) => handleRenameElement(element.id, v)}
-                          />
-                        </div>
-                        
-                        <div className="mt-auto flex flex-col gap-2">
-                          <Select 
-                            value={element.element_type} 
-                            onValueChange={(value) => handleUpdateElementType(element.id, value)}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="banner">Banner</SelectItem>
-                              <SelectItem value="shape">Shape</SelectItem>
-                              <SelectItem value="background">Background</SelectItem>
-                              <SelectItem value="icon">Icon</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          
-                          {isUrl(element.svg_data) && (
-                            <Button
-                              onClick={() => copyElementUrl(element.svg_data)}
-                              size="sm"
-                              variant="outline"
-                              className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
-                            >
-                              <LinkIcon className="w-4 h-4 mr-2" />
-                              Copy URL
-                            </Button>
-                          )}
-                          
-                          <Button
-                            onClick={() => copyElementSvgCode(element.svg_data)}
-                            size="sm"
-                            variant="outline"
-                            className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
-                          >
-                            <Code className="w-4 h-4 mr-2" />
-                            Copy SVG Code
-                          </Button>
-                          
-                          {isAdmin && (<>
-                          <Button
-                            onClick={() => handleDeleteElement(element.id, element.element_type)}
-                            size="sm"
-                            variant="outline"
-                            className="w-full bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                          </Button>
-                          </>)}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ) : isAdmin ? (
-          <Card className="bg-white shadow-2xl mb-8 border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
-            <CardHeader>
-              <CardTitle className="text-2xl">📦 Brand Elements</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <div className="text-muted-foreground mb-4">
-                  No brand elements uploaded yet
-                </div>
-                <Button
-                  onClick={() => setShowElementUpload(true)}
-                  className="text-white font-semibold shadow-lg hover:shadow-xl"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Upload First Element
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
-
+        <BrandElements gym={gym} isAdmin={isAdmin}
+          onUpload={() => setShowElementUpload(value => !value)}
+          onRename={handleRenameElement} onTypeChange={handleUpdateElementType}
+          onDelete={handleDeleteElement} />
         {/* Element Upload Interface */}
-        {showElementUpload && (
+        {isAdmin && showElementUpload && (
           <Card className="bg-white shadow-2xl mb-8 animate-fade-in border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -2596,7 +2422,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="banner">Banner</SelectItem>
+                    <SelectItem value="divider">Divider</SelectItem><SelectItem value="banner">Banner</SelectItem>
                     <SelectItem value="shape">Shape</SelectItem>
                     <SelectItem value="background">Background</SelectItem>
                     <SelectItem value="icon">Icon</SelectItem>

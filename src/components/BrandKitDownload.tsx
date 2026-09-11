@@ -59,7 +59,7 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
     <div className="my-3" data-brand-kit-download aria-busy={!!working}>
       <div className="grid grid-cols-3 gap-2" role="group" aria-label="Download files">
         <Button onClick={() => download('zip')} disabled={!!working} aria-label="Download brand kit"
-          title="ZIP containing primary logos, colors, font files and licenses, and the PDF guide"
+          title="ZIP containing primary logos, dividers and graphics, colors, font files and licenses, and the PDF guide"
           className={buttonClass} style={{ backgroundColor: kitFill, color: kitText }}>
           Brand kit
         </Button>
