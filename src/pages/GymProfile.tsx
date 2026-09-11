@@ -21,7 +21,9 @@ import { copyText } from "@/lib/copyText";
 import { LogoMedia } from "@/components/LogoMedia";
 import { FontSpecimen } from "@/components/FontSpecimen";
 import { BrandKitDownload } from "@/components/BrandKitDownload";
-import { luminance, shade } from "@/lib/shade";
+import { LogoOrderEditor } from "@/components/LogoOrderEditor";
+import { isActiveLogo } from "@/lib/logoOrder";
+import { contrast, luminance, shade } from "@/lib/shade";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
@@ -74,6 +76,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   
   // Find gym
   const gym = gyms.find(g => g.code === gymCode || g.id === gymCode);
+  const activeLogos = useMemo(() => gym?.logos.filter(isActiveLogo) || [], [gym]);
+  const [orderEditor, setOrderEditor] = useState<{ logos: GymLogo[]; label: string } | null>(null);
   
   // Asset system hooks
   const { data: gymAssets = [] } = useGymAssets(gym?.id);
@@ -233,7 +237,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
   const selectAllLogos = () => {
     if (!gym) return;
-    setSelectedLogos(new Set(gym.logos.map(logo => logo.id)));
+    setSelectedLogos(new Set(filteredLogos.map(logo => logo.id)));
   };
 
   const clearSelection = () => {
@@ -734,14 +738,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       const folder = zip.folder(`${gym.code}-brand-assets`);
       
       // Add logos
-      for (const logo of gym.logos) {
-        try {
-          const response = await fetch(logo.file_url);
-          const blob = await response.blob();
-          folder?.file(`logos/${logo.filename}`, blob);
-        } catch (e) {
-          console.warn(`Failed to fetch ${logo.filename}`);
-        }
+      for (const logo of activeLogos) {
+        const response = await fetch(logo.file_url, { signal: AbortSignal.timeout(25000) });
+        if (!response.ok) throw new Error(`Could not download ${logo.filename}`);
+        const blob = await response.blob();
+        if (!blob.size || /text\/html/.test(blob.type)) throw new Error(`Invalid file: ${logo.filename}`);
+        folder?.file(`logos/${logo.filename}`, blob);
       }
       
       // Add color palette as text
@@ -761,10 +763,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     } finally {
       setDownloadingZip(false);
     }
-  }, [gym, toast]);
+  }, [gym, activeLogos, toast]);
 
   /**
-   * Zip whatever is selected. The existing Download All takes the whole gym;
+   * Zip whatever is selected. Download active takes the active library;
    * this takes the selection, so filtering down to "Variations + Circle" and
    * sending exactly those 13 files is one action.
    */
@@ -914,13 +916,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     () => logoCategories.map(c => c.name),
     [logoCategories]
   );
-  // Assets still being judged are back-of-house. A visitor following a shared
-  // /gym/CODE link must never see them - they only exist for the review bench.
+  // Retired and review files are only available through explicit admin categories.
   const visibleLogos = useMemo(() => {
     if (!gym) return [];
     if (isAdmin) return gym.logos;
-    return gym.logos.filter(l => (l.variant || 'Uncategorized') !== 'Needs review');
-  }, [gym, isAdmin]);
+    return activeLogos;
+  }, [gym, isAdmin, activeLogos]);
 
   const availableVariants = useMemo(() => {
     const seen = new Set(visibleLogos.map(l => l.variant || 'Uncategorized'));
@@ -938,9 +939,9 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   // actually hunts for a file.
   const inCategory = useMemo(() => (
     activeCategories.length === 0
-      ? visibleLogos
+      ? activeLogos
       : visibleLogos.filter(l => activeCategories.includes(l.variant || 'Uncategorized'))
-  ), [visibleLogos, activeCategories]);
+  ), [visibleLogos, activeLogos, activeCategories]);
 
   const filteredLogos = useMemo(() => {
     if (activeTags.length === 0) return inCategory;
@@ -991,7 +992,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     );
   }
 
-  const mainLogo = gym.logos.find(logo => logo.is_main_logo);
+  const mainLogo = activeLogos.find(logo => logo.is_main_logo);
   // An animated mark, if this gym has one. It is video on pure black and gets
   // screen-blended over the hero footage, so the gym is never covered up.
   const logoAnimation = gym.logos.find(l => l.variant === 'Animation');
@@ -1049,6 +1050,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   ) => (
                 <div style={{ perspective: "3000px" }} className={cn("relative isolate w-full min-w-0 overflow-hidden py-8", contained && "flex flex-1 flex-col")}>
                   <LogoCarouselFrame
+                    key={items.map(logo => logo.id).join(':')}
                     contained={contained}
                     className={cn("w-full max-w-5xl mx-auto", contained ? "primary-logo-track flex flex-1 flex-col" : "px-16")}
                   >
@@ -1301,7 +1303,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 <div className="h-full w-full" onClick={onSecretTap} />
               ) : (
                 <HeroLogo
-                  logoUrl={mainLogo?.file_url || gym.logos[0]?.file_url}
+                  logoUrl={mainLogo?.file_url || activeLogos[0]?.file_url}
                   animationUrl={logoAnimation?.file_url}
                   onTap={onSecretTap}
                   tapsLeft={tapsLeft}
@@ -1339,7 +1341,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               <div className="text-center mb-8">
                 
                 <HeroLogo
-                  logoUrl={mainLogo?.file_url || gym.logos[0]?.file_url}
+                  logoUrl={mainLogo?.file_url || activeLogos[0]?.file_url}
                   animationUrl={logoAnimation?.file_url}
                 onTap={onSecretTap}
                 tapsLeft={tapsLeft}
@@ -1428,7 +1430,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   <div className="grid grid-cols-3 gap-3">
                     <div className="text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-gym-primary text-gym-primary-foreground border-gym-primary-foreground/25">
                       <div className="text-3xl font-bold mb-1">
-                        {gym.logos.length}
+                        {activeLogos.length}
                       </div>
                       <div className="text-sm font-semibold text-gym-primary-foreground/90">Logo Variations</div>
                     </div>
@@ -1631,8 +1633,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               column beside the rail and its cards lost a quarter of their
               width. */}
           {(() => {
-            const primaries = visibleLogos.filter(l => l.variant === 'Primary logos')
-              .sort((a, b) => Number(b.is_main_logo) - Number(a.is_main_logo));
+            const primaries = activeLogos.filter(l => l.variant === 'Primary logos');
             if (primaries.length === 0) return null;
             // Embla only loops when the slides fill the track more than once.
             // Three at a third each leave it 373px short, so it parked and
@@ -1659,7 +1660,15 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       kit for sat behind a wall of type. */}
                   <div className="grid grid-cols-1 gap-[clamp(12px,1.5vw,24px)] md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-stretch" data-brand-showcase>
                     <div className="flex min-w-0 flex-col">
-                      <CardTitle className="mb-2 text-2xl text-white">Primary logos</CardTitle>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <CardTitle className="text-2xl text-white">Primary logos</CardTitle>
+                        {!solo && (isAdmin ? <Button className="h-10 cursor-pointer whitespace-nowrap px-3 text-[15px] font-semibold hover:brightness-110"
+                          style={{ background: primaryColor, color: contrast(primaryColor, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111' }}
+                          onClick={() => setOrderEditor({ logos: primaries, label: 'Primary logos' })}>Change order</Button>
+                          : <Button asChild className="h-10 cursor-pointer bg-slate-900 px-3 text-[15px] text-white hover:bg-slate-700">
+                            <Link to={`/auth?returnTo=${encodeURIComponent(`/gym/${gym.code}`)}`}>Edit kit</Link>
+                          </Button>)}
+                      </div>
                       {/* A continuous width avoids the old 80% to 50% jump. */}
                       {renderCarousel(reel, "primary-logo-slide", true)}
                     </div>
@@ -1667,7 +1676,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       {/* The carousel was titled and the type was not, so
                           nothing on screen said the panel beside it was the
                           brand's fonts. */}
-                      <CardTitle className="mb-2 text-2xl text-white">Fonts</CardTitle>
+                      <CardTitle className={cn("mb-2 text-2xl text-white", !solo && "flex h-10 items-center")}>Fonts</CardTitle>
                       <FontSpecimen
                         gymId={gym.id}
                         gymName={gym.name}
@@ -1795,7 +1804,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
         )}
 
         {/* Logo Gallery */}
-        {gym.logos.length > 0 && (
+        {visibleLogos.length > 0 && (
           <Card
             className={cn(
               "lg:col-span-4 shadow-2xl border-2 transition-all",
@@ -1812,7 +1821,9 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   {isDragOver ? '⬇️ Drop files to upload' : `📁 Logo Gallery (${filteredLogos.length} files)`}
                 </CardTitle>
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Download All as ZIP */}
+                  {isAdmin && <Button disabled={filteredLogos.length < 2} className="h-10 cursor-pointer bg-slate-900 text-[15px] font-semibold text-white hover:bg-slate-700"
+                    onClick={() => setOrderEditor({ logos: filteredLogos, label: activeCategories.length ? activeCategories.join(' + ') : 'All active logos' })}>Change order</Button>}
+                  {/* Download the active library, excluding retired and review files. */}
                   <Button
                     onClick={handleDownloadAllAsZip}
                     variant="outline"
@@ -1821,7 +1832,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     className="font-semibold shadow-lg bg-white text-foreground border-white/50 hover:bg-white/90"
                   >
                     {downloadingZip ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileArchive className="w-4 h-4 mr-2" />}
-                    {downloadingZip ? 'Zipping...' : 'Download All'}
+                    {downloadingZip ? 'Zipping...' : 'Download active'}
                   </Button>
 
                   {tagFacets.length > 0 && (
@@ -1984,15 +1995,17 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     // used to list only categories that already had files,
                     // so the moment a gym was cleared down to Uncategorized
                     // the rail vanished and there was nothing to file into.
-                    categories={logoCategories.map(c => ({
+                    categories={logoCategories.filter(c => isAdmin || !['Retired', 'Needs review'].includes(c.name)).map(c => ({
                       name: c.name,
-                      count: gym.logos.filter(l => (l.variant || 'Uncategorized') === c.name).length,
+                      count: visibleLogos.filter(l => (l.variant || 'Uncategorized') === c.name).length,
                     }))}
                     activeCategories={activeCategories}
-                    onToggleCategory={(name) => setActiveCategories(prev =>
-                      prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name])}
-                    onClearCategories={() => { setActiveCategories([]); setActiveTags([]); }}
-                    total={visibleLogos.length}
+                    onToggleCategory={(name) => {
+                      clearSelection();
+                      setActiveCategories(prev => prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name]);
+                    }}
+                    onClearCategories={() => { clearSelection(); setActiveCategories([]); setActiveTags([]); }}
+                    total={activeLogos.length}
                     palette={gym.colors.map(c => c.color_hex)}
                     isAdmin={isAdmin}
                     selectionMode={selectionMode}
@@ -2997,6 +3010,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
 
       {/* Asset Modal */}
+      {isAdmin && orderEditor && <LogoOrderEditor gymId={gym.id} gymCode={gym.code} allLogos={gym.logos} logos={orderEditor.logos}
+        label={orderEditor.label} ink={showcaseInk} accent={primaryColor} onClose={() => setOrderEditor(null)} />}
       <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />
     </div>
     </GymColorProvider>

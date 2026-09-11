@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
 
 export interface Gym {
   id: string;
@@ -30,6 +31,7 @@ export interface GymLogo {
   filename: string;
   file_url: string;
   is_main_logo: boolean;
+  sort_order?: number | null;
   /** Primary | White / Reverse | Dark | Mono | Icon | Wordmark … */
   variant?: string | null;
   // Two axes of a variation set, plus facts measured at upload rather than
@@ -67,6 +69,20 @@ export interface GymWithColors extends Gym {
   elements: GymElement[];
 }
 
+export const useSaveLogoOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ gymId, orderedIds, expectedIds }: { gymId: string; orderedIds: string[]; expectedIds: string[] }) => {
+      const { error } = await supabase.rpc('reorder_gym_logos', {
+        p_gym_id: gymId, p_ordered_ids: orderedIds, p_expected_ids: expectedIds,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['gyms'] }),
+    onError: () => queryClient.invalidateQueries({ queryKey: ['gyms'] }),
+  });
+};
+
 export const useGyms = () => {
   return useQuery({
     queryKey: ['gyms'],
@@ -85,12 +101,16 @@ export const useGyms = () => {
 
       if (colorsError) throw colorsError;
 
-      const { data: logos, error: logosError } = await supabase
-        .from('gym_logos')
-        .select('*')
-        .order('created_at');
-
-      if (logosError) throw logosError;
+      // Load the complete library; a truncated set cannot safely be reordered.
+      const logos: Tables<'gym_logos'>[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase.from('gym_logos').select('*')
+          .order('sort_order', { nullsFirst: false }).order('created_at').order('id')
+          .range(from, from + 999);
+        if (error) throw error;
+        logos.push(...(data || []));
+        if (!data || data.length < 1000) break;
+      }
 
       const { data: elements, error: elementsError } = await supabase
         .from('gym_elements')

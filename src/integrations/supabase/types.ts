@@ -377,6 +377,7 @@ export type Database = {
       }
       gym_logos: {
         Row: {
+          sort_order: number | null
           created_at: string | null
           file_url: string
           filename: string
@@ -386,6 +387,7 @@ export type Database = {
           variant: string | null
         }
         Insert: {
+          sort_order?: number | null
           created_at?: string | null
           file_url: string
           filename: string
@@ -395,6 +397,7 @@ export type Database = {
           variant?: string | null
         }
         Update: {
+          sort_order?: number | null
           created_at?: string | null
           file_url?: string
           filename?: string
@@ -842,6 +845,10 @@ export type Database = {
       }
     }
     Functions: {
+      reorder_gym_logos: {
+        Args: { p_gym_id: string; p_ordered_ids: string[]; p_expected_ids: string[] }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

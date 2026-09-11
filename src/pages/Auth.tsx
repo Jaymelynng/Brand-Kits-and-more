@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,16 +11,19 @@ const Auth = () => {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedReturn = searchParams.get('returnTo') || searchParams.get('next');
+  const returnTo = requestedReturn && /^\/gym\/[A-Za-z0-9-]+$/.test(requestedReturn) ? requestedReturn : '/';
   const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        navigate(returnTo);
       }
     });
-  }, [navigate]);
+  }, [navigate, returnTo]);
 
   const handlePinComplete = async (value: string) => {
     if (value.length !== 4 || loading) return;
@@ -80,7 +83,7 @@ const Auth = () => {
         title: "Welcome back!",
         description: "Access granted.",
       });
-      navigate("/");
+      navigate(returnTo);
     } catch (error: any) {
       console.error('Unexpected error:', error);
       toast({

@@ -114,7 +114,7 @@ export const CategoryRail = ({
           className="flex w-auto shrink-0 items-center justify-between rounded-xl px-3 py-2 text-left text-[14px] transition-all duration-150 active:translate-y-[2px] md:w-full"
           style={row(activeCategories.length === 0, false)}
         >
-          All
+          All active
           <span
             className="ml-2 inline-flex min-w-[26px] items-center justify-center rounded-full px-1.5 py-0.5 text-[12px] font-black tabular-nums"
             style={chip(activeCategories.length === 0, false)}

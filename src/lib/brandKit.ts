@@ -2,6 +2,7 @@ import type { FontPairing } from '@/hooks/useFontPairings';
 import type { GymLogo, GymWithColors } from '@/hooks/useGyms';
 import { bundledFont, fontSource } from './brandKitFonts';
 import { luminance } from './shade';
+import { compareLogoOrder } from './logoOrder';
 
 export interface KitLogo {
   logo: GymLogo;
@@ -39,8 +40,7 @@ export const safeFilename = (value: string) =>
 
 export function primaryLogos(gym: GymWithColors) {
   // Category membership is saved data. Never infer approval from a filename.
-  return gym.logos.filter(l => l.variant === 'Primary logos').sort((a, b) =>
-    Number(b.is_main_logo) - Number(a.is_main_logo) || a.filename.localeCompare(b.filename));
+  return gym.logos.filter(l => l.variant === 'Primary logos').sort(compareLogoOrder);
 }
 
 async function fetchFile(url: string, label: string) {

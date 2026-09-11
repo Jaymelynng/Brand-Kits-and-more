@@ -47,14 +47,7 @@ export const VariationBrowser = ({
       if (!m.has(key)) m.set(key, []);
       m.get(key)!.push(l);
     });
-    // Generated treatments carry a "NN " prefix from the generator, so sorting
-    // on the raw string already puts them in the order they were designed in.
-    // Anything without one lands after, alphabetically.
-    const numbered = (s: string) => /^\d/.test(s);
-    return [...m.entries()].sort((a, b) => {
-      if (numbered(a[0]) !== numbered(b[0])) return numbered(a[0]) ? -1 : 1;
-      return a[0].localeCompare(b[0]);
-    });
+    return [...m.entries()];
   }, [logos]);
 
   const active = logos.find((l) => l.id === activeId) || logos[0];

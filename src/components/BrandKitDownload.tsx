@@ -4,13 +4,14 @@ import { useFontPairings } from '@/hooks/useFontPairings';
 import type { GymWithColors } from '@/hooks/useGyms';
 import { useToast } from '@/hooks/use-toast';
 import { contrast, luminance, shade } from '@/lib/shade';
+import { isActiveLogo } from '@/lib/logoOrder';
 
 export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
   const fonts = useFontPairings(gym.id);
   const [working, setWorking] = useState<'zip' | 'pdf' | 'logo' | null>(null);
   const [status, setStatus] = useState('');
   const { toast } = useToast();
-  const featuredLogo = gym.logos.find(logo => logo.is_main_logo);
+  const featuredLogo = gym.logos.find(logo => logo.is_main_logo && isActiveLogo(logo));
   const palette = gym.colors.map(color => color.color_hex);
   const accent = palette[0] || '#0F172A';
   const darkest = [...palette].sort((a, b) => luminance(a) - luminance(b))[0] || '#0F172A';
