@@ -223,3 +223,116 @@ All colors MUST be HSL.
   .primary-logo-timer-progress { animation: none; }
   .primary-logo-thumbnail:hover, .primary-logo-control:hover { transform: none; }
 }
+
+/* The same kit on a phone: a complete hero, direct section access, and a
+   compact library. Desktop keeps its existing overview and 60/40 showcase. */
+.kit-mobile-navigation { display: none; }
+@media (max-width: 1023px) {
+  .gym-profile .kit-hero-video {
+    height: auto;
+    aspect-ratio: 16 / 9;
+    max-height: 60svh;
+    background: #081725;
+  }
+  .gym-profile .kit-hero-video > video { object-fit: contain; }
+}
+@media (max-width: 767px) {
+  .gym-profile-navigation [aria-label="Gym logos"] { padding: 8px 12px; }
+  .kit-mobile-navigation {
+    display: flex;
+    gap: 6px;
+    padding: 6px 12px;
+    box-shadow: 0 4px 12px #0003;
+  }
+  .kit-mobile-navigation button {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    border: 1px solid #ffffff60;
+    border-radius: 8px;
+    background: #ffffff18;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .kit-mobile-navigation button:hover { background: #ffffff35; }
+  .kit-mobile-navigation button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .gym-profile .kit-intro { padding: 14px 12px 16px; }
+  .gym-profile .kit-library { padding-inline: 12px; }
+  .gym-profile .kit-hero-video { margin-bottom: 14px; }
+  .gym-profile .kit-display-logo { height: 150px !important; }
+  .gym-profile [data-brand-overview] { gap: 12px; }
+  .gym-profile .kit-asset-stats { padding-top: 10px; }
+  .gym-profile .kit-asset-stats > div:first-child { display: none; }
+  .gym-profile .kit-asset-stats > .grid { gap: 8px; }
+  .gym-profile .kit-asset-stats button { border-radius: 12px; padding: 8px 2px; }
+  .gym-profile .kit-asset-stats button > div:first-child { font-size: 24px; line-height: 1; }
+  .gym-profile .kit-asset-stats button > div:last-child { font-size: 15px; }
+  .gym-profile #brand-colors > div { padding: 12px; }
+  .gym-profile #brand-colors > div:first-child { padding-bottom: 0; }
+  .gym-profile #brand-colors h3 { gap: 8px; font-size: 18px; }
+  .gym-profile #brand-colors h3 button { height: 44px; padding-inline: 10px; font-size: 15px; }
+  .gym-profile .kit-color-list:not(.is-editing) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .gym-profile .kit-color-list:not(.is-editing) > * { margin: 0; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] { flex-wrap: wrap; padding: 8px; gap: 8px; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] > div:first-child { width: 36px; height: 36px; border-radius: 8px; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-label] { flex-basis: 68px; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-label] > div:first-child { font-size: 15px; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-label] > div:last-child:not(:first-child) { display: none; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-controls] { width: 100%; gap: 8px; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-controls] button { flex: 1; height: 44px; padding: 4px; font-size: 15px; }
+  .gym-profile [data-brand-showcase] { gap: 20px; }
+  .gym-profile [data-brand-showcase] h3 { font-size: 21px; line-height: 1.3; }
+  .gym-profile .primary-logo-track .primary-logo-slide { flex-basis: 88%; }
+  .gym-profile .primary-logo-track [data-carousel-viewport] { padding-block: 12px 22px; }
+  .gym-profile .primary-logo-controls { margin-top: 8px; }
+  .gym-profile .primary-logo-control { width: 44px; height: 44px; }
+  .gym-profile .primary-logo-control > .primary-logo-timer { inset: -1px; }
+  .gym-profile .primary-logo-thumbnail { width: 44px; height: 44px; }
+  .gym-profile .primary-logo-actions > button { height: 44px; }
+  .gym-profile [data-font-specimen] { padding-block: 0; }
+  .gym-profile [data-font-pairing] > div:first-child { gap: 6px; }
+  .gym-profile [data-font-pairing] > div:first-child > span { font-size: 14px; }
+  .gym-profile [data-font-pairing] > div:first-child button { min-width: 44px; min-height: 44px; cursor: pointer; }
+  .gym-profile [data-font-pairing] > div:last-child button { min-height: 44px; font-size: 14px; cursor: pointer; }
+  .gym-profile #logo-gallery > div { padding: 12px; }
+  .gym-profile #logo-gallery h3 { font-size: 21px; line-height: 1.3; }
+  .gym-profile .kit-gallery-tools { width: 100%; gap: 8px; }
+  .gym-profile .kit-gallery-tools > button { height: 44px; font-size: 15px; }
+  .gym-profile .kit-gallery-views { flex-direction: row; justify-content: space-between; width: 100%; }
+  .gym-profile .kit-gallery-views > span { font-size: 15px; text-transform: none; letter-spacing: 0; }
+  .gym-profile .kit-gallery-views button { width: 36px; height: 44px; padding: 8px; cursor: pointer; }
+  .gym-profile #logo-gallery input { height: 44px; font-size: 16px; }
+  .gym-profile [data-category-rail] { padding: 10px; border-radius: 12px; box-shadow: 0 4px 12px #0003 !important; }
+  .gym-profile [data-category-rail] > div:first-child,
+  .gym-profile [data-category-rail] > nav,
+  .gym-profile [data-category-rail] > nav + div,
+  .gym-profile [data-category-rail] > div:last-child { display: none; }
+  .gym-profile [data-category-rail] > .overflow-x-auto { padding-block: 3px 8px; scrollbar-width: thin; }
+  .gym-profile [data-category-rail] button { min-height: 44px; }
+  .gym-profile[data-public-kit="true"] [data-logo-grid] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .gym-profile[data-public-kit="true"] [data-logo-grid] > div > div { padding: 8px; }
+  .gym-profile[data-public-kit="true"] [data-logo-grid] .aspect-square { margin-bottom: 10px; }
+  .gym-profile[data-public-kit="true"] [data-logo-grid] .aspect-square img { padding: 5px; }
+  .gym-profile[data-public-kit="true"] [data-logo-grid] button { font-size: 15px; }
+  .gym-profile[data-public-kit="true"] [data-logo-grid] .mt-auto > button { height: 44px; padding-inline: 2px; }
+  .gym-profile[data-public-kit="true"] [data-logo-grid] .mt-auto > button svg { display: none; }
+  .gym-profile[data-public-kit="true"] [data-logo-grid] .absolute.bottom-3 { display: none; }
+  .gym-profile[data-public-kit="true"] [data-logo-grid] .absolute.top-3.right-3 { top: 8px; right: 8px; padding: 4px 6px; font-size: 12px; }
+  .gym-profile [data-brand-elements] > div { padding: 12px; }
+  .gym-profile [data-brand-elements] h3 { font-size: 21px; }
+  .gym-profile [data-brand-elements] [aria-label="Browse from graphics"] { display: none; }
+  .gym-profile [data-brand-elements] button { min-height: 44px; }
+  .gym-profile [data-graphic-view="grid"] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .gym-profile [data-graphic-view="grid"] > article { padding: 8px; }
+  .gym-profile [data-graphic-view="grid"] > article > button { height: 90px; }
+  .gym-profile [data-graphic-view="grid"] > article > button > span { inset: auto 4px 4px auto; padding: 3px 5px; }
+  .gym-profile [data-graphic-view="grid"] > article h3 { font-size: 15px; }
+  .gym-profile [data-graphic-view="grid"] > article .mt-auto { grid-template-columns: 1fr; }
+  .gym-profile #logo-gallery, .gym-profile #brand-colors, .gym-profile #brand-fonts, .gym-profile #brand-elements { scroll-margin-top: calc(var(--strip-h, 86px) + 68px); }
+  [data-logo-preview] > button,
+  [data-graphic-preview] > button,
+  [data-preview-stage] > button,
+  [aria-label="Preview background"] button { min-width: 44px; min-height: 44px; }
+}

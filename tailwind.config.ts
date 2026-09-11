@@ -68,12 +68,12 @@ export default {
         // Dynamic gym colors
         "gym-primary": {
           DEFAULT: "hsl(var(--gym-primary))",
-          foreground: "hsl(var(--gym-primary-light))",
+          foreground: "hsl(var(--gym-primary-foreground))",
           light: "hsl(var(--gym-primary-light))",
         },
         "gym-secondary": {
           DEFAULT: "hsl(var(--gym-secondary))",
-          foreground: "hsl(var(--gym-secondary-light))",
+          foreground: "hsl(var(--gym-secondary-foreground))",
           light: "hsl(var(--gym-secondary-light))",
         },
       },

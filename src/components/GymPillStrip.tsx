@@ -73,6 +73,20 @@ export const GymPillStrip = ({
     return () => ro.disconnect();
   }, [gyms.length]);
 
+  useEffect(() => {
+    const strip = stripRef.current;
+    const active = strip?.querySelector<HTMLElement>('[data-active-gym="true"]');
+    if (!strip || !active) return;
+    const revealActive = () => {
+      // Keep the current gym visible on phones without moving the page.
+      if (strip.scrollWidth > strip.clientWidth) strip.scrollLeft = active.offsetLeft - (strip.clientWidth - active.clientWidth) / 2;
+    };
+    revealActive();
+    const observer = new ResizeObserver(revealActive);
+    observer.observe(strip);
+    return () => observer.disconnect();
+  }, [activeGymCode, gyms.length]);
+
   const handlePillClick = (gymCode: string) => {
     if (readOnly) return;
     if (isDashboard && onToggleGymSelection) {
@@ -213,7 +227,7 @@ export const GymPillStrip = ({
         const logoUrl = mainLogo?.file_url || gym.logos[0]?.file_url;
 
         return (
-          <div key={gym.id} className="group flex min-w-[54px] flex-[0_0_54px] flex-col items-stretch gap-1 sm:flex-1"
+          <div key={gym.id} data-active-gym={isSelected} className="group flex min-w-[54px] flex-[0_0_54px] flex-col items-stretch gap-1 sm:flex-1"
             style={{ maxWidth: 76 }}>
             {/* Logo tile — click to select */}
             <button

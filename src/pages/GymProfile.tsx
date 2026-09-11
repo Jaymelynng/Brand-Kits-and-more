@@ -31,7 +31,7 @@ import { CategoryRail } from "@/components/CategoryRail";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, scrollToSection } from "@/lib/utils";
 import { GymColorProvider } from "@/components/shared/GymColorProvider";
 import { BrandCard, BrandCardHeader, BrandCardContent, BrandCardTitle } from "@/components/shared/BrandCard";
 import { ColorSwatch } from "@/components/shared/ColorSwatch";
@@ -1203,9 +1203,20 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
-      <div className="sticky top-0 z-50"><GymPillStrip readOnly={solo} /></div>
+      <div className="gym-profile-navigation sticky top-0 z-50">
+        <GymPillStrip readOnly={solo} />
+        <nav className="kit-mobile-navigation" aria-label="Jump to kit section" style={{ background: showcaseInk }}>
+          {[
+            ...(activeLogos.length ? [{ id: 'logo-gallery', label: 'Logos' }] : []),
+            ...(gym.elements.length ? [{ id: 'brand-elements', label: 'Graphics' }] : []),
+            { id: 'brand-colors', label: 'Colors' },
+            ...(activeLogos.some(logo => logo.variant === 'Primary logos') ? [{ id: 'brand-fonts', label: 'Fonts' }] : []),
+          ].map(section => <button key={section.id} type="button" onClick={() => scrollToSection(section.id)}>{section.label}</button>)}
+        </nav>
+      </div>
       <div 
-        className="min-h-screen"
+        className="gym-profile min-h-screen"
+        data-public-kit={!isAdmin}
         style={{
           background: `
             linear-gradient(165deg, 
@@ -1218,7 +1229,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       >
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="relative container mx-auto px-6 py-8">
+        <div className="kit-intro relative container mx-auto px-6 py-8">
           {/* Navigation */}
           {!solo && (
             <div className="flex items-center gap-4 mb-8">
@@ -1351,7 +1362,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 {mainLogo && (
                   <div className="flex flex-col items-center">
                     <div 
-                      className="flex items-center justify-center w-full rounded-2xl border-2 shadow-inner"
+                      className="kit-display-logo flex items-center justify-center w-full rounded-2xl border-2 shadow-inner"
                       style={{
                         height: 'clamp(200px, 18vw, 300px)',
                         background: 'linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%)',
@@ -1370,7 +1381,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 <BrandKitDownload gym={gym} />
 
                 {/* Brand Assets Stats */}
-                <div className="border-t-2 pt-5" style={{ borderColor: `${primaryColor}15` }}>
+                <div className="kit-asset-stats border-t-2 pt-5" style={{ borderColor: `${primaryColor}15` }}>
                   <div className="text-lg font-semibold text-foreground mb-3">📊 Brand Assets</div>
                   <div className="grid grid-cols-3 gap-3">
                     <button type="button" aria-label="Go to logo gallery" onClick={() => document.getElementById('logo-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="cursor-pointer hover:brightness-110 text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-gym-primary text-gym-primary-foreground border-gym-primary-foreground/25">
@@ -1436,7 +1447,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   </BrandCardTitle>
                 </BrandCardHeader>
                 <BrandCardContent className="pt-0">
-                  <div className="space-y-3">
+                  <div className={cn("kit-color-list space-y-3", isEditingColors && "is-editing")}>
                     {gym.colors.map((color, index) => (
                       <ColorSwatch
                         key={color.id}
@@ -1572,7 +1583,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
 
       {/* Content Section */}
-      <div className="container mx-auto px-6 pb-12">
+      <div className="kit-library container mx-auto px-6 pb-12">
 
 
           {/* Its own area. The primaries are the brand; the gallery below is
@@ -1602,7 +1613,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   {/* 60 / 40. Fonts used to be their own full-width slab, which
                       pushed the logos below the fold - the thing she opens the
                       kit for sat behind a wall of type. */}
-                  <div className="grid grid-cols-1 gap-[clamp(12px,1.5vw,24px)] md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-stretch" data-brand-showcase>
+                  <div className="grid grid-cols-1 gap-[clamp(12px,1.5vw,24px)] lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-stretch" data-brand-showcase>
                     <div className="flex min-w-0 flex-col">
                       <div className="mb-2 flex items-center justify-between gap-2">
                         <CardTitle className="text-2xl text-white">Primary logos</CardTitle>
@@ -1765,7 +1776,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 <CardTitle className="text-2xl text-white">
                   {isDragOver ? '⬇️ Drop files to upload' : `📁 Logo Gallery (${filteredLogos.length} files)`}
                 </CardTitle>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="kit-gallery-tools flex flex-wrap items-center gap-2">
                   {isAdmin && <Button disabled={filteredLogos.length < 2} className="h-10 cursor-pointer bg-slate-900 text-[15px] font-semibold text-white hover:bg-slate-700"
                     onClick={() => setOrderEditor({ logos: filteredLogos, label: activeCategories.length ? activeCategories.join(' + ') : 'All active logos' })}>Change order</Button>}
                   {/* Download the active library, excluding retired and review files. */}
@@ -1804,7 +1815,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       five behind a click; these are the same five, visible -
                       with a label, because a bare row of icons does not say
                       that it is a choice you can make. */}
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="kit-gallery-views flex flex-col items-center gap-1">
                     <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/90">
                       View · {VIEW_LABELS[viewMode] ?? viewMode}
                     </span>
@@ -1821,9 +1832,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         onClick={() => setViewMode(key as any)}
                         title={label}
                         aria-label={label}
+                        aria-pressed={viewMode === key}
                         className="rounded p-1.5 transition-colors"
                         style={viewMode === key
-                          ? { background: primaryColor, color: '#fff' }
+                          ? actionStyle
                           : { background: 'transparent', color: '#41505F' }}
                       >
                         <Icon className="w-4 h-4" />
@@ -1882,6 +1894,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 </label>
                 {(logoSearch || activeTags.length > 0 || activeCategories.length > 0) && <Button className="h-10 cursor-pointer bg-slate-900 text-[15px] text-white hover:bg-slate-700" onClick={() => { setLogoSearch(''); setActiveTags([]); setActiveCategories([]); clearSelection(); }}>Clear filters</Button>}
               </div>
+              <p className="mt-2 text-[15px] text-white md:hidden">Tap a logo to open the full preview.</p>
               <p role="status" className={downloadStatus ? 'mt-2 text-[15px] text-white' : 'sr-only'}>{downloadStatus}</p>
               {/* The tag drawer, now opened from the panel above. */}
               <Sheet open={tagSheetOpen} onOpenChange={setTagSheetOpen}>

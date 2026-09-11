@@ -12,7 +12,7 @@ export function HeroVideoBackground({
   children 
 }: HeroVideoBackgroundProps) {
   return (
-    <div className="relative w-full h-[60vh] overflow-hidden rounded-lg mb-8">
+    <div className="kit-hero-video relative w-full h-[60vh] overflow-hidden rounded-lg mb-8">
       <video
         autoPlay
         loop

@@ -3,6 +3,8 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { X } from 'lucide-react';
+import { contrast } from '@/lib/shade';
+import { copyText } from '@/lib/copyText';
 
 interface ColorSwatchProps {
   color: string;
@@ -40,7 +42,8 @@ export const ColorSwatch = ({
 
   const copyColor = (colorCode: string, includeHash: boolean = true) => {
     const textToCopy = includeHash ? colorCode : colorCode.replace('#', '');
-    navigator.clipboard.writeText(textToCopy).then(() => {
+    copyText(textToCopy).then(ok => {
+      if (!ok) { toast({ description: 'Your browser blocked copying. Select the HEX code to copy it.', variant: 'destructive' }); return; }
       const message = includeHash ? 'Copied with #!' : 'Copied HEX!';
       setCopied(includeHash ? 'hash' : 'hex');
       toast({ description: message, duration: 2000 });
@@ -122,8 +125,9 @@ export const ColorSwatch = ({
               )}
               style={{
                 background: copied === 'hash' 
-                  ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
+                  ? color
                   : 'linear-gradient(to bottom, #e8e8ec, #c8c8cf)',
+                color: copied === 'hash' ? (contrast(color, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111') : undefined,
                 border: '1px solid rgba(0,0,0,0.22)',
                 boxShadow: '0 3px 6px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -1px 0 rgba(0,0,0,0.12)',
               }}
@@ -139,8 +143,9 @@ export const ColorSwatch = ({
               )}
               style={{
                 background: copied === 'hex' 
-                  ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
+                  ? color
                   : 'linear-gradient(to bottom, #e8e8ec, #c8c8cf)',
+                color: copied === 'hex' ? (contrast(color, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111') : undefined,
                 border: '1px solid rgba(0,0,0,0.22)',
                 boxShadow: '0 3px 6px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -1px 0 rgba(0,0,0,0.12)',
               }}
@@ -169,7 +174,7 @@ export const ColorSwatch = ({
 
   // Original row layout
   return (
-    <div className={cn("flex items-center gap-2 relative", className)}>
+    <div data-color-swatch className={cn("flex items-center gap-2 relative", className)}>
       <div 
         className={cn(
           "rounded-xl flex-shrink-0 cursor-pointer transition-smooth hover:scale-105",
@@ -188,7 +193,7 @@ export const ColorSwatch = ({
       />
       
       {(label || showControls) && (
-        <div className="flex-1 min-w-0">
+        <div data-color-label className="flex-1 min-w-0">
           <div className="font-mono text-sm font-bold text-foreground select-all">
             {color}
           </div>
@@ -201,7 +206,7 @@ export const ColorSwatch = ({
       )}
 
       {showControls && (
-        <div className="flex gap-1.5">
+        <div data-color-controls className="flex gap-1.5">
           <button
             onClick={() => copyColor(color, true)}
             className={cn(
@@ -212,8 +217,9 @@ export const ColorSwatch = ({
             )}
             style={{
               background: copied === 'hash' 
-                ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
+                ? color
                 : 'linear-gradient(to bottom, #ffffff, #e0e0e0)',
+              color: copied === 'hash' ? (contrast(color, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111') : undefined,
               border: copied === 'hash' ? 'none' : '1.5px solid rgba(0,0,0,0.2)',
               boxShadow: copied === 'hash'
                 ? `0 3px 6px ${color}55, inset 0 1px 0 rgba(255,255,255,0.3)`
@@ -233,8 +239,9 @@ export const ColorSwatch = ({
             )}
             style={{
               background: copied === 'hex' 
-                ? `linear-gradient(to bottom, ${color}, color-mix(in srgb, ${color} 70%, black))` 
+                ? color
                 : 'linear-gradient(to bottom, #ffffff, #e0e0e0)',
+              color: copied === 'hex' ? (contrast(color, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111') : undefined,
               border: copied === 'hex' ? 'none' : '1.5px solid rgba(0,0,0,0.2)',
               boxShadow: copied === 'hex'
                 ? `0 3px 6px ${color}55, inset 0 1px 0 rgba(255,255,255,0.3)`
