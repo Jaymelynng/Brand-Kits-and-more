@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Download, FileArchive, FileImage, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFontPairings } from '@/hooks/useFontPairings';
 import type { GymWithColors } from '@/hooks/useGyms';
 import { useToast } from '@/hooks/use-toast';
+import { contrast, luminance, shade } from '@/lib/shade';
 
 export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
   const fonts = useFontPairings(gym.id);
@@ -11,6 +11,13 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
   const [status, setStatus] = useState('');
   const { toast } = useToast();
   const featuredLogo = gym.logos.find(logo => logo.is_main_logo);
+  const palette = gym.colors.map(color => color.color_hex);
+  const accent = palette[0] || '#0F172A';
+  const darkest = [...palette].sort((a, b) => luminance(a) - luminance(b))[0] || '#0F172A';
+  const darkFill = luminance(darkest) < 0.18 ? darkest : shade(darkest, 0.65);
+  const kitFill = luminance(accent) > 0.7 ? darkFill : accent;
+  const kitText = contrast(kitFill, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111';
+  const buttonClass = 'h-11 min-w-0 cursor-pointer rounded-lg px-1 text-[15px] font-semibold whitespace-nowrap shadow-md transition-[filter,box-shadow] hover:brightness-90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2';
   const download = async (format: 'zip' | 'pdf' | 'logo') => {
     if (working) return;
     setWorking(format); setStatus(format === 'logo' ? 'Downloading logo…' : 'Preparing brand kit…');
@@ -48,32 +55,22 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
     } finally { setWorking(null); }
   };
   return (
-    <div className="my-4" data-brand-kit-download aria-busy={!!working}>
-      <h3 className="mb-2 flex items-center gap-2 text-base font-semibold text-slate-950">
-        <Download className="h-4 w-4" aria-hidden="true" /> Downloads
-      </h3>
+    <div className="my-3" data-brand-kit-download aria-busy={!!working}>
       <div className="grid grid-cols-3 gap-2" role="group" aria-label="Download files">
         <Button onClick={() => download('zip')} disabled={!!working} aria-label="Download brand kit"
           title="ZIP containing primary logos, colors, font files and licenses, and the PDF guide"
-          className="h-[72px] min-w-0 cursor-pointer flex-col gap-1.5 rounded-xl px-1 font-semibold shadow-sm bg-gym-primary text-gym-primary-foreground hover:brightness-110">
-          <span className="flex items-center gap-1.5 text-sm">
-            {working === 'zip' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileArchive className="h-4 w-4" />} ZIP
-          </span>
-          <span className="whitespace-nowrap text-[15px]">Brand kit</span>
+          className={buttonClass} style={{ backgroundColor: kitFill, color: kitText }}>
+          Brand kit
         </Button>
         <Button onClick={() => download('logo')} disabled={!!working || !featuredLogo} aria-label="Download featured logo"
           title={featuredLogo ? 'Download the logo shown above in its original format' : 'No featured logo is selected'}
-          variant="outline" className="h-[72px] min-w-0 cursor-pointer flex-col gap-1.5 rounded-xl px-1 font-semibold shadow-sm bg-white text-slate-950 hover:bg-slate-100">
-          {working === 'logo' ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileImage className="h-5 w-5" />}
-          <span className="whitespace-nowrap text-[15px]">Logo only</span>
+          className={buttonClass} style={{ backgroundColor: darkFill, color: '#FFFFFF' }}>
+          Logo only
         </Button>
         <Button onClick={() => download('pdf')} disabled={!!working} aria-label="PDF guide"
           title="Download the visual brand guide separately. It is also included in the ZIP."
-          variant="outline" className="h-[72px] min-w-0 cursor-pointer flex-col gap-1.5 rounded-xl px-1 font-semibold shadow-sm bg-white text-slate-950 hover:bg-slate-100">
-          <span className="flex items-center gap-1.5 text-sm">
-            {working === 'pdf' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} PDF
-          </span>
-          <span className="whitespace-nowrap text-[15px]">Guide</span>
+          className={buttonClass} style={{ backgroundColor: darkFill, color: '#FFFFFF' }}>
+          PDF guide
         </Button>
       </div>
       <p role="status" aria-live="polite" className={status ? 'mt-2 text-sm leading-relaxed text-slate-950' : 'sr-only'}>
