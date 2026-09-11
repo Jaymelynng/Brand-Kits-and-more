@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { GymPillStrip } from "@/components/GymPillStrip";
-import { KitActivityNotice } from "@/components/KitActivityNotice";
+import { KitActivityTracker } from "@/components/KitActivityTracker";
 import type { GymLogo } from "@/hooks/useGyms";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo, useRenameLogo, useRenameElement } from "@/hooks/useGyms";
 import { InlineRename } from "@/components/shared/InlineRename";
@@ -2723,7 +2723,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       {isAdmin && orderEditor && <LogoOrderEditor gymId={gym.id} gymCode={gym.code} allLogos={gym.logos} logos={orderEditor.logos}
         label={orderEditor.label} ink={showcaseInk} accent={primaryColor} onClose={() => setOrderEditor(null)} />}
       <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />
-      <KitActivityNotice gymId={gym.id} enabled={!authLoading && !isAdminUser} token={session?.access_token} />
+      <KitActivityTracker gymId={gym.id} enabled={!authLoading && !isAdminUser} token={session?.access_token} />
     </div>
     </GymColorProvider>
   );
