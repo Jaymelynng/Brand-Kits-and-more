@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.analyze-image]
 verify_jwt = true
+
+[functions.record-kit-activity]
+verify_jwt = true

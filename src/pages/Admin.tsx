@@ -14,6 +14,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { AddGymModal } from "@/components/AddGymModal";
 import { LogoCategoryManager } from "@/components/LogoCategoryManager";
+import { KitActivityPanel } from "@/components/KitActivityPanel";
 
 const Admin = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -22,7 +23,7 @@ const Admin = () => {
   const { toast } = useToast();
   const updateGymInfoMutation = useUpdateGymInfo();
 
-  const [activeTab, setActiveTab] = useState<'gyms' | 'categories' | 'users' | 'bulk'>('gyms');
+  const [activeTab, setActiveTab] = useState<'gyms' | 'categories' | 'users' | 'bulk' | 'activity'>('gyms');
   const [editingCell, setEditingCell] = useState<{ gymId: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -119,6 +120,7 @@ const Admin = () => {
     { id: 'categories' as const, label: 'Categories & Tags', icon: Tags },
     { id: 'users' as const, label: 'Users & Roles', icon: Users },
     { id: 'bulk' as const, label: 'Bulk Data', icon: Database },
+    { id: 'activity' as const, label: 'Kit Activity', icon: Search },
   ];
 
   const renderCell = (gymId: string, field: string, value: string | null | undefined, isLink = false) => {
@@ -175,7 +177,7 @@ const Admin = () => {
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #e5e7eb 0%, #d6c5bf 100%)' }}>
       {/* Header */}
-      <div className="sticky top-0 z-40 shadow-sm px-4 py-3 flex items-center justify-between" style={{ background: 'hsl(var(--brand-white))' }}>
+      <div className="sticky top-0 z-40 shadow-sm px-4 py-3 flex flex-wrap gap-3 items-center justify-between" style={{ background: 'hsl(var(--brand-white))' }}>
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
             <ArrowLeft className="w-5 h-5" />
@@ -187,7 +189,7 @@ const Admin = () => {
             <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -205,7 +207,8 @@ const Admin = () => {
                 setActiveTab(tab.id);
                 if (tab.id === 'users') loadAdminUsers();
               }}
-              style={activeTab === tab.id ? { background: 'hsl(var(--brand-rose-gold))', color: 'white' } : {}}
+              className="cursor-pointer text-[15px] hover:brightness-90"
+              style={activeTab === tab.id ? { background: '#172433', color: '#FFFFFF' } : { background:'#FFFFFF', color:'#111827', borderColor:'#94a3b8' }}
             >
               <tab.icon className="w-4 h-4 mr-1" />
               {tab.label}
@@ -215,6 +218,7 @@ const Admin = () => {
       </div>
 
       <div className="p-4 max-w-[1600px] mx-auto">
+        {activeTab === 'activity' && <KitActivityPanel />}
         {/* Manage Gyms Tab */}
         {activeTab === 'gyms' && (
           <div className="space-y-4">

@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { GymPillStrip } from "@/components/GymPillStrip";
+import { KitActivityNotice } from "@/components/KitActivityNotice";
 import type { GymLogo } from "@/hooks/useGyms";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo, useRenameLogo, useRenameElement } from "@/hooks/useGyms";
 import { InlineRename } from "@/components/shared/InlineRename";
@@ -66,7 +67,7 @@ const VIEW_LABELS: Record<string, string> = {
 const GymProfile = ({ solo = false }: GymProfileProps) => {
   const { gymCode } = useParams<{ gymCode: string }>();
   const { data: gyms = [], isLoading, error, refetch, isFetching } = useGyms();
-  const { user, isAdmin: isAdminUser } = useAuth();
+  const { user, session, isAdmin: isAdminUser, loading: authLoading } = useAuth();
   /**
    * A /kit/CODE share link is read-only for everyone, the owner included.
    * Gating the edit controls on isAdmin alone meant opening her own share
@@ -754,6 +755,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     darkPreviewUrls.has(logo.file_url) || /\bdark backgrounds\b/i.test(logo.filename);
 
   const dragPropsFor = (logo: GymLogo) => ({
+    'data-activity-asset': logo.filename,
     draggable: isAdmin,
     tabIndex: 0,
     onKeyDown: (e: React.KeyboardEvent) => {
@@ -2707,6 +2709,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       {isAdmin && orderEditor && <LogoOrderEditor gymId={gym.id} gymCode={gym.code} allLogos={gym.logos} logos={orderEditor.logos}
         label={orderEditor.label} ink={showcaseInk} accent={primaryColor} onClose={() => setOrderEditor(null)} />}
       <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />
+      <KitActivityNotice gymId={gym.id} enabled={!authLoading && !isAdminUser} token={session?.access_token} />
     </div>
     </GymColorProvider>
   );

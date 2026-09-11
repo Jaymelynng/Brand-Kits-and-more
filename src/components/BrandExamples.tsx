@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { trackKitActivity } from '@/lib/kitActivity';
 import { Download, Images, X } from 'lucide-react';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ export function BrandExamples({ code, ink, accent }: { code: string; ink: string
   const [busy, setBusy] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { toast } = useToast();
+  useEffect(() => { if (open && examples[index]) trackKitActivity('preview', `Design example: ${examples[index].title}`); }, [open, index, code]);
   if (!examples.length) return null;
   const current = examples[index];
   const download = async () => {
@@ -30,7 +32,7 @@ export function BrandExamples({ code, ink, accent }: { code: string; ink: string
       <Images size={17} /> Brand in use <span>· {examples.length} examples</span>
     </Button>
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="flex max-h-[94dvh] w-[calc(100%-24px)] max-w-5xl flex-col overflow-y-auto rounded-xl border-2 bg-white p-4 text-slate-950 sm:p-6 [&>button]:hidden" style={{ borderColor: accent }}>
+      <DialogContent data-activity-asset={current.title} className="flex max-h-[94dvh] w-[calc(100%-24px)] max-w-5xl flex-col overflow-y-auto rounded-xl border-2 bg-white p-4 text-slate-950 sm:p-6 [&>button]:hidden" style={{ borderColor: accent }}>
         <div className="sticky -top-4 z-10 bg-white pb-3 pt-1 sm:-top-6" data-example-header>
         <div className="pr-12">
           <DialogTitle className="text-2xl">Brand in use</DialogTitle>

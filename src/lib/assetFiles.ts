@@ -107,6 +107,7 @@ export async function inspectAsset(blob: Blob): Promise<AssetInfo> {
 export function saveDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob), link = document.createElement('a');
   link.href = url; link.download = safeFilename(filename); document.body.appendChild(link); link.click(); link.remove();
+  window.dispatchEvent(new CustomEvent('kit-download-ready', { detail: { filename: safeFilename(filename) } }));
   window.setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 

@@ -19,6 +19,7 @@ export const useAuth = () => {
       if (identity !== undefined && identity !== nextIdentity) {
         // Do not reuse an administrator's inventory after signing out.
         void queryClient.resetQueries({ queryKey: ['gyms'] });
+        queryClient.removeQueries({ queryKey: ['kit-activity'] });
       }
       identity = nextIdentity;
       setSession(next); setUser(next?.user ?? null);

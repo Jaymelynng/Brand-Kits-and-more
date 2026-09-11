@@ -845,6 +845,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_kit_activity: {
+        Args: { p_days?: number; p_gym_id?: string | null; p_kind?: string | null; p_session_id?: string | null; p_offset?: number }
+        Returns: Json
+      }
       set_featured_gym_logo: {
         Args: { p_gym_id: string; p_logo_id: string }
         Returns: undefined

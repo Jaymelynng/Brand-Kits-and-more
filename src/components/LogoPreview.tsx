@@ -7,6 +7,7 @@ import { fetchAssetFile, inspectAsset, assetFilename, saveDownload, type AssetIn
 import { copyText } from '@/lib/copyText';
 import { contrast, luminance } from '@/lib/shade';
 import { LogoMedia } from './LogoMedia';
+import { trackKitActivity } from '@/lib/kitActivity';
 
 export type PreviewAsset = Pick<GymLogo, 'id' | 'filename' | 'file_url' | 'variant'>;
 
@@ -41,6 +42,8 @@ export function LogoPreview<T extends PreviewAsset>({ logo, logos, palette, onCh
   const ground = surface === 'auto' ? (file?.info.lightArtwork ? dark : '#FFFFFF') : surface === 'dark' ? dark : surface;
   const step = (by: number) => { if (logos.length > 1) onChoose(logos[(Math.max(0, index) + by + logos.length) % logos.length]); };
 
+  useEffect(() => { trackKitActivity('preview', `${kind}: ${logo.filename}`); }, [logo.id, kind]);
+
   useEffect(() => {
     const controller = new AbortController(); let objectUrl = '';
     setFile(null); setError(''); setCopied(false); setCopyFallback(false);
@@ -57,7 +60,7 @@ export function LogoPreview<T extends PreviewAsset>({ logo, logos, palette, onCh
   }, [logo.id, logo.file_url, logo.filename, retry]);
 
   return <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
-    <DialogContent data-logo-preview={kind === 'logo' ? '' : undefined} data-graphic-preview={kind === 'graphic' ? '' : undefined} className="z-[100] max-h-[94dvh] w-[calc(100%_-_24px)] max-w-5xl grid-cols-[minmax(0,1fr)] gap-0 overflow-y-auto rounded-2xl border-2 bg-white p-0 text-slate-950 shadow-2xl [&>button]:rounded-full [&>button]:bg-slate-900 [&>button]:p-2 [&>button]:text-white [&>button]:opacity-100"
+    <DialogContent data-activity-asset={logo.filename} data-logo-preview={kind === 'logo' ? '' : undefined} data-graphic-preview={kind === 'graphic' ? '' : undefined} className="z-[100] max-h-[94dvh] w-[calc(100%_-_24px)] max-w-5xl grid-cols-[minmax(0,1fr)] gap-0 overflow-y-auto rounded-2xl border-2 bg-white p-0 text-slate-950 shadow-2xl [&>button]:rounded-full [&>button]:bg-slate-900 [&>button]:p-2 [&>button]:text-white [&>button]:opacity-100"
       style={{ borderColor: accent }}
       onKeyDown={event => {
         if ((event.target as HTMLElement).closest('input,textarea,select,video')) return;

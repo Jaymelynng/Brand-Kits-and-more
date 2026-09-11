@@ -51,6 +51,16 @@ PNG/JPEG artwork remains raster artwork. Export never labels an embedded raster 
 
 The QR tables and components remain in the repository, but there is no current `/qr-studio` route.
 
+## Kit activity
+
+Settings → **Kit Activity** reports visits, labeled button clicks, opened logo/graphic/example previews and prepared downloads. Filters cover all gyms or one gym, 24 hours / 7 days / 30 days, action type and one browsing session. Results use server totals and 100-row pages, refresh every 30 seconds while the panel is open, and show an explicit empty or error state.
+
+Collection starts when this feature is deployed; historical visits cannot be recovered. The public kit and working gym pages record anonymous activity, except signed-in administrators. A session ID lives in session storage, expires after 30 minutes of inactivity and is not a person identifier. No names, emails, input values, full user agents, query strings or referrer URLs are collected. Events record only gym, action/item label, server timestamp, temporary session ID, coarse device type and gateway IP. Direct Storage URLs, offline PDFs and actions blocked by privacy tools are outside coverage. A prepared download means a file was handed to the browser, not that it was saved or read.
+
+`record-kit-activity` requires the project's JWT and accepts only the two production site origins. It validates each event, ignores client-supplied IP fields and reads only the managed Supabase Cloudflare gateway's `cf-connecting-ip`. Missing addresses stay unavailable. No events or IPs can be read through that endpoint. The database writer is service-role-only; reporting and table reads require the current admin role. Atomic limits allow 120 requests per network address per minute and 3,000 globally; duplicate event IDs cannot produce duplicate rows. Known preview bots, Do Not Track and Global Privacy Control are excluded. **Usage & privacy** on gym pages explains collection and offers a browser opt-out.
+
+Activity reports cover the last 30 days. The `prune-kit-activity` database cron job deletes older rows and expired rate counters daily. IPs never appear on the public kit. The rate-counter table deliberately has RLS with no browser policies. `tests/kit-activity-access.sql` verifies role boundaries, pagination, date filters, rate limits and deduplication inside a transaction that rolls back all fixtures. The Edge Function and migration must be deployed before the frontend. Disabling the collector can never block previews or downloads; delivery is best effort.
+
 ## Database and access
 
 This app uses Supabase project **`fwkiadhkxqnlnvmzpgnw` (BRAND KIT)**. It is separate from the canonical gym-data project used by other tools.
@@ -67,6 +77,7 @@ This app uses Supabase project **`fwkiadhkxqnlnvmzpgnw` (BRAND KIT)**. It is sep
 | `user_roles`, `admin_pins`, `user_profiles` | Access roles, PIN hashes and user profiles |
 | `personal_brand_info`, `personal_brand_colors`, `personal_brand_images` | Personal brand |
 | `kit_auth_attempts` | Service-only PIN attempt counters, no raw PINs or IP addresses |
+| `kit_activity`, `kit_activity_limits` | Private visitor activity and service-only collection limits |
 | `gym_icon_urls` | View of gym icon URLs, evaluated with caller permissions |
 
 Public brand downloads are intentional. Anonymous users cannot write application tables or upload/update/delete storage objects. Administrator mutations require the current authenticated role. Comments are visible to their author or an administrator; decoded QR notes are administrator-only. Role checks operate with caller permissions.
