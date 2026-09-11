@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { GymColorProvider } from "./shared/GymColorProvider";
 import { BrandCard, BrandCardHeader, BrandCardContent, BrandCardTitle } from "./shared/BrandCard";
 import { ColorSwatch } from "./shared/ColorSwatch";
+import { contrast, readableOn as readableText, shade } from "@/lib/shade";
+import { assetFilename, downloadLogoArchive, fetchAssetFile, saveDownload } from "@/lib/assetFiles";
 
 interface GymCardProps {
   gym: GymWithColors;
@@ -23,6 +25,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   const [uploadProgress, setUploadProgress] = useState<{ total: number; completed: number } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -95,16 +98,8 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
 
   const downloadLogo = async (url: string, filename: string) => {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(objectUrl);
+      const blob = await fetchAssetFile(url, filename);
+      saveDownload(blob, assetFilename(filename, blob));
       toast({ description: `Downloaded ${filename}!`, duration: 2000 });
     } catch (err) {
       console.error('Download failed:', err);
@@ -113,8 +108,15 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
   };
 
   const downloadAllLogos = async () => {
-    for (const l of gym.logos || []) {
-      await downloadLogo(l.file_url, l.filename);
+    if (downloadProgress) return;
+    setDownloadProgress('Preparing logos…');
+    try {
+      await downloadLogoArchive(activeLogos, `${gym.code}-Logos.zip`, setDownloadProgress);
+      toast({ description: `${gym.code} logo ZIP downloaded.` });
+    } catch (error) {
+      toast({ title: 'Download failed', description: error instanceof Error ? error.message : 'Could not prepare the logos.', variant: 'destructive' });
+    } finally {
+      setDownloadProgress(null);
     }
   };
 
@@ -125,6 +127,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
   };
 
   const triggerFileUpload = () => {
+    if (!editMode) return;
     // If a main logo exists, use the replace input (which will swap the logo)
     if (mainLogo) {
       replaceInputRef.current?.click();
@@ -146,10 +149,8 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
 
     if (!mainLogo) return;
 
-    // Delete old main logo, then upload new one as main
-    deleteLogoMutation.mutate(mainLogo.id, {
-      onSuccess: () => {
-        uploadLogoMutation.mutate(
+    // Save the replacement before changing the display. Preserve the old file.
+    uploadLogoMutation.mutate(
           { gymId: gym.id, file, isMain: true },
           {
             onSuccess: () => {
@@ -159,12 +160,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
               toast({ title: "Upload Failed", description: error?.message || "Failed to upload replacement logo.", variant: "destructive" });
             },
           }
-        );
-      },
-      onError: (error: any) => {
-        toast({ title: "Delete Failed", description: "Could not remove old logo before replacing.", variant: "destructive" });
-      },
-    });
+    );
 
     event.target.value = '';
   };
@@ -182,6 +178,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
+    if (!editMode) return;
     
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
@@ -274,8 +271,12 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
 
 
   const mainLogo = gym.logos.find(logo => logo.is_main_logo);
+  const activeLogos = gym.logos.filter(logo => logo.variant?.toLowerCase() !== 'retired');
   const primaryColor = gym.colors[0]?.color_hex || '#6B7280';
   const secondaryColor = gym.colors[1]?.color_hex || '#9CA3AF';
+  const buttonFill = primaryColor;
+  const buttonText = contrast(buttonFill, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111';
+  const buttonStyle = { background: buttonFill, color: buttonText, border: `1px solid ${shade(buttonFill, 0.24)}`, boxShadow: `0 3px 0 ${shade(buttonFill, 0.3)}, 0 5px 12px ${primaryColor}44` };
 
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
@@ -303,15 +304,16 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
           className="flex items-center justify-between py-2.5 px-4 border-b border-border/40 cursor-pointer select-none"
           title={selected ? 'Click to unselect' : 'Click to select'}
           style={{
-            background: selected ? `${primaryColor}66` : 'rgba(0,0,0,0.15)',
+            background: selected ? primaryColor : '#505050',
             transition: 'background 260ms ease',
           }}>
-          <h3 className="text-base font-bold" style={{ color: '#ffffff' }}>
+          <h3 className="text-base font-bold" style={{ color: selected ? buttonText : '#ffffff' }}>
             {gym.name}
           </h3>
           <span className="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wider text-white shadow-md flex-shrink-0"
                 style={{
                   background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor} 100%)`,
+                  color: buttonText,
                 }}>
             {gym.code}
           </span>
@@ -376,10 +378,9 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
 
           {/* Profile Button — directly under logo */}
           <Link to={`/gym/${gym.code}`} className="block w-full mb-2">
-            <Button className="w-full h-14 text-base text-white font-extrabold tracking-wide uppercase"
+            <Button className="w-full h-14 cursor-pointer text-base font-extrabold tracking-wide uppercase hover:brightness-110 active:translate-y-px"
                     style={{
-                      background: `linear-gradient(to bottom, color-mix(in srgb, ${primaryColor} 85%, white), ${primaryColor}, color-mix(in srgb, ${primaryColor} 65%, black))`,
-                      boxShadow: `0 4px 12px ${primaryColor}66, inset 0 2px 0 rgba(255,255,255,0.3), inset 0 -2px 0 rgba(0,0,0,0.2)`,
+                      ...buttonStyle,
                       letterSpacing: '0.08em',
                     }}>
               <Eye className="w-5 h-5 mr-2" />
@@ -413,7 +414,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
                 </Button>
               )}
             </div>
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-2 min-[390px]:grid-cols-4 gap-1.5">
               {gym.colors.map((color, index) => (
                 <ColorSwatch
                   key={color.id}
@@ -437,11 +438,9 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 text-xs text-white font-semibold"
+                  className="h-10 cursor-pointer text-[15px] font-semibold hover:brightness-110"
                   style={{
-                    background: `linear-gradient(to bottom, ${primaryColor}, color-mix(in srgb, ${primaryColor} 70%, black))`,
-                    border: 'none',
-                    boxShadow: `0 3px 6px ${primaryColor}55, inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)`
+                    ...buttonStyle,
                   }}
                 >
                   <Copy className="w-3 h-3 mr-1" />
@@ -472,11 +471,11 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 text-xs font-semibold"
+                  className="h-10 cursor-pointer text-[15px] font-semibold hover:brightness-95"
                   style={{
                     background: `linear-gradient(to bottom, #ffffff, #e8e8e8)`,
                     border: `1.5px solid ${readableOn(secondaryColor, primaryColor)}`,
-                    color: readableOn(secondaryColor, primaryColor),
+                    color: readableText('#e8e8e8', readableOn(secondaryColor, primaryColor)),
                     boxShadow: `0 3px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)`
                   }}
                 >
@@ -496,9 +495,9 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
                 ) : (
                   <p className="px-2 py-2 text-xs text-muted-foreground">No logo yet</p>
                 )}
-                {(gym.logos?.length || 0) > 1 && (
-                  <button onClick={downloadAllLogos} className="w-full rounded px-2 py-2 text-left text-xs font-semibold hover:bg-muted">
-                    All {gym.logos!.length} logos
+                {activeLogos.length > 1 && (
+                  <button onClick={downloadAllLogos} disabled={!!downloadProgress} className="w-full cursor-pointer rounded px-2 py-2 text-left text-[15px] font-semibold hover:bg-muted disabled:cursor-wait" aria-live="polite">
+                    {downloadProgress || `All ${activeLogos.length} logos · ZIP`}
                   </button>
                 )}
               </PopoverContent>

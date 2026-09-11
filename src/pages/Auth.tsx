@@ -37,10 +37,14 @@ const Auth = () => {
       });
 
       if (error) {
-        console.error('Edge function error:', error);
+        let message = 'Sign-in failed. Please try again.';
+        try {
+          const response = await error.context?.json();
+          if (typeof response?.error === 'string') message = response.error;
+        } catch { /* Keep a useful message if the server response is unavailable. */ }
         toast({
           title: "Access Denied",
-          description: "Invalid PIN. Please try again.",
+          description: message,
           variant: "destructive",
         });
         setPin("");
@@ -60,7 +64,8 @@ const Auth = () => {
       }
 
       // Use the magic link to sign in
-      if (data.session?.hashed_token) {
+      if (!data.session?.hashed_token) throw new Error('The sign-in service did not return a session.');
+      if (data.session.hashed_token) {
         const { error: signInError } = await supabase.auth.verifyOtp({
           token_hash: data.session.hashed_token,
           type: 'magiclink',

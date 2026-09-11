@@ -988,10 +988,15 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     basis = "md:basis-1/2 lg:basis-1/3",
     contained = false,
   ) => (
-                <div style={{ perspective: "3000px" }} className={cn("relative isolate w-full min-w-0 overflow-hidden py-8", contained && "flex flex-1 flex-col")}>
+                <div style={{ perspective: "3000px" }} className={cn("relative isolate w-full min-w-0 overflow-hidden", contained ? "primary-logo-stage flex flex-1 flex-col" : "py-8")}>
                   <LogoCarouselFrame
                     key={items.map(logo => logo.id).join(':')}
                     contained={contained}
+                    suspended={!!expandedLogo}
+                    navigation={contained ? Array.from(new Map(items.map(logo => [logo.id, logo])).values()).map(logo => ({
+                      id: logo.id, label: logo.filename,
+                      preview: <span className="flex h-full w-full items-center justify-center rounded-md" style={{ background: logoPreviewBackground(logo) }}><LogoMedia url={logo.file_url} alt="" className="h-full w-full object-contain p-1" /></span>,
+                    })) : undefined}
                     className={cn("w-full max-w-5xl mx-auto", contained ? "primary-logo-track flex flex-1 flex-col" : "px-16")}
                   >
                     <CarouselContent viewportClassName={contained ? "flex min-w-0 flex-1" : undefined} className={contained ? "min-w-0 flex-1" : undefined}>
@@ -1014,6 +1019,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                               {...dragPropsFor(logo)}
                               className={cn(
                                 "relative flex h-full w-full min-w-0 flex-col shadow-2xl transition-all duration-700 border-2",
+                                contained && "primary-logo-card",
                                 !selectionMode && "cursor-zoom-in",
                                 selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                               )}
@@ -1022,13 +1028,13 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 transform: "rotateY(0deg)",
                                 borderColor: `${primaryColor}35`,
                                 backgroundColor: '#ffffff',
-                                boxShadow: `
+                                boxShadow: contained ? undefined : `
                                   0 20px 60px -10px ${primaryColor}40,
                                   0 10px 30px -5px ${primaryColor}50
                                 `,
                               }}
                             >
-                              <CardContent className={cn("flex h-full min-w-0 flex-col", contained ? "p-[clamp(12px,2.4cqi,24px)]" : "p-6")}>
+                              <CardContent className={cn("flex h-full min-w-0 flex-col", contained ? "p-[clamp(12px,2cqi,20px)]" : "p-6")}>
                                 {/* Selection Checkbox */}
                                 {selectionMode && (
                                   <div className="absolute top-3 left-3 z-10">
@@ -1067,7 +1073,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                   <button
                                     aria-label={`${isAdmin ? 'Edit' : 'Preview'} ${logo.filename}`}
                                     onClick={(e) => { e.stopPropagation(); if (isAdmin && gymAssets.some(a => a.file_url === logo.file_url)) openAssetModal(logo.file_url); else setExpandedLogo(logo); }}
-                                    className="absolute bottom-3 right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center bg-white/90 hover:bg-white shadow-md transition-all hover:scale-110"
+                                    className={cn("absolute z-10 rounded-full flex items-center justify-center bg-white text-slate-950 hover:bg-slate-100 shadow-md transition-all hover:scale-110", contained ? "top-4 left-4 w-9 h-9" : "bottom-3 right-3 w-7 h-7")}
                                   >
                                     {isAdmin ? <Pencil className="w-3.5 h-3.5 text-slate-950" /> : <Eye className="w-3.5 h-3.5 text-slate-950" />}
                                   </button>
@@ -1094,7 +1100,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 </div>
                                 
                                 {/* Action Buttons */}
-                                <div className="mt-auto flex flex-col gap-2">
+                                <div className={cn("mt-auto gap-2", contained && !isAdmin ? "primary-logo-actions grid grid-cols-2" : "flex flex-col")}>
                                   <Button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -1177,7 +1183,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <CarouselPrevious 
+                    {!contained && <><CarouselPrevious
                       className={cn("bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg", contained ? "left-0" : "left-4")}
                       style={{ 
                         boxShadow: `0 4px 12px ${primaryColor}50`
@@ -1188,18 +1194,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       style={{ 
                         boxShadow: `0 4px 12px ${primaryColor}40`
                       }}
-                    />
+                    /></>}
                   </LogoCarouselFrame>
                 </div>
   );
 
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
-      <div className="sticky top-0 z-50">
-        {/* The strip shows on a share link too - she wants the vendor to see
-            the whole family - but read-only, so none of it navigates. */}
-        <GymPillStrip readOnly={solo} />
-      </div>
+      {!solo && <div className="sticky top-0 z-50"><GymPillStrip /></div>}
       <div 
         className="min-h-screen"
         style={{
@@ -1578,14 +1580,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
           {(() => {
             const primaries = activeLogos.filter(l => l.variant === 'Primary logos');
             if (primaries.length === 0) return null;
-            // Embla only loops when the slides fill the track more than once.
-            // Three at a third each leave it 373px short, so it parked and
-            // never rotated - and none of the three sat centred. Repeating
-            // them until there are nine gives the loop something to turn
-            // without asking her to go and mark more logos as primary.
-            const reel = primaries.length >= 9
+            // Small sets need extra physical slides for Embla's loop.
+            // The thumbnail selector still shows each actual logo only once.
+            const reel = primaries.length === 1 || primaries.length >= 5
               ? primaries
-              : Array.from({ length: Math.ceil(9 / primaries.length) }, () => primaries).flat();
+              : Array.from({ length: Math.ceil(5 / primaries.length) }, () => primaries).flat();
             return (
               <Card
                 className="mb-6 shadow-xl border-2"

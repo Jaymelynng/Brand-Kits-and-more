@@ -1,3 +1,4 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -26,7 +27,19 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+
   try {
+    const authHeader = req.headers.get('Authorization') || '';
+    const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } });
+    const { data: authData, error: authError } = await userClient.auth.getUser();
+    if (authError || !authData.user) return new Response(JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const { data: adminRole } = await userClient.from('user_roles').select('role')
+      .eq('user_id', authData.user.id).eq('role', 'admin').maybeSingle();
+    if (!adminRole) return new Response(JSON.stringify({ error: 'Admin access required' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     const { imageUrl, gymCode, gymName, currentFilename } = await req.json();
 
     if (!imageUrl || !gymCode || !gymName) {

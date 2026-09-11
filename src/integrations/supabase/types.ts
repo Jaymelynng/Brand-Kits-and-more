@@ -845,6 +845,10 @@ export type Database = {
       }
     }
     Functions: {
+      set_featured_gym_logo: {
+        Args: { p_gym_id: string; p_logo_id: string }
+        Returns: undefined
+      }
       reorder_gym_logos: {
         Args: { p_gym_id: string; p_ordered_ids: string[]; p_expected_ids: string[] }
         Returns: undefined

@@ -15,7 +15,7 @@ import { ChevronUp, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const { data: gyms = [], isLoading, error } = useGyms();
+  const { data: gyms = [], isLoading, error, refetch, isFetching } = useGyms();
   const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -252,7 +252,10 @@ const Index = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--brand-white))' }}>
-        <div className="text-red-600 text-xl">Error loading gym data</div>
+        <div className="space-y-4 text-center">
+          <p className="text-slate-900 text-xl">The brand library could not be loaded.</p>
+          <Button disabled={isFetching} onClick={() => refetch()} className="cursor-pointer bg-slate-900 text-white hover:bg-slate-700">{isFetching ? 'Retrying…' : 'Retry loading'}</Button>
+        </div>
       </div>
     );
   }

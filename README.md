@@ -1,149 +1,98 @@
 # Bulk Brand Center
 
-Multi-location gym brand asset management tool. Manage brand colors, logos, elements, and assets across 13+ gymnastics facilities from a single dashboard.
+Brand libraries for independently branded gyms, with a shared dashboard for bulk work and a focused public kit for each gym. Gym names, counts, colors, categories and assets come from the database.
 
-**Live**: [bulkbrands.mygymtools.com](https://bulkbrands.mygymtools.com)  
-**Lovable Project**: [lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38](https://lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38)
+**Live:** [Gym Brand Kits](https://gym-brand-kits.vercel.app/)
+**Repository:** [Jaymelynng/Brand-Kits-and-more](https://github.com/Jaymelynng/Brand-Kits-and-more)
+**Original Lovable project:** [Project editor](https://lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38)
 
----
+## Sharing and workflow
 
-## Features
+- **`/kit/:gymCode`** is the external share page. It shows that gym's colors, primary-logo carousel, actual font specimens, gallery, graphics and downloads without navigation to other gyms. TIGAR: [`/kit/TIG`](https://gym-brand-kits.vercel.app/kit/TIG).
+- **`/`** is the dashboard: responsive gym cards, selection, bulk copying of colors or logo links, and per-gym profile, copy and download actions.
+- **`/gym/:gymCode`** includes the gym navigation. Authorized administrators can upload, rename, categorize, tag, reorder, change the display logo and edit fonts or colors.
+- The primary carousel supports thumbnails, arrows, dragging and pause/resume. Rotation pauses during inspection, while offscreen, behind a preview, and when the tab is hidden. Reduced-motion preference disables automatic rotation and depth animation.
+- Preview opens the original image or animation and measures its dimensions, format and transparency. Preview background selection does not change the downloaded file.
+- The public gallery excludes Retired and Needs review artwork. Retired database rows are also hidden by RLS from non-admins. These visibility rules do not revoke previously shared public storage URLs.
 
-### Dashboard (`/`)
-- 2-column responsive grid of gym brand cards
-- Bulk color copying: select gyms via pill strip, copy all HEX values at once
-- Per-card: logo display, 4 color swatches with `#`/`HEX` copy buttons, profile link, logo download
-- Search by gym name or 3-letter code
-- Gym pill selector with 3 interaction zones (toggle selection, navigate to profile, scroll to card)
+## Downloads
 
-### Gym Profile Pages (`/gym/:code`)
-- Hero banner with gym facility photo
-- Main logo showcase with download
-- Brand stats (logo variations, colors, elements counts)
-- 4 brand colors with individual and bulk copy
-- Logo gallery with carousel view, theme tag filters, upload, set-as-main, background removal, delete
-- Brand elements grid (SVG icons, banners) with copy URL/SVG/delete
+**Download brand kit** exports one ZIP with:
 
-### Brand Kit Download (`/gym/:code` and `/kit/:code`)
-- **Download brand kit** exports a ZIP with a visual PDF guide, the saved Primary logos, font files and licenses, HEX/RGB palettes, and a file inventory. **PDF guide** downloads the guide alone.
-- Export reads current gym data and font pairings. Retired, uncategorized, themed and animation files remain in the full gallery, outside the core package. Required-file failures stop the export and show an error instead of returning a partial ZIP.
-- Font samples are editable fields on each pairing (`sample_heading`, `sample_body`, `sample_source`) and are shared by the panel, editor and PDF. Empty samples use neutral type specimens, not invented campaign claims.
-- Licensed fonts packaged in `public/fonts` are listed in `src/lib/brandKitFonts.ts`. A saved font without a bundled file receives an official source link and a visible note; its file is never claimed as included. Source and license details live with the fonts.
-- PNG originals remain PNGs. Dimensions and transparency are measured during export; the guide identifies when a vector master is still needed for production.
+- Every active logo in its original format, grouped by its saved category, including email logos, variations, themed artwork and animation.
+- Saved dividers and supporting graphics.
+- A visual PDF guide, actual font files where bundled, their licenses and source links.
+- HEX/RGB palettes as text, JSON, CSS and GPL.
+- A contents inventory with source URLs, measured file details and SHA-256 hashes.
 
-### Asset Hub (`/assets`)
-- Cross-gym asset management with rotating thumbnail cards
-- Section-based layout by asset type (Logo, Email Asset, Social Media, Marketing)
-- Sub-categories per type (e.g. Primary, Dark Version, Icon Only under Logos)
-- Collapsible sidebar with gym selector and category tree
-- Coverage tracking per asset (X/13 gyms)
-- Theme tag filtering (Standard, Holiday, Summer Camp, etc.)
+**PDF guide** downloads the same guide separately. Logo-only and filtered downloads create separate ZIPs. Required-file failures stop the export with an error instead of silently returning an incomplete archive. Same-name files receive unique archive paths.
 
-### QR Studio (`/qr-studio`)
-- Scan: decode QR codes from uploaded images
-- Generate: create QR codes with gym branding
-- Library: browse and manage generated/scanned QR codes
+The panel, editor and PDF use the pairing's saved `sample_heading`, `sample_body` and `sample_source`. Empty fields use neutral type specimens. Bundled fonts are defined in `src/lib/brandKitFonts.ts`; their originals and licenses live in `public/fonts`. An unbundled font gets an explicit source link, not a claim that its file is included.
 
-### Admin (`/admin`)
-- Manage Gyms table with bulk editing (name, code, address, phone, email, website, social links, programs)
-- PIN-based admin authentication
-
-### My Brand (`/my-brand`)
-- Personal brand colors, images, and font settings
-
----
-
-## Tech Stack
-
-- **Frontend**: React 18, TypeScript 5, Vite 5, Tailwind CSS v3
-- **UI Components**: shadcn/ui
-- **Backend**: Supabase (Lovable Cloud) — Postgres, Auth, Storage, Edge Functions
-- **State**: TanStack React Query
-
----
-
-## Database Schema
-
-### Core Tables
-| Table | Purpose |
-|-------|---------|
-| `gyms` | 13 gym facilities — name, code, address, phone, email, website, social links, hero video URL |
-| `gym_colors` | 4 brand colors per gym (color_hex, order_index) |
-| `gym_logos` | Logo files per gym (file_url, filename, is_main_logo) |
-| `gym_elements` | SVG brand elements per gym (element_type, element_color, svg_data) |
-
-### Asset Management Tables
-| Table | Purpose |
-|-------|---------|
-| `asset_types` | 4 types: Logo, Email Asset, Social Media, Marketing |
-| `asset_categories` | Sub-categories scoped to asset types (Primary, Dark Version, Hero Images, etc.) |
-| `gym_assets` | Individual assets with file_url, filename, asset_type_id, category_id |
-| `gym_asset_assignments` | Per-gym assignments of assets (asset_id → gym_id, file_url, is_main) |
-| `asset_theme_tags` | Junction: asset ↔ theme tag |
-| `theme_tags` | Cross-cutting tags: Standard, Holiday, Halloween, Summer Camp |
-| `asset_comments` | Comments/notes on assets with @gym mentions |
-
-### QR Tables
-| Table | Purpose |
-|-------|---------|
-| `qr_generated` | Generated QR codes with content, gym_id, tags, batch info |
-| `qr_scans` | Scanned/decoded QR codes with extracted data |
-
-### Auth & User Tables
-| Table | Purpose |
-|-------|---------|
-| `user_roles` | Role assignments (app_role enum: admin, user) |
-| `admin_pins` | PIN hashes for admin elevation |
-| `user_profiles` | Basic user profiles (email) |
-
-### Personal Brand Tables
-| Table | Purpose |
-|-------|---------|
-| `personal_brand_info` | Brand name, tagline, fonts, notes |
-| `personal_brand_colors` | Personal color palette |
-| `personal_brand_images` | Personal brand images |
-
-### Views
-| View | Purpose |
-|------|---------|
-| `gym_icon_urls` | Denormalized gym icons (calendar, chat, star URLs) |
-
-### Edge Functions
-| Function | Purpose |
-|----------|---------|
-| `analyze-image` | AI image analysis |
-| `set-pin` | Set admin PIN |
-| `verify-pin` | Verify admin PIN for elevation |
-
----
+PNG/JPEG artwork remains raster artwork. Export never labels an embedded raster as a vector master. The guide flags a missing SVG master and does not invent Pantone, CMYK or manufacturing specifications.
 
 ## Routes
 
-| Path | Component | Description |
-|------|-----------|-------------|
-| `/` | Index | Dashboard — bulk brand center |
-| `/gym/:gymCode` | GymProfile | Individual gym brand page |
-| `/assets` | AssetHub | Cross-gym asset management |
-| `/qr-studio` | QRStudio | QR code scan/generate/library |
-| `/admin` | Admin | Admin dashboard |
-| `/my-brand` | MyBrand | Personal brand settings |
-| `/auth` | Auth | Login/signup |
-| `/themes` | Themes | Redirects → `/assets` |
-| `/themes/:categoryId` | ThemeDetail | Redirects → `/assets?theme=:id` |
+| Path | Purpose |
+| --- | --- |
+| `/` | Dashboard and bulk brand actions |
+| `/kit/:gymCode` | Focused public share page |
+| `/gym/:gymCode` | Gym profile and authorized editing |
+| `/assets`, `/themes` | Cross-gym asset and theme library |
+| `/themes/:categoryId` | Theme detail |
+| `/admin` | Administration |
+| `/review` | Asset review |
+| `/my-brand` | Personal brand settings |
+| `/auth` | Administrator sign-in |
 
----
+The QR tables and components remain in the repository, but there is no current `/qr-studio` route.
 
-## Development
+## Database and access
+
+This app uses Supabase project **`fwkiadhkxqnlnvmzpgnw` (BRAND KIT)**. It is separate from the canonical gym-data project used by other tools.
+
+| Tables / view | Purpose |
+| --- | --- |
+| `gyms`, `brands`, `gym_colors` | Gym records, shared brand families and ordered palettes |
+| `gym_logos`, `logo_categories`, `logo_tags`, `gym_logo_tags` | Logos, display selection, order, categories and tags |
+| `gym_font_pairings` | Font choices, weights, samples, usage notes and preference |
+| `gym_elements` | Supporting graphics and dividers |
+| `asset_types`, `asset_categories`, `gym_assets`, `gym_asset_assignments` | Cross-gym asset library and assignments |
+| `theme_tags`, `asset_theme_tags`, `asset_comments` | Themes and private comments |
+| `qr_generated`, `qr_scans` | Generated QR artwork and private decoded QR notes |
+| `user_roles`, `admin_pins`, `user_profiles` | Access roles, PIN hashes and user profiles |
+| `personal_brand_info`, `personal_brand_colors`, `personal_brand_images` | Personal brand |
+| `kit_auth_attempts` | Service-only PIN attempt counters, no raw PINs or IP addresses |
+| `gym_icon_urls` | View of gym icon URLs, evaluated with caller permissions |
+
+Public brand downloads are intentional. Anonymous users cannot write application tables or upload/update/delete storage objects. Administrator mutations require the current authenticated role. Comments are visible to their author or an administrator; decoded QR notes are administrator-only. Role checks operate with caller permissions.
+
+`set_featured_gym_logo` validates and changes the display logo atomically. A partial change cannot clear the old display selection. A unique index enforces at most one display logo per gym. Replacing a display image preserves the previous artwork.
+
+Edge functions:
+
+- **`verify-pin`** validates four digits, consumes atomic database rate limits, verifies the current administrator role, and returns only the session token required by the client. Limits are five attempts per hashed address per 15 minutes and 20 attempts globally per hour; a distributed caller cannot bypass the global cap. Counter failure denies sign-in. Existing PIN sign-in remains a limited-strength credential; rate limiting is not MFA.
+- **`set-pin`** validates the session, administrator role, target identity and four-digit format; it reports success only when a PIN row was updated.
+- **`analyze-image`** validates the session and administrator role before making a paid AI request.
+
+Changes live in `supabase/migrations`; function sources live in `supabase/functions`. Do not grant browser clients access to rate counters. RLS with no client policy on that table is intentional. Public storage URLs are not private document access controls.
+
+**Account-level checks still require dashboard verification:** leaked-password protection, backup retention and restore availability, and account MFA. These are not established by a passing database migration or build. Do not call the configuration fully verified until they are checked.
+
+## Development and deployment
+
+React 18, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query and Supabase.
 
 ```sh
-git clone <YOUR_GIT_URL>
-cd <YOUR_PROJECT_NAME>
-npm i
+npm ci
 npm run dev
+npx tsc --noEmit -p tsconfig.app.json
+node --test tests/brandKit.test.mjs tests/brandKit-endpoints.test.mjs
+npm run build
 ```
 
-Requires Node.js & npm. Install with [nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Vite serves port 8080. Commit and push reviewed changes to `main`; Vercel deploys the connected repository. Confirm the resulting deployment is ready for that exact commit and recheck the public share route. Supabase migrations and Edge Functions are separate deployments and must be applied before dependent frontend code.
 
-Deploy via [Lovable](https://lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38) → Share → Publish.
+Use the administrative SQL connection to run `tests/brandKit-access.sql` and `tests/brandKit-rate-limit.sql` after migrations. They exercise public/non-admin/admin boundaries, atomic display selection and PIN throttling inside transactions that roll back all fixtures.
 
-Custom domain: Project → Settings → Domains → Connect Domain. [Docs](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Before sharing, visually check the dashboard and bulk actions plus a focused kit at desktop, laptop and phone widths. Verify pause/drag/navigation, original-file preview, copy, complete and filtered ZIPs, error/retry paths, font loading and at least three contrasting gym palettes. Unit tests and an HTTP 200 response alone do not establish that the page works.

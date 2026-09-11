@@ -98,7 +98,7 @@ export const ColorSwatch = ({
         <div
           className={cn(
             "font-mono font-bold text-foreground select-all leading-none",
-            compact ? "text-[8px]" : "text-[11px]"
+            "text-[15px]"
           )}
         >
           {color}

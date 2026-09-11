@@ -11,6 +11,8 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -38,10 +40,12 @@ Deno.serve(async (req) => {
     }
 
     const callerId = userData.user.id;
+    const { data: adminRole } = await userClient.from('user_roles').select('role').eq('user_id', callerId).eq('role', 'admin').maybeSingle();
+    if (!adminRole) return new Response(JSON.stringify({ error: 'Admin access required' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     const { pin, user_id } = await req.json();
 
-    if (!pin || pin.length !== 4) {
+    if (typeof pin !== 'string' || !/^\d{4}$/.test(pin)) {
       return new Response(
         JSON.stringify({ error: 'PIN must be 4 digits' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -69,12 +73,12 @@ Deno.serve(async (req) => {
     const pin_hash = hashSync(pin);
     console.log('Generated hash for PIN, user:', callerId);
 
-    const { error } = await serviceClient
+    const { data: updatedPin, error } = await serviceClient
       .from('admin_pins')
       .update({ pin_hash })
-      .eq('user_id', user_id);
+      .eq('user_id', user_id).select('user_id').maybeSingle();
 
-    if (error) {
+    if (error || !updatedPin) {
       console.error('Update error:', error);
       return new Response(
         JSON.stringify({ error: 'Failed to update PIN' }),

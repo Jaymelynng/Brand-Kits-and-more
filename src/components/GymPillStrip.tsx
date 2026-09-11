@@ -103,7 +103,7 @@ export const GymPillStrip = ({
   return (
     <div
       ref={stripRef}
-      className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 px-4 py-3"
+      className="sticky top-0 z-50 flex flex-nowrap overflow-x-auto items-center justify-start gap-x-2 gap-y-2 px-4 py-3 sm:flex-wrap sm:overflow-visible sm:justify-center"
       style={{
         background: `linear-gradient(180deg, #1B222B 0%, ${SHELL} 60%, #10151B 100%)`,
         borderBottom: "1px solid #0A0E13",
@@ -127,7 +127,7 @@ export const GymPillStrip = ({
             <span className="text-[26px] font-extrabold text-white">
               {selectedGyms?.size ?? 0}
             </span>
-            <span className="text-[13px] font-bold text-slate-400">/ {gyms.length}</span>
+            <span className="text-[15px] font-bold text-white">/ {gyms.length}</span>
           </span>
         </div>
       )}
@@ -211,7 +211,7 @@ export const GymPillStrip = ({
         const logoUrl = mainLogo?.file_url || gym.logos[0]?.file_url;
 
         return (
-          <div key={gym.id} className="group flex min-w-0 flex-1 flex-col items-stretch gap-1"
+          <div key={gym.id} className="group flex min-w-[54px] flex-[0_0_54px] flex-col items-stretch gap-1 sm:flex-1"
             style={{ maxWidth: 76 }}>
             {/* Logo tile — click to select */}
             <button
@@ -272,7 +272,7 @@ export const GymPillStrip = ({
             <button
               onClick={(e) => handleCodeClick(e, gym.code)}
               title={isDashboard ? `Scroll to ${gym.code}` : `Go to ${gym.code}`}
-              className="rounded-full py-1 text-center text-[10px] font-extrabold leading-none tracking-[0.1em] transition-transform duration-150 hover:scale-105"
+              className="rounded-full py-1 text-center text-[15px] font-extrabold leading-none tracking-[0.05em] transition-transform duration-150 hover:scale-105"
               style={{
                 // Always filled. The halo on the tile above already says what is
                 // picked, so the label does not need to carry state too - it

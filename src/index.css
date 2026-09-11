@@ -122,8 +122,104 @@ All colors MUST be HSL.
    suddenly switch to much smaller cards at a viewport breakpoint. */
 .primary-logo-track {
   container-type: inline-size;
-  padding-inline: clamp(12px, 3.5vw, 56px);
+  padding-inline: 0;
 }
 .primary-logo-track .primary-logo-slide {
-  flex-basis: min(100%, clamp(240px, 58cqi, 380px));
+  flex-basis: min(94%, clamp(240px, 66cqi, 420px));
+}
+.primary-logo-stage {
+  border-radius: 18px;
+  background: radial-gradient(ellipse at 50% 40%, hsl(var(--gym-secondary) / .22), transparent 65%);
+}
+.primary-logo-track [data-carousel-viewport] {
+  padding-block: 18px 28px;
+  align-items: center;
+  cursor: grab;
+  touch-action: pan-y pinch-zoom;
+}
+.primary-logo-track [data-carousel-viewport]:active { cursor: grabbing; }
+.primary-logo-card {
+  border-radius: 16px;
+  backface-visibility: hidden;
+  box-shadow: 0 18px 26px -18px #000c, 0 8px 24px -12px #0009, 0 0 28px -12px hsl(var(--gym-primary) / .6);
+}
+.primary-logo-card::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  border-radius: inherit;
+  border: 2px solid hsl(var(--gym-primary));
+  opacity: var(--logo-focus, 1);
+}
+.primary-logo-actions > button {
+  min-width: 0;
+  height: 42px;
+  padding-inline: 7px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.primary-logo-actions > button svg { flex-shrink: 0; margin-right: 5px; }
+@container (max-width: 320px) {
+  .primary-logo-actions > button svg { display: none; }
+}
+.primary-logo-navigation { position: relative; padding: 0 8px 4px; }
+.primary-logo-thumbnails {
+  display: flex;
+  gap: 8px;
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 5px 3px 9px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #ffffff80 transparent;
+}
+.primary-logo-thumbnail {
+  width: clamp(40px, 7.8cqi, 56px);
+  height: clamp(40px, 7.8cqi, 56px);
+  flex-shrink: 0;
+  padding: 3px;
+  border: 2px solid #ffffff70;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.primary-logo-thumbnail:hover { transform: translateY(-2px); border-color: #fff; }
+.primary-logo-thumbnail[aria-pressed=true] {
+  border-color: hsl(var(--gym-primary));
+  box-shadow: 0 0 0 2px #fff, 0 4px 14px #0005;
+  transform: translateY(-2px);
+}
+.primary-logo-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 470px; margin: 4px auto 0; }
+.primary-logo-counter { color: #fff; font-size: 15px; font-variant-numeric: tabular-nums; letter-spacing: .06em; }
+.primary-logo-counter strong { font-size: 19px; }
+.primary-logo-buttons { display: flex; gap: 10px; align-items: center; }
+.primary-logo-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 38px;
+  width: 38px;
+  background: #fff;
+  color: #101820;
+  border: 1px solid #ffffffcc;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px #0005;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.primary-logo-control:hover { background: #dceaf2; transform: translateY(-2px); }
+.primary-logo-control > svg { width: 18px; height: 18px; }
+.primary-logo-control > .primary-logo-timer { position: absolute; inset: -4px; width: 44px; height: 44px; transform: rotate(-90deg); fill: none; stroke: #ffffff50; stroke-width: 2; pointer-events: none; }
+.primary-logo-timer .primary-logo-timer-progress { stroke: #fff; stroke-dasharray: 100; stroke-dashoffset: 100; animation: logo-rotation-timer 6s linear forwards; }
+.primary-logo-thumbnail:focus-visible, .primary-logo-control:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+@keyframes logo-rotation-timer { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .primary-logo-thumbnail, .primary-logo-control { transition: none; }
+  .primary-logo-timer-progress { animation: none; }
+  .primary-logo-thumbnail:hover, .primary-logo-control:hover { transform: none; }
 }

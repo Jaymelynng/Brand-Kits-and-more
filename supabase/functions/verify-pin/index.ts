@@ -17,6 +17,8 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: corsHeaders });
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -26,7 +28,7 @@ Deno.serve(async (req) => {
     // Parse request body
     const { pin }: PinRequest = await req.json();
 
-    if (!pin || pin.length !== 4) {
+    if (typeof pin !== 'string' || !/^\d{4}$/.test(pin)) {
       console.log('Invalid PIN length');
       return new Response(
         JSON.stringify({ error: 'Invalid PIN format' }),
@@ -34,7 +36,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Verifying PIN...');
+    // Hash network information; never store raw addresses or the attempted PIN.
+    const clientAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(supabaseServiceRoleKey),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const digest = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(clientAddress));
+    const clientKey = [...new Uint8Array(digest)].map(n => n.toString(16).padStart(2, '0')).join('');
+    const { data: retryAfter, error: limitError } = await supabase.rpc('consume_pin_attempt', { p_client_key: clientKey });
+    if (limitError || typeof retryAfter !== 'number') {
+      return new Response(JSON.stringify({ error: 'Sign-in is temporarily unavailable. Please try again later.' }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    if (retryAfter > 0) {
+      return new Response(JSON.stringify({ error: 'Too many sign-in attempts. Please try again later.', retryAfter }),
+        { status: 429, headers: { ...corsHeaders, 'Retry-After': String(retryAfter), 'Content-Type': 'application/json' } });
+    }
 
     // Get all admin_pins records
     const { data: adminPins, error: fetchError } = await supabase
@@ -75,7 +91,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('PIN matched for user:', matchedUser.email);
+    const { data: adminRole } = await supabase.from('user_roles').select('role')
+      .eq('user_id', matchedUser.user_id).eq('role', 'admin').maybeSingle();
+    if (!adminRole) return new Response(JSON.stringify({ error: 'Invalid PIN' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     // Get user from auth
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(matchedUser.user_id);
@@ -106,9 +125,7 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        user: userData.user,
-        session: sessionData.properties,
-        role: matchedUser.role,
+        session: { hashed_token: sessionData.properties.hashed_token },
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

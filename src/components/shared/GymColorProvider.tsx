@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import type { CSSProperties } from 'react';
+import { contrast } from '@/lib/shade';
 
 interface GymColorProviderProps {
   primaryColor?: string;
@@ -7,34 +8,19 @@ interface GymColorProviderProps {
 }
 
 export const GymColorProvider = ({ primaryColor, secondaryColor, children }: GymColorProviderProps) => {
-  useEffect(() => {
-    if (primaryColor || secondaryColor) {
-      const root = document.documentElement;
-      
-      if (primaryColor) {
-        const primary = hexToHsl(primaryColor);
-        root.style.setProperty('--gym-primary', primary);
-        root.style.setProperty('--gym-primary-light', `${primary.split(' ')[0]} ${primary.split(' ')[1]} 96%`);
-      }
-      
-      if (secondaryColor) {
-        const secondary = hexToHsl(secondaryColor);
-        root.style.setProperty('--gym-secondary', secondary);
-        root.style.setProperty('--gym-secondary-light', `${secondary.split(' ')[0]} ${secondary.split(' ')[1]} 95%`);
-      }
-    }
-    
-    return () => {
-      // Reset to defaults when unmounting
-      const root = document.documentElement;
-      root.style.setProperty('--gym-primary', '222 47% 11%');
-      root.style.setProperty('--gym-secondary', '215 20% 65%');
-      root.style.setProperty('--gym-primary-light', '222 47% 96%');
-      root.style.setProperty('--gym-secondary-light', '215 20% 95%');
-    };
-  }, [primaryColor, secondaryColor]);
-
-  return <>{children}</>;
+  const primary = primaryColor ? hexToHsl(primaryColor) : '222 47% 11%';
+  const secondary = secondaryColor ? hexToHsl(secondaryColor) : '215 20% 65%';
+  // A card owns its palette. Writing to documentElement let the last gym
+  // silently recolor every other card on the dashboard.
+  return <div style={{
+    display: 'contents',
+    '--gym-primary': primary,
+    '--gym-secondary': secondary,
+    '--gym-primary-foreground': primaryColor && contrast(primaryColor, '#ffffff') < 4.5 ? '0 0% 7%' : '0 0% 100%',
+    '--gym-secondary-foreground': secondaryColor && contrast(secondaryColor, '#ffffff') < 4.5 ? '0 0% 7%' : '0 0% 100%',
+    '--gym-primary-light': `${primary.split(' ').slice(0, 2).join(' ')} 96%`,
+    '--gym-secondary-light': `${secondary.split(' ').slice(0, 2).join(' ')} 95%`,
+  } as CSSProperties}>{children}</div>;
 };
 
 // Helper function to convert hex to HSL

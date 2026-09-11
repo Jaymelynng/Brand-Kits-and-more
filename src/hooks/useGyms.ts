@@ -245,19 +245,6 @@ export const useUploadLogo = () => {
 
         console.log('Public URL:', publicUrl);
 
-        if (isMain) {
-          console.log('Setting other logos as non-main');
-          const { error: updateError } = await supabase
-            .from('gym_logos')
-            .update({ is_main_logo: false })
-            .eq('gym_id', gymId);
-          
-          if (updateError) {
-            console.error('Error updating main logo flags:', updateError);
-            throw updateError;
-          }
-        }
-
         console.log('Inserting logo record into database');
         const { data: logo, error: logoError } = await supabase
           .from('gym_logos')
@@ -265,7 +252,7 @@ export const useUploadLogo = () => {
             gym_id: gymId,
             filename: file.name,
             file_url: publicUrl,
-            is_main_logo: isMain,
+            is_main_logo: false,
             // Categorised at upload, so it is one step rather than two. An
             // upload that skips the picker lands in Uncategorized, which is a
             // real chip in the gallery rather than an invisible NULL.
@@ -277,6 +264,11 @@ export const useUploadLogo = () => {
         if (logoError) {
           console.error('Database insert error:', logoError);
           throw logoError;
+        }
+
+        if (isMain) {
+          const { error } = await supabase.rpc('set_featured_gym_logo', { p_gym_id: gymId, p_logo_id: logo.id });
+          if (error) throw new Error(`The logo was uploaded, but could not be set as display. Your previous display logo is unchanged. ${error.message}`);
         }
 
         console.log('Logo upload completed successfully:', logo);
@@ -292,6 +284,7 @@ export const useUploadLogo = () => {
     },
     onError: (error) => {
       console.error('Upload mutation error:', error);
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
     },
   });
 };
@@ -301,19 +294,7 @@ export const useSetMainLogo = () => {
 
   return useMutation({
     mutationFn: async ({ gymId, logoId }: { gymId: string; logoId: string }) => {
-      await supabase
-        .from('gym_logos')
-        .update({ is_main_logo: false })
-        .eq('gym_id', gymId);
-
-      // The one on display is by definition a primary, so choosing it files
-      // it there too. Primary logos holds as many as she likes; is_main_logo
-      // picks which of them the page actually shows, and the clear above
-      // keeps that to exactly one per gym.
-      const { error } = await supabase
-        .from('gym_logos')
-        .update({ is_main_logo: true, variant: 'Primary logos' })
-        .eq('id', logoId);
+      const { error } = await supabase.rpc('set_featured_gym_logo', { p_gym_id: gymId, p_logo_id: logoId });
 
       if (error) throw error;
     },
