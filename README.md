@@ -77,7 +77,22 @@ Edge functions:
 
 Changes live in `supabase/migrations`; function sources live in `supabase/functions`. Do not grant browser clients access to rate counters. RLS with no client policy on that table is intentional. Public storage URLs are not private document access controls.
 
-**Account-level checks still require dashboard verification:** leaked-password protection, backup retention and restore availability, and account MFA. These are not established by a passing database migration or build. Do not call the configuration fully verified until they are checked.
+Leaked-password protection is enabled and verified through the dashboard and security advisor. Auth connections use a 17% allocation, currently 10 of 60 connections, so the cap scales with compute. The Supabase account has no authenticator app enrolled; enrollment needs the account owner's device. The application's four-digit PIN is a separate login and is not MFA.
+
+### Recovery
+
+The dashboard lists seven daily physical database backups with restore controls. A destructive production restore has not been performed. **Those database backups exclude Storage file contents.** Restore the matching object files as well as database metadata when recovering deleted artwork.
+
+An independently verified local copy of all 762 objects (399,951,650 bytes at capture) is stored in `.backups/storage`, outside Git and the public website. `latest.json` points to the complete manifest. The manifest preserves bucket names, exact source paths, source metadata and file checksums; each file is stored by SHA-256 so earlier content is preserved when a source changes. This is a local recovery copy, not a scheduled offsite backup.
+
+To refresh it, run `scripts/storage-backup-inventory.sql` through the authorized database connection and save the returned inventory JSON to `.backups/storage-inventory.json`, then:
+
+```sh
+npm run backup:storage -- --inventory .backups/storage-inventory.json --project https://fwkiadhkxqnlnvmzpgnw.supabase.co --out .backups/storage
+npm run backup:storage -- --verify .backups/storage/manifests/FILE.json
+```
+
+Add `--resume .backups/storage/manifests/FILE.json` to reuse verified unchanged files from a prior complete or interrupted run. The tool uses two downloads at a time, honors rate-limit retry delays, rejects incomplete files, re-reads every completed file, and never deletes source objects. A failed run cannot become the latest complete backup. It refuses private buckets rather than silently omitting them. Restoration uses the manifest's bucket/name mapping and the corresponding file from `objects/<first-two-hash-characters>/<sha256>`; no automated restore command is provided because replacing live objects needs an explicit recovery decision.
 
 ## Development and deployment
 
@@ -86,12 +101,12 @@ React 18, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query and Supabase.
 ```sh
 npm ci
 npm run dev
-npx tsc --noEmit -p tsconfig.app.json
-node --test tests/brandKit.test.mjs tests/brandKit-endpoints.test.mjs
-npm run build
+npm run check
 ```
 
 Vite serves port 8080. Commit and push reviewed changes to `main`; Vercel deploys the connected repository. Confirm the resulting deployment is ready for that exact commit and recheck the public share route. Supabase migrations and Edge Functions are separate deployments and must be applied before dependent frontend code.
+
+`npm run check` runs TypeScript, automated download/security/backup tests and the production build. GitHub runs the same checks on pushes to `main` and pull requests, with read-only repository permissions and actions pinned to commit hashes. These checks report failures; they do not currently block a Vercel deployment or require pull requests.
 
 Use the administrative SQL connection to run `tests/brandKit-access.sql` and `tests/brandKit-rate-limit.sql` after migrations. They exercise public/non-admin/admin boundaries, atomic display selection and PIN throttling inside transactions that roll back all fixtures.
 
