@@ -1399,12 +1399,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
           <div className="grid grid-cols-1 items-stretch md:grid-cols-2 gap-[clamp(16px,2vw,32px)] max-w-6xl mx-auto" data-brand-overview>
             {/* Left Column: Logo + Brand Assets Stats */}
             <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
-              <BrandCardContent className="p-6">
+              <BrandCardContent className="p-[clamp(12px,1.5vw,24px)]">
                 {/* Main Logo Showcase */}
                 {mainLogo && (
-                  <div className="flex flex-col items-center mb-6">
+                  <div className="flex flex-col items-center">
                     <div 
-                      className="flex items-center justify-center w-full rounded-2xl border-2 shadow-inner mb-4"
+                      className="flex items-center justify-center w-full rounded-2xl border-2 shadow-inner"
                       style={{
                         height: 'clamp(200px, 18vw, 300px)',
                         background: 'linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%)',
@@ -1417,14 +1417,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         className="h-[90%] w-[95%] object-contain p-2"
                       />
                     </div>
-                    <Button
-                      onClick={() => downloadLogo(mainLogo.file_url, mainLogo.filename)}
-                      className="text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <Download className="w-5 h-5 mr-2" />
-                      Download display logo
-                    </Button>
                   </div>
                 )}
 
