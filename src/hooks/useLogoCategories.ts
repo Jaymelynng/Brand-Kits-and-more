@@ -80,10 +80,12 @@ export const useReorderLogoCategory = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ a, b }: { a: LogoCategory; b: LogoCategory }) => {
-      await supabase.from("logo_categories").update({ order_index: b.order_index }).eq("id", a.id);
-      await supabase.from("logo_categories").update({ order_index: a.order_index }).eq("id", b.id);
+      const first = await supabase.from("logo_categories").update({ order_index: b.order_index }).eq("id", a.id).select('id').single();
+      if (first.error) throw first.error;
+      const second = await supabase.from("logo_categories").update({ order_index: a.order_index }).eq("id", b.id).select('id').single();
+      if (second.error) throw new Error('The order did not finish saving. The current order has been reloaded; please try again.');
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["logo-categories"] }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["logo-categories"] }),
   });
 };
 

@@ -7,11 +7,11 @@ import {
 import { LogoTagManager } from "@/components/LogoTagManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { Check, ChevronLeft, ChevronRight, Lock, Pencil, Plus, Tags, Trash2, X } from "lucide-react";
 
-const ROSE = "hsl(var(--brand-rose-gold))";
+const INK = "#172433";
 
 /**
  * Categories read left to right across the top - that IS their order in the
@@ -20,7 +20,7 @@ const ROSE = "hsl(var(--brand-rose-gold))";
  * stacking underneath and doubling the height of the page.
  */
 export const LogoCategoryManager = () => {
-  const { data: categories = [], isLoading } = useLogoCategories();
+  const { data: categories = [], isLoading, error, refetch } = useLogoCategories();
   const { data: gyms = [] } = useGyms();
   const add = useAddLogoCategory();
   const rename = useRenameLogoCategory();
@@ -80,23 +80,25 @@ export const LogoCategoryManager = () => {
 
   const enabled = !!newName.trim() && !add.isPending;
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading categories...</p>;
+  if (isLoading) return <p className="text-[15px] text-slate-800">Loading categories...</p>;
+
+  if (error) return <div role="alert" className="admin-error">Categories could not be loaded. <button className="admin-action" onClick={() => void refetch()}>Try again</button></div>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 admin-category-manager">
       {/* The row reads the way the gallery reads. */}
-      <div className="flex gap-3 overflow-x-auto pb-3">
+      <div className="admin-category-grid">
         {categories.map((c, i) => {
           const n = counts.get(c.name) || 0;
           const isEditing = editing === c.id;
           return (
             <div
               key={c.id}
-              className="group relative shrink-0 overflow-hidden rounded-xl border-2 bg-white px-4 pb-3 pt-4 transition-shadow hover:shadow-md"
-              style={{ borderColor: "#E3E8EE", minWidth: 158 }}
+              className="admin-category-card"
+
             >
               {isEditing ? (
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1">
                   <Input
                     autoFocus
                     value={editValue}
@@ -105,52 +107,52 @@ export const LogoCategoryManager = () => {
                       if (e.key === "Enter") submitRename(c);
                       if (e.key === "Escape") setEditing(null);
                     }}
-                    className="h-8 w-32"
+                    aria-label={`Rename ${c.name}`} className="h-10 w-full min-w-0 text-[15px]"
                   />
-                  <button onClick={() => submitRename(c)} className="p-1"><Check className="h-4 w-4" /></button>
-                  <button onClick={() => setEditing(null)} className="p-1"><X className="h-4 w-4" /></button>
+                  <button aria-label="Save category name" onClick={() => submitRename(c)} className="admin-action"><Check className="h-4 w-4" /></button>
+                  <button aria-label="Cancel category rename" onClick={() => setEditing(null)} className="admin-action"><X className="h-4 w-4" /></button>
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-1.5 text-sm font-bold">
+                  <div className="flex items-center gap-1.5 text-[15px] font-bold">
                     {c.name}
                     {c.is_protected && <Lock className="h-3 w-3 text-muted-foreground" />}
                   </div>
-                  <div className="mt-1 text-2xl font-extrabold tabular-nums" style={{ color: ROSE }}>
+                  <div className="mt-1 text-2xl font-extrabold tabular-nums" style={{ color: INK }}>
                     {n}
                   </div>
 
-                  {/* Controls stay out of the way until the card is hovered. */}
-                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-0.5 bg-white/95 py-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  {/* Controls remain visible for touch and keyboard users. */}
+                  <div className="admin-category-actions">
                     <button
-                      disabled={i === 0}
-                      onClick={() => reorder.mutate({ a: c, b: categories[i - 1] })}
-                      className="p-1 disabled:opacity-20"
-                      title="Move left"
+                      disabled={i === 0 || reorder.isPending}
+                      onClick={() => reorder.mutate({ a: c, b: categories[i - 1] }, { onError: fail })}
+                      className="admin-category-control"
+                      aria-label={`Move ${c.name} left`} title="Move left"
                     >
                       <ChevronLeft className="h-3.5 w-3.5" />
                     </button>
                     <button
                       disabled={c.is_protected}
                       onClick={() => { setEditing(c.id); setEditValue(c.name); }}
-                      className="p-1 disabled:opacity-20"
-                      title={c.is_protected ? "Built in" : "Rename"}
+                      className="admin-category-control"
+                      aria-label={`Rename ${c.name}`} title={c.is_protected ? "Built in" : "Rename"}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                     <button
                       disabled={c.is_protected}
                       onClick={() => submitDelete(c)}
-                      className="p-1 disabled:opacity-20"
-                      title={c.is_protected ? "Built in" : "Delete"}
+                      className="admin-category-control"
+                      aria-label={`Delete ${c.name}`} title={c.is_protected ? "Built in" : "Delete"}
                     >
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </button>
                     <button
-                      disabled={i === categories.length - 1}
-                      onClick={() => reorder.mutate({ a: c, b: categories[i + 1] })}
-                      className="p-1 disabled:opacity-20"
-                      title="Move right"
+                      disabled={i === categories.length - 1 || reorder.isPending}
+                      onClick={() => reorder.mutate({ a: c, b: categories[i + 1] }, { onError: fail })}
+                      className="admin-category-control"
+                      aria-label={`Move ${c.name} right`} title="Move right"
                     >
                       <ChevronRight className="h-3.5 w-3.5" />
                     </button>
@@ -168,17 +170,16 @@ export const LogoCategoryManager = () => {
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => e.key === "Enter" && submitNew()}
           placeholder="New category name"
-          className="max-w-xs"
+          aria-label="New category name" className="min-w-0 flex-1 text-[15px]"
         />
-        {/* Rose, not the default near-grey, which sat invisible against the
-            dashboard's own grey. */}
+        {/* Dark labels and a filled action keep the controls readable. */}
         <Button
           onClick={submitNew}
           disabled={!newName.trim() || add.isPending}
-          className="border-2 text-white disabled:text-[#8A97A4] hover:opacity-90"
+          className="cursor-pointer border-2 text-[15px] text-white disabled:text-[#334155] hover:opacity-90"
           style={{
-            background: enabled ? ROSE : "#EDF1F5",
-            borderColor: enabled ? ROSE : "#D7DEE6",
+            background: enabled ? INK : "#EDF1F5",
+            borderColor: enabled ? INK : "#D7DEE6",
             opacity: 1,
           }}
         >
@@ -187,18 +188,18 @@ export const LogoCategoryManager = () => {
 
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" className="ml-auto border-2 bg-white" style={{ borderColor: ROSE, color: ROSE }}>
+            <Button variant="outline" className="cursor-pointer border-2 bg-white text-[15px]" style={{ borderColor: INK, color: INK }}>
               <Tags className="mr-1.5 h-4 w-4" /> Tags
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+          <SheetContent side="right" className="admin-drawer w-full overflow-y-auto sm:max-w-md">
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
-                <Tags className="h-5 w-5" style={{ color: ROSE }} /> Tags
+                <Tags className="h-5 w-5" style={{ color: INK }} /> Tags
               </SheetTitle>
-              <p className="text-left text-xs text-muted-foreground">
+              <SheetDescription className="text-left text-[15px] text-slate-800">
                 A logo lives in one category but wears as many tags as fit.
-              </p>
+              </SheetDescription>
             </SheetHeader>
             <div className="mt-4">
               <LogoTagManager />
@@ -207,8 +208,8 @@ export const LogoCategoryManager = () => {
         </Sheet>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Hover a card to rename, reorder or delete it. Renaming moves its logos with it;
+      <p className="text-[15px] text-slate-800">
+        Use each card’s controls to rename, reorder or delete a category. Renaming updates the label on its logos;
         deleting moves them to Uncategorized — no file is ever deleted here.
       </p>
     </div>

@@ -54,3 +54,45 @@ test('a later-page failure never becomes a successful partial inventory', async 
     : { data: null, error: { message: 'Network unavailable' } }), /Network unavailable/);
   await assert.rejects(readAllPages(async () => ({ data: null, error: null })), /returned no data/);
 });
+
+const { csvCell, gymDataCsv } = await loadPureModule('../src/lib/adminData.ts');
+
+test('gym CSV preserves commas, quotes, multiline addresses and empty contact fields', () => {
+  const csv = gymDataCsv([{ name: 'Sample "A", Gym', code: 'TEST', address: 'First floor\nSecond room', phone: null, email: '', website: 'https://example.test', colors: [{color_hex:'#123456'}, {color_hex:'#ffffff'}] }]);
+  assert.equal(csv, '"Name","Code","Address","Phone","Email","Website","Colors"\r\n"Sample ""A"", Gym","TEST","First floor\nSecond room","","","https://example.test","#123456;#ffffff"');
+  assert.equal(gymDataCsv([]), '"Name","Code","Address","Phone","Email","Website","Colors"');
+});
+
+test('gym CSV prevents spreadsheet formula execution without changing ordinary text', () => {
+  for (const cell of ['=HYPERLINK("https://example.test")', '+123', '-123', '@SUM(A1)', '\t=1+1', '  +1']) {
+    assert.ok(csvCell(cell).startsWith('"\''), cell);
+  }
+  assert.equal(csvCell('Sample Gym'), '"Sample Gym"');
+  assert.equal(csvCell('123-456-7890'), '"123-456-7890"');
+  assert.equal(csvCell(null), '""');
+});
+
+async function loadGymHooks(db) {
+  const source = await readFile(new URL('../src/hooks/useGyms.ts', import.meta.url), 'utf8');
+  const { outputText } = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } });
+  const exports = {};
+  const require = name => name === '@tanstack/react-query' ? { useMutation: config => config, useQueryClient: () => ({ invalidateQueries: () => {} }) } : name === '@/integrations/supabase/client' ? { supabase: db } : {};
+  new Function('require', 'exports', outputText)(require, exports);
+  return exports;
+}
+
+test('gym edits reject denied writes and a zero-row update rather than reporting a save', async () => {
+  for (const failure of ['Permission denied', 'Expected one updated row, received zero']) {
+    const db = { from: () => ({ update: () => ({ eq: () => ({ select: () => ({ single: async () => ({error:new Error(failure),data:null}) }) }) }) }) };
+    const hooks = await loadGymHooks(db);
+    await assert.rejects(hooks.useUpdateGymInfo().mutationFn({gymId:'test-gym',updates:{phone:'123'}}), new RegExp(failure));
+  }
+});
+
+test('gym contact edits send only the requested fields to the selected gym', async () => {
+  const calls = [];
+  const db = { from: table => { calls.push(table); return { update: fields => { calls.push(fields); return { eq: (field,id) => { calls.push([field,id]); return { select: () => ({single: async () => ({data:{id},error:null})}) }; } }; } }; } };
+  const hooks = await loadGymHooks(db);
+  await hooks.useUpdateGymInfo().mutationFn({gymId:'test-gym',updates:{email:'test@example.test'}});
+  assert.deepEqual(calls, ['gyms',{email:'test@example.test'},['id','test-gym']]);
+});

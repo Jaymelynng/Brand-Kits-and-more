@@ -527,7 +527,9 @@ export const useUpdateGymInfo = () => {
       const { error } = await supabase
         .from('gyms')
         .update(updates)
-        .eq('id', gymId);
+        .eq('id', gymId)
+        .select('id')
+        .single();
 
       if (error) throw error;
     },

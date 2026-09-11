@@ -1,489 +1,135 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useGyms, useUpdateGymInfo } from "@/hooks/useGyms";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import {
-  ArrowLeft, Users, Building2, Database, Shield, Pencil, Check, X,
-  MapPin, Phone, Mail, Globe, ExternalLink, PlusCircle, Trash2, Search, Sparkles, Tags
-} from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { AddGymModal } from "@/components/AddGymModal";
-import { LogoCategoryManager } from "@/components/LogoCategoryManager";
-import { KitActivityPanel } from "@/components/KitActivityPanel";
+import { useRef, useState, type CSSProperties } from 'react';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { ArrowLeft, Users, Building2, Database, Shield, Pencil, Check, ExternalLink, Plus, Search, Sparkles, Tags, Activity, Copy, Download, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { usePersonalBrandColors } from '@/hooks/usePersonalBrand';
+import { useGyms, useUpdateGymInfo, type GymWithColors } from '@/hooks/useGyms';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { AddGymModal } from '@/components/AddGymModal';
+import { LogoCategoryManager } from '@/components/LogoCategoryManager';
+import { KitActivityPanel } from '@/components/KitActivityPanel';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
+import { copyText } from '@/lib/copyText';
+import { saveDownload } from '@/lib/assetFiles';
+import { gymDataCsv } from '@/lib/adminData';
+import './Admin.css';
 
-const Admin = () => {
+const tabs = [
+  { id: 'gyms', label: 'Manage gyms', short: 'Gyms', icon: Building2 },
+  { id: 'categories', label: 'Categories & tags', short: 'Labels', icon: Tags },
+  { id: 'users', label: 'Users & roles', short: 'Users', icon: Users },
+  { id: 'bulk', label: 'Bulk data', short: 'Bulk', icon: Database },
+  { id: 'activity', label: 'Kit activity', short: 'Activity', icon: Activity },
+] as const;
+type AdminTab = typeof tabs[number]['id'];
+const contactFields = [{ key: 'address', label: 'Address' }, { key: 'phone', label: 'Phone' }, { key: 'email', label: 'Email' }, { key: 'website', label: 'Website' }] as const;
+type ContactField = typeof contactFields[number]['key'];
+type ContactDraft = Record<ContactField, string>;
+const contactDraft = (gym: GymWithColors): ContactDraft => ({ address: gym.address || '', phone: gym.phone || '', email: gym.email || '', website: gym.website || '' });
+
+export default function Admin() {
   const { user, isAdmin, loading } = useAuth();
-  const { data: gyms = [], isLoading } = useGyms();
+  const { data: brandColors = [] } = usePersonalBrandColors();
+  const color = (name: string, fallback: string) => brandColors.find(item => item.color_name === name && /^#[0-9a-f]{6}$/i.test(item.color_hex))?.color_hex || fallback;
+  const brandStyle = { '--admin-rose': color('Rose Mauve', 'hsl(var(--brand-rose-gold))'), '--admin-dusty': color('Dusty Rose', 'hsl(var(--brand-rose-gold-dark))'), '--admin-lavender': color('Lavender Gray', 'hsl(var(--brand-blue-gray))'), '--admin-gray': color('Warm Gray', 'hsl(var(--brand-text-primary))') } as CSSProperties;
+  const { data: gyms = [], isLoading, error, refetch } = useGyms();
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const requestedTab = params.get('tab');
+  const activeTab: AdminTab = tabs.find(tab => tab.id === requestedTab)?.id || 'gyms';
+  const main = useRef<HTMLElement>(null);
   const { toast } = useToast();
-  const updateGymInfoMutation = useUpdateGymInfo();
+  const updateGym = useUpdateGymInfo();
+  const [search, setSearch] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<GymWithColors | null>(null);
+  const [draft, setDraft] = useState<ContactDraft>({ address: '', phone: '', email: '', website: '' });
+  const [saveError, setSaveError] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const users = useQuery({
+    queryKey: ['admin-users'], enabled: isAdmin && activeTab === 'users',
+    queryFn: async () => {
+      const [roles, profiles] = await Promise.all([
+        supabase.from('user_roles').select('user_id, role'),
+        supabase.from('user_profiles').select('id, email'),
+      ]);
+      if (roles.error || profiles.error) throw new Error('Users could not be loaded. Please try again.');
+      return (roles.data || []).map(role => ({ id: role.user_id, role: role.role, email: profiles.data?.find(profile => profile.id === role.user_id)?.email || 'Email unavailable' }));
+    },
+  });
 
-  const [activeTab, setActiveTab] = useState<'gyms' | 'categories' | 'users' | 'bulk' | 'activity'>('gyms');
-  const [editingCell, setEditingCell] = useState<{ gymId: string; field: string } | null>(null);
-  const [editValue, setEditValue] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  if (loading) return <div className="admin-loading" role="status">Loading administration…</div>;
+  if (!user) return <Navigate to="/auth" replace />;
+  if (!isAdmin) return <div className="admin-loading"><Shield size={36} /><h1>Administrator access required</h1><button className="admin-action" onClick={() => navigate('/')}>Back to brand kits</button></div>;
 
-  // User management state
-  const [adminUsers, setAdminUsers] = useState<{ id: string; email: string; role: string }[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-
-  if (loading || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--brand-white))' }}>
-        <div className="text-xl" style={{ color: 'hsl(var(--brand-text-primary))' }}>Loading...</div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    navigate('/auth');
-    return null;
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--brand-white))' }}>
-        <div className="text-center space-y-4">
-          <Shield className="w-16 h-16 mx-auto" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
-          <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>Access Denied</h1>
-          <p className="text-muted-foreground">You need admin privileges to access this area.</p>
-          <Button onClick={() => navigate('/')} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  const startEdit = (gymId: string, field: string, currentValue: string) => {
-    setEditingCell({ gymId, field });
-    setEditValue(currentValue || '');
-  };
-
-  const saveEdit = () => {
-    if (!editingCell) return;
-    updateGymInfoMutation.mutate(
-      { gymId: editingCell.gymId, updates: { [editingCell.field]: editValue || null } },
-      {
-        onSuccess: () => {
-          toast({ description: 'Updated successfully!' });
-          setEditingCell(null);
-        },
-        onError: () => {
-          toast({ variant: 'destructive', description: 'Failed to update' });
-        }
-      }
-    );
-  };
-
-  const cancelEdit = () => {
-    setEditingCell(null);
-    setEditValue('');
-  };
-
-  const loadAdminUsers = async () => {
-    setLoadingUsers(true);
+  const changeTab = (tab: AdminTab) => { setParams({ tab }); main.current?.scrollTo({ top: 0 }); };
+  const filtered = gyms.filter(gym => [gym.name, gym.code].some(value => value.toLowerCase().includes(search.trim().toLowerCase())));
+  const startEdit = (gym: GymWithColors) => { setEditing(gym); setDraft(contactDraft(gym)); setSaveError(''); };
+  const changes = editing ? Object.fromEntries(contactFields.filter(({ key }) => draft[key] !== (editing[key] || '')).map(({ key }) => [key, draft[key] || null])) : {};
+  const save = async () => {
+    if (!editing || !Object.keys(changes).length || updateGym.isPending) return;
+    setSaveError('');
     try {
-      const { data: roles, error } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-      if (error) throw error;
-
-      const { data: profiles } = await supabase
-        .from('user_profiles')
-        .select('id, email');
-
-      const users = (roles || []).map(r => {
-        const profile = profiles?.find(p => p.id === r.user_id);
-        return { id: r.user_id, email: profile?.email || 'Unknown', role: r.role };
-      });
-      setAdminUsers(users);
-    } catch {
-      toast({ variant: 'destructive', description: 'Failed to load users' });
-    } finally {
-      setLoadingUsers(false);
-    }
+      await updateGym.mutateAsync({ gymId: editing.id, updates: changes });
+      toast({ description: `${editing.code} contact details saved.` }); setEditing(null);
+    } catch { setSaveError('The changes did not save. Your entries are still here; please try again.'); }
   };
-
-  const filteredGyms = searchQuery
-    ? gyms.filter(g => g.name.toLowerCase().includes(searchQuery.toLowerCase()) || g.code.toLowerCase().includes(searchQuery.toLowerCase()))
-    : gyms;
-
-  const tabs = [
-    { id: 'gyms' as const, label: 'Manage Gyms', icon: Building2 },
-    { id: 'categories' as const, label: 'Categories & Tags', icon: Tags },
-    { id: 'users' as const, label: 'Users & Roles', icon: Users },
-    { id: 'bulk' as const, label: 'Bulk Data', icon: Database },
-    { id: 'activity' as const, label: 'Kit Activity', icon: Search },
-  ];
-
-  const renderCell = (gymId: string, field: string, value: string | null | undefined, isLink = false) => {
-    const isEditing = editingCell?.gymId === gymId && editingCell?.field === field;
-
-    if (isEditing) {
-      return (
-        <div className="flex items-center gap-1">
-          <Input
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            className="h-7 text-xs"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') saveEdit();
-              if (e.key === 'Escape') cancelEdit();
-            }}
-          />
-          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={saveEdit}>
-            <Check className="w-3 h-3 text-green-600" />
-          </Button>
-          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={cancelEdit}>
-            <X className="w-3 h-3 text-red-500" />
-          </Button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex items-center gap-1 group cursor-pointer" onClick={() => startEdit(gymId, field, value || '')}>
-        <span className={`text-xs truncate max-w-[180px] ${value ? '' : 'text-muted-foreground italic'}`}>
-          {value || 'Not set'}
-        </span>
-        <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-      </div>
-    );
+  const copy = async (text: string, description: string) => {
+    setBulkBusy(true);
+    try { const ok = await copyText(text); toast({ description: ok ? description : 'Copy failed. Please try again.', variant: ok ? 'default' : 'destructive' }); }
+    finally { setBulkBusy(false); }
   };
-
-  const copyAllGymData = () => {
-    let text = 'GYM DATABASE EXPORT\n\n';
-    gyms.forEach(g => {
-      text += `${g.name} (${g.code})\n`;
-      text += `  Address: ${g.address || '-'}\n`;
-      text += `  Phone: ${g.phone || '-'}\n`;
-      text += `  Email: ${g.email || '-'}\n`;
-      text += `  Website: ${g.website || '-'}\n`;
-      text += `  Colors: ${g.colors.map(c => c.color_hex).join(', ')}\n\n`;
-    });
-    navigator.clipboard.writeText(text).then(() => {
-      toast({ description: 'All gym data copied!' });
-    });
+  const gymLogo = (gym: GymWithColors) => {
+    const logo = gym.logos.find(item => item.is_main_logo);
+    return <span className="admin-gym-logo">{logo ? <img src={logo.file_url} alt="" /> : <Building2 size={22} />}</span>;
   };
+  const swatches = (gym: GymWithColors) => <div className="admin-swatches" aria-label={`${gym.code} brand colors`}>{gym.colors.map(color => <span key={color.id} title={color.color_hex} style={{ background: color.color_hex }} />)}{!gym.colors.length && <span className="admin-no-color">No colors saved</span>}</div>;
+  const listState = isLoading ? <p className="admin-state" role="status">Loading gyms…</p> : error ? <div className="admin-state" role="alert"><h3>Gym data could not be loaded</h3><button className="admin-action" onClick={() => void refetch()}><RefreshCw size={17} />Try again</button></div> : null;
 
-  return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #e5e7eb 0%, #d6c5bf 100%)' }}>
-      {/* Header */}
-      <div className="sticky top-0 z-40 shadow-sm px-4 py-3 flex flex-wrap gap-3 items-center justify-between" style={{ background: 'hsl(var(--brand-white))' }}>
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: 'hsl(var(--brand-rose-gold))' }}>
-              <Shield className="w-5 h-5" /> Admin Dashboard
-            </h1>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/my-brand')}
-            className="border-[#b48f8f]/40 text-[#b48f8f] hover:bg-[#b48f8f]/10"
-          >
-            <Sparkles className="w-4 h-4 mr-1" /> My Brand
-          </Button>
-          {tabs.map(tab => (
-            <Button
-              key={tab.id}
-              variant={activeTab === tab.id ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => {
-                setActiveTab(tab.id);
-                if (tab.id === 'users') loadAdminUsers();
-              }}
-              className="cursor-pointer text-[15px] hover:brightness-90"
-              style={activeTab === tab.id ? { background: '#172433', color: '#FFFFFF' } : { background:'#FFFFFF', color:'#111827', borderColor:'#94a3b8' }}
-            >
-              <tab.icon className="w-4 h-4 mr-1" />
-              {tab.label}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      <div className="p-4 max-w-[1600px] mx-auto">
-        {activeTab === 'activity' && <KitActivityPanel />}
-        {/* Manage Gyms Tab */}
-        {activeTab === 'gyms' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search gyms..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 h-9 w-60"
-                  />
-                </div>
-                <span className="text-sm text-muted-foreground">{filteredGyms.length} gyms</span>
-              </div>
-              <Button
-                onClick={() => setIsAddModalOpen(true)}
-                size="sm"
-                style={{ background: 'hsl(var(--brand-rose-gold))', color: 'white' }}
-              >
-                <PlusCircle className="w-4 h-4 mr-1" /> Add Gym
-              </Button>
-            </div>
-
-            {/* Gym Table */}
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b" style={{ background: 'hsl(var(--brand-rose-gold) / 0.08)' }}>
-                        <th className="text-left p-3 font-semibold text-xs uppercase tracking-wider">Gym</th>
-                        <th className="text-left p-3 font-semibold text-xs uppercase tracking-wider">Code</th>
-                        <th className="text-left p-3 font-semibold text-xs uppercase tracking-wider">
-                          <MapPin className="w-3 h-3 inline mr-1" />Address
-                        </th>
-                        <th className="text-left p-3 font-semibold text-xs uppercase tracking-wider">
-                          <Phone className="w-3 h-3 inline mr-1" />Phone
-                        </th>
-                        <th className="text-left p-3 font-semibold text-xs uppercase tracking-wider">
-                          <Mail className="w-3 h-3 inline mr-1" />Email
-                        </th>
-                        <th className="text-left p-3 font-semibold text-xs uppercase tracking-wider">
-                          <Globe className="w-3 h-3 inline mr-1" />Website
-                        </th>
-                        <th className="text-left p-3 font-semibold text-xs uppercase tracking-wider">Colors</th>
-                        <th className="text-left p-3 font-semibold text-xs uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredGyms.map((gym, i) => {
-                        const mainLogo = gym.logos.find(l => l.is_main_logo);
-                        return (
-                          <tr key={gym.id} className={`border-b hover:bg-muted/30 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/10'}`}>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                {mainLogo ? (
-                                  <img src={mainLogo.file_url} alt={gym.name} className="w-8 h-8 object-contain rounded bg-white border" />
-                                ) : (
-                                  <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-xs font-bold">{gym.code}</div>
-                                )}
-                                <span className="font-medium text-xs">{gym.name}</span>
-                              </div>
-                            </td>
-                            <td className="p-3">
-                              <span className="text-xs font-mono px-1.5 py-0.5 rounded" style={{ background: 'hsl(var(--brand-rose-gold) / 0.15)' }}>
-                                {gym.code}
-                              </span>
-                            </td>
-                            <td className="p-3">{renderCell(gym.id, 'address', gym.address)}</td>
-                            <td className="p-3">{renderCell(gym.id, 'phone', gym.phone)}</td>
-                            <td className="p-3">{renderCell(gym.id, 'email', gym.email)}</td>
-                            <td className="p-3">{renderCell(gym.id, 'website', gym.website)}</td>
-                            <td className="p-3">
-                              <div className="flex gap-0.5">
-                                {gym.colors.slice(0, 5).map(c => (
-                                  <div
-                                    key={c.id}
-                                    className="w-4 h-4 rounded-sm border border-white/50"
-                                    style={{ background: c.color_hex }}
-                                    title={c.color_hex}
-                                  />
-                                ))}
-                                {gym.colors.length > 5 && (
-                                  <span className="text-xs text-muted-foreground ml-1">+{gym.colors.length - 5}</span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="p-3">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 text-xs"
-                                onClick={() => navigate(`/gym/${gym.code}`)}
-                              >
-                                <ExternalLink className="w-3 h-3 mr-1" /> Profile
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Logo Categories Tab */}
-        {activeTab === 'categories' && (
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Tags className="w-5 h-5" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
-                  Logo Categories
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LogoCategoryManager />
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Users & Roles Tab */}
-        {activeTab === 'users' && (
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Users className="w-5 h-5" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
-                  Admin Users
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingUsers ? (
-                  <p className="text-sm text-muted-foreground">Loading users...</p>
-                ) : adminUsers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No users with roles found.</p>
-                ) : (
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-2 font-semibold text-xs uppercase">Email</th>
-                        <th className="text-left p-2 font-semibold text-xs uppercase">Role</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {adminUsers.map(u => (
-                        <tr key={u.id} className="border-b">
-                          <td className="p-2 text-xs">{u.email}</td>
-                          <td className="p-2">
-                            <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                              style={{ background: 'hsl(var(--brand-rose-gold) / 0.15)', color: 'hsl(var(--brand-rose-gold))' }}>
-                              {u.role}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Bulk Data Tab */}
-        {activeTab === 'bulk' && (
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Database className="w-5 h-5" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
-                  Bulk Data Tools
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button
-                    onClick={copyAllGymData}
-                    variant="outline"
-                    className="h-auto py-4 flex flex-col items-center gap-2"
-                  >
-                    <Database className="w-6 h-6" style={{ color: 'hsl(var(--brand-rose-gold))' }} />
-                    <span className="text-sm font-medium">Export All Gym Data</span>
-                    <span className="text-xs text-muted-foreground">Copy names, contacts, colors</span>
-                  </Button>
-
-                  <Button
-                    onClick={() => {
-                      const csv = ['Name,Code,Address,Phone,Email,Website,Colors']
-                        .concat(gyms.map(g => 
-                          `"${g.name}","${g.code}","${g.address || ''}","${g.phone || ''}","${g.email || ''}","${g.website || ''}","${g.colors.map(c => c.color_hex).join(';')}"`
-                        )).join('\n');
-                      const blob = new Blob([csv], { type: 'text/csv' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url; a.download = 'gyms-export.csv'; a.click();
-                      URL.revokeObjectURL(url);
-                      toast({ description: 'CSV downloaded!' });
-                    }}
-                    variant="outline"
-                    className="h-auto py-4 flex flex-col items-center gap-2"
-                  >
-                    <Database className="w-6 h-6" style={{ color: 'hsl(var(--brand-blue-gray))' }} />
-                    <span className="text-sm font-medium">Download CSV</span>
-                    <span className="text-xs text-muted-foreground">Full gym database as CSV</span>
-                  </Button>
-
-                  <Button
-                    onClick={() => {
-                      let text = '';
-                      gyms.forEach(g => {
-                        text += g.colors.map(c => c.color_hex).join('\n') + '\n';
-                      });
-                      navigator.clipboard.writeText(text.trim());
-                      toast({ description: 'All colors copied (hex only)!' });
-                    }}
-                    variant="outline"
-                    className="h-auto py-4 flex flex-col items-center gap-2"
-                  >
-                    <Database className="w-6 h-6" style={{ color: 'hsl(var(--brand-navy))' }} />
-                    <span className="text-sm font-medium">Copy All Colors (Hex)</span>
-                    <span className="text-xs text-muted-foreground">Every color, no labels</span>
-                  </Button>
-                </div>
-
-                {/* Quick stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-                  <div className="p-3 rounded-lg border text-center" style={{ background: 'hsl(var(--brand-rose-gold) / 0.05)' }}>
-                    <div className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-rose-gold))' }}>{gyms.length}</div>
-                    <div className="text-xs text-muted-foreground">Total Gyms</div>
-                  </div>
-                  <div className="p-3 rounded-lg border text-center" style={{ background: 'hsl(var(--brand-blue-gray) / 0.05)' }}>
-                    <div className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-blue-gray))' }}>
-                      {gyms.reduce((sum, g) => sum + g.colors.length, 0)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Total Colors</div>
-                  </div>
-                  <div className="p-3 rounded-lg border text-center">
-                    <div className="text-2xl font-bold" style={{ color: 'hsl(var(--brand-text-primary))' }}>
-                      {gyms.reduce((sum, g) => sum + g.logos.length, 0)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Total Logos</div>
-                  </div>
-                  <div className="p-3 rounded-lg border text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      {gyms.filter(g => g.address && g.phone && g.email).length}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Complete Profiles</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
-
-      <AddGymModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
-    </div>
-  );
-};
-
-export default Admin;
+  return <div className="admin-shell" style={brandStyle}>
+    <header className="admin-topbar">
+      <button className="admin-back" onClick={() => navigate('/')} aria-label="Back to brand kits"><ArrowLeft size={21} /></button>
+      <div className="admin-heading"><h1>Administration</h1><p>{user.email}</p></div>
+      <button className="admin-action admin-my-brand" aria-label="My Brand" onClick={() => navigate('/my-brand')}><Sparkles size={17} /><span>My Brand</span></button>
+    </header>
+    <nav className="admin-nav" aria-label="Administration sections">
+      <div className="admin-nav-caption"><Shield size={18} /> Workspace settings</div>
+      <div className="admin-nav-items">{tabs.map(tab => <button key={tab.id} className="admin-nav-item" aria-label={tab.label} aria-current={activeTab === tab.id ? 'page' : undefined} onClick={() => changeTab(tab.id)}><tab.icon size={20} /><span className="admin-nav-long">{tab.label}</span><span className="admin-nav-short">{tab.short}</span></button>)}</div>
+      <p className="admin-nav-note">Your public brand kits keep their own gym branding.</p>
+    </nav>
+    <main ref={main} className="admin-main" id="admin-content" aria-label={tabs.find(tab => tab.id === activeTab)?.label}>
+      {activeTab === 'gyms' && <section className="admin-panel admin-gym-panel">
+        <div className="admin-panel-heading"><div><h2>Manage gyms</h2><p>Contact details, brand colors and profile access.</p></div><button className="admin-action admin-action-primary" onClick={() => setAdding(true)}><Plus size={18} />Add gym</button></div>
+        <div className="admin-list-tools"><div className="admin-search"><Search size={18} /><input aria-label="Search gyms" placeholder="Search by name or code" value={search} onChange={event => setSearch(event.target.value)} />{search && <button onClick={() => setSearch('')} aria-label="Clear search">×</button>}</div><span>{filtered.length} of {gyms.length} gyms</span></div>
+        {listState || (!filtered.length ? <div className="admin-state"><h3>{search ? 'No gyms match your search' : 'No gyms saved yet'}</h3>{search && <button className="admin-action" onClick={() => setSearch('')}>Clear search</button>}</div> : <div className="admin-gym-results">
+          <div className="admin-table-wrap"><table className="admin-gym-table"><thead><tr><th>Gym</th><th>Address</th><th>Contact</th><th>Website</th><th>Colors</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{filtered.map(gym => <tr key={gym.id}>
+            <td><div className="admin-gym-identity">{gymLogo(gym)}<div><strong>{gym.name}</strong><span className="admin-code">{gym.code}</span></div></div></td>
+            <td><button className="admin-field" onClick={() => startEdit(gym)} aria-label={`Edit ${gym.code} address`}>{gym.address || 'Address not set'}</button></td>
+            <td><button className="admin-field" onClick={() => startEdit(gym)} aria-label={`Edit ${gym.code} contact details`}><span>{gym.phone || 'Phone not set'}</span><span>{gym.email || 'Email not set'}</span></button></td>
+            <td><button className="admin-field" onClick={() => startEdit(gym)} aria-label={`Edit ${gym.code} website`}>{gym.website || 'Website not set'}</button></td>
+            <td>{swatches(gym)}</td>
+            <td><div className="admin-row-actions"><button className="admin-action" onClick={() => startEdit(gym)} aria-label={`Edit ${gym.code} details`}><Pencil size={16} />Edit</button><button className="admin-action" onClick={() => navigate(`/gym/${gym.code}`)} aria-label={`Open ${gym.code} profile`}><ExternalLink size={16} />Profile</button></div></td>
+          </tr>)}</tbody></table></div>
+          <div className="admin-gym-cards">{filtered.map(gym => <article key={gym.id} className="admin-gym-card"><div className="admin-gym-identity">{gymLogo(gym)}<div><strong>{gym.name}</strong><span className="admin-code">{gym.code}</span></div></div><div className="admin-card-contact"><p>{gym.phone || 'Phone not set'}</p><p>{gym.email || 'Email not set'}</p></div><div className="admin-card-bottom">{swatches(gym)}<div className="admin-row-actions"><button className="admin-action" onClick={() => startEdit(gym)} aria-label={`Edit ${gym.code} details`}><Pencil size={16} />Edit</button><button className="admin-action" onClick={() => navigate(`/gym/${gym.code}`)} aria-label={`Open ${gym.code} profile`}><ExternalLink size={16} />Profile</button></div></div></article>)}</div>
+        </div>)}
+      </section>}
+      {activeTab === 'categories' && <section className="admin-panel"><div className="admin-panel-heading"><div><h2>Categories & tags</h2><p>Set the gallery order and maintain reusable labels.</p></div></div><LogoCategoryManager /></section>}
+      {activeTab === 'users' && <section className="admin-panel"><div className="admin-panel-heading"><div><h2>Users & roles</h2><p>Accounts with an assigned role in this app.</p></div><button className="admin-action" disabled={users.isFetching} onClick={() => void users.refetch()}><RefreshCw size={17} />Refresh</button></div>
+        {users.isLoading ? <p className="admin-state" role="status">Loading users…</p> : users.error ? <p className="admin-error" role="alert">{users.error.message}</p> : !users.data?.length ? <p className="admin-state">No accounts with assigned roles.</p> : <div className="admin-user-list">{users.data.map(account => <div key={`${account.id}:${account.role}`} className="admin-user-row"><span className="admin-user-icon"><Users size={21} /></span><strong>{account.email}</strong><span className="admin-role">{account.role}</span></div>)}</div>}
+      </section>}
+      {activeTab === 'bulk' && <section className="admin-panel"><div className="admin-panel-heading"><div><h2>Bulk data</h2><p>Export the saved gym records or copy them for another tool.</p></div></div>{listState || <><div className="admin-export-grid">
+        <button disabled={bulkBusy || !gyms.length} className="admin-export" onClick={() => void copy(gyms.map(gym => `${gym.name} (${gym.code})\nAddress: ${gym.address || 'Not set'}\nPhone: ${gym.phone || 'Not set'}\nEmail: ${gym.email || 'Not set'}\nWebsite: ${gym.website || 'Not set'}\nColors: ${gym.colors.map(color => color.color_hex).join(', ')}`).join('\n\n'), 'Gym records copied.')}><Copy size={25} /><strong>Copy gym records</strong><span>Names, contacts, websites and colors</span><span className="admin-export-cta">Copy records <ArrowLeft className="rotate-180" size={17} /></span></button>
+        <button disabled={!gyms.length} className="admin-export admin-export-featured" onClick={() => { saveDownload(new Blob(['\uFEFF' + gymDataCsv(gyms)], { type: 'text/csv;charset=utf-8' }), 'gyms-export.csv'); toast({ description: 'CSV prepared for download.' }); }}><Download size={25} /><strong>Download CSV</strong><span>Saved records in a spreadsheet format</span><span className="admin-export-cta">Download file <ArrowLeft className="rotate-180" size={17} /></span></button>
+        <button disabled={bulkBusy || !gyms.length} className="admin-export" onClick={() => void copy(gyms.flatMap(gym => gym.colors.map(color => color.color_hex)).join('\n'), 'All saved HEX colors copied.')}><Copy size={25} /><strong>Copy color values</strong><span>Every saved HEX color, one per line</span><span className="admin-export-cta">Copy colors <ArrowLeft className="rotate-180" size={17} /></span></button>
+      </div><p className="admin-inventory"><strong>{gyms.length}</strong> gyms · <strong>{gyms.reduce((sum, gym) => sum + gym.logos.length, 0)}</strong> saved logos · <strong>{gyms.reduce((sum, gym) => sum + gym.colors.length, 0)}</strong> saved colors</p><p className="admin-footnote">{gyms.filter(gym => gym.address && gym.phone && gym.email).length} of {gyms.length} gym records include an address, phone and email.</p></>}
+      </section>}
+      {activeTab === 'activity' && <KitActivityPanel />}
+    </main>
+    <Sheet open={!!editing} onOpenChange={open => { if (!open && !updateGym.isPending) setEditing(null); }}>
+      <SheetContent className="admin-drawer w-full sm:max-w-[520px]" style={brandStyle}><div className="admin-drawer-heading"><SheetTitle>Edit {editing?.code} details</SheetTitle><SheetDescription>{editing?.name}</SheetDescription></div><form className="admin-edit-form" onSubmit={event => { event.preventDefault(); void save(); }}><div className="admin-edit-fields">{contactFields.map(field => <label key={field.key} htmlFor={`admin-${field.key}`}><span>{field.label}</span>{field.key === 'address' ? <textarea id={`admin-${field.key}`} rows={3} value={draft[field.key]} disabled={updateGym.isPending} onChange={event => setDraft({ ...draft, [field.key]: event.target.value })} /> : <input id={`admin-${field.key}`} type={field.key === 'email' ? 'email' : field.key === 'phone' ? 'tel' : 'text'} value={draft[field.key]} disabled={updateGym.isPending} onChange={event => setDraft({ ...draft, [field.key]: event.target.value })} />}</label>)}{saveError && <p className="admin-error" role="alert">{saveError}</p>}</div><div className="admin-edit-actions"><button type="button" className="admin-action" disabled={updateGym.isPending} onClick={() => setEditing(null)}>Cancel</button><button className="admin-action admin-action-primary" disabled={!Object.keys(changes).length || updateGym.isPending}><Check size={18} />{updateGym.isPending ? 'Saving…' : 'Save changes'}</button></div></form></SheetContent>
+    </Sheet>
+    <AddGymModal isOpen={adding} onClose={() => setAdding(false)} />
+  </div>;
+}

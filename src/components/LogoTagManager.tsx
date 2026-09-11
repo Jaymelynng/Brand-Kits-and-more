@@ -13,7 +13,7 @@ import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
  * next door. A tag is what a logo IS, and it wears as many as fit.
  */
 export const LogoTagManager = () => {
-  const { data: tags = [], isLoading } = useLogoTags();
+  const { data: tags = [], isLoading, error, refetch } = useLogoTags();
   const { data: gyms = [] } = useGyms();
   const add = useAddLogoTag();
   const rename = useRenameLogoTag();
@@ -21,7 +21,7 @@ export const LogoTagManager = () => {
   const { toast } = useToast();
 
   const [newName, setNewName] = useState("");
-  const [newKind, setNewKind] = useState("Shape");
+  const [newKind, setNewKind] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -47,13 +47,15 @@ export const LogoTagManager = () => {
 
   const knownKinds = useMemo(() => [...new Set(tags.map(t => t.kind))], [tags]);
 
+  const selectedKind = newKind || knownKinds[0] || "";
+
   const fail = (e: unknown) =>
     toast({ variant: "destructive", description: e instanceof Error ? e.message : "That did not save" });
 
   const submitNew = () => {
-    if (!newName.trim()) return;
-    add.mutate({ name: newName, kind: newKind }, {
-      onSuccess: () => { toast({ description: `Added ${newName.trim()} under ${newKind}` }); setNewName(""); },
+    if (!newName.trim() || !selectedKind) return;
+    add.mutate({ name: newName, kind: selectedKind }, {
+      onSuccess: () => { toast({ description: `Added ${newName.trim()} under ${selectedKind}` }); setNewName(""); },
       onError: fail,
     });
   };
@@ -78,9 +80,11 @@ export const LogoTagManager = () => {
     });
   };
 
-  const enabled = !!newName.trim() && !add.isPending;
+  const enabled = !!newName.trim() && !!selectedKind && !add.isPending;
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading tags...</p>;
+  if (isLoading) return <p className="text-[15px] text-slate-800">Loading tags...</p>;
+
+  if (error) return <div role="alert" className="admin-error">Tags could not be loaded. <button className="admin-action" onClick={() => void refetch()}>Try again</button></div>;
 
   return (
     <div className="space-y-4">
@@ -90,22 +94,18 @@ export const LogoTagManager = () => {
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => e.key === "Enter" && submitNew()}
           placeholder="New tag name"
-          className="max-w-xs"
+          aria-label="New tag name" className="min-w-0 w-full text-[15px]"
         />
-        <select
-          value={newKind}
-          onChange={e => setNewKind(e.target.value)}
-          className="h-10 rounded-md border bg-background px-3 text-sm"
-        >
-          {knownKinds.map(k => <option key={k} value={k}>{k}</option>)}
-        </select>
+        <div className="admin-filter-row w-full" role="group" aria-label="Tag kind">
+          {knownKinds.map(kind => <button key={kind} aria-pressed={selectedKind === kind} onClick={() => setNewKind(kind)}>{kind}</button>)}
+        </div>
         <Button
           onClick={submitNew}
-          disabled={!newName.trim() || add.isPending}
-          className="border-2 text-white disabled:text-[#8A97A4] hover:opacity-90"
+          disabled={!enabled}
+          className="cursor-pointer border-2 text-[15px] text-white disabled:text-[#334155] hover:opacity-90"
           style={{
-            background: enabled ? "hsl(var(--brand-rose-gold))" : "#EDF1F5",
-            borderColor: enabled ? "hsl(var(--brand-rose-gold))" : "#D7DEE6",
+            background: enabled ? "#172433" : "#EDF1F5",
+            borderColor: enabled ? "#172433" : "#D7DEE6",
             opacity: 1,
           }}
         >
@@ -116,7 +116,7 @@ export const LogoTagManager = () => {
       <div className="space-y-4">
         {kinds.map(([kind, list]) => (
           <div key={kind}>
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground mb-1.5">
+            <div className="text-[15px] font-bold text-slate-900 mb-2">
               {kind}
             </div>
             <div className="rounded-lg border divide-y">
@@ -124,7 +124,7 @@ export const LogoTagManager = () => {
                 const n = counts.get(t.name) || 0;
                 const isEditing = editing === t.id;
                 return (
-                  <div key={t.id} className="flex items-center gap-3 p-2.5">
+                  <div key={t.id} className="flex flex-wrap items-center gap-2 p-3">
                     {isEditing ? (
                       <>
                         <Input
@@ -135,25 +135,25 @@ export const LogoTagManager = () => {
                             if (e.key === "Enter") submitRename(t);
                             if (e.key === "Escape") setEditing(null);
                           }}
-                          className="max-w-xs h-8"
+                          aria-label={`Rename ${t.name}`} className="w-full min-w-0 h-10 text-[15px]"
                         />
-                        <Button size="sm" variant="ghost" onClick={() => submitRename(t)}>
+                        <Button aria-label="Save tag name" size="sm" variant="ghost" onClick={() => submitRename(t)}>
                           <Check className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
+                        <Button aria-label="Cancel tag rename" size="sm" variant="ghost" onClick={() => setEditing(null)}>
                           <X className="w-4 h-4" />
                         </Button>
                       </>
                     ) : (
                       <>
-                        <span className="font-semibold text-sm">{t.name}</span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-muted font-bold">{n}</span>
+                        <span className="font-semibold text-[15px]">{t.name}</span>
+                        <span className="text-[15px] px-2 py-0.5 rounded-full bg-muted font-bold">{n}</span>
                         <div className="ml-auto flex gap-1">
                           <Button size="sm" variant="ghost"
-                            onClick={() => { setEditing(t.id); setEditValue(t.name); }} title="Rename">
+                            onClick={() => { setEditing(t.id); setEditValue(t.name); }} aria-label={`Rename ${t.name}`} title="Rename">
                             <Pencil className="w-3.5 h-3.5" />
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => submitDelete(t)} title="Delete">
+                          <Button size="sm" variant="ghost" onClick={() => submitDelete(t)} aria-label={`Delete ${t.name}`} title="Delete">
                             <Trash2 className="w-3.5 h-3.5 text-destructive" />
                           </Button>
                         </div>
@@ -167,7 +167,7 @@ export const LogoTagManager = () => {
         ))}
       </div>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-[15px] text-slate-800">
         Renaming a tag carries every logo with it. Deleting one takes the label off those
         logos and leaves the files alone. To put a tag on a single logo, open that logo on
         its gym page.
