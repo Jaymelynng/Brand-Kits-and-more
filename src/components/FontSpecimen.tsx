@@ -101,7 +101,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
       data-font-pairing={p.id}
       data-active={panelIndex === activeIndex}
       aria-hidden={panelIndex !== activeIndex}
-      className="col-start-1 row-start-1 flex min-w-0 flex-col rounded-2xl p-5"
+      className="col-start-1 row-start-1 flex min-w-0 flex-col rounded-2xl p-[clamp(14px,1.6vw,24px)]"
       style={{
         visibility: panelIndex === activeIndex ? "visible" : "hidden",
         containerType: "inline-size",
@@ -174,7 +174,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
           style={{
             fontFamily: `'${p.body_font}', sans-serif`,
             fontWeight: Number(p.body_weight),
-            fontSize: 17,
+            fontSize: "clamp(15px, 3.8cqi, 17px)",
             lineHeight: 1.7,
             textWrap: "balance",
             color: ink,
@@ -183,18 +183,18 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         >
           {p.sample_body || "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789"}
         </div>
-        {/* The alphabet, which is what a specimen is actually for. */}
+        {/* A short sample keeps the letterforms visible without another row. */}
         <div
           className="break-all tracking-wide"
           style={{
             fontFamily: `'${p.heading_font}', sans-serif`,
             fontWeight: Number(p.heading_weight),
-            fontSize: 22,
+            fontSize: "clamp(15px, 5cqi, 24px)",
             color: accent,
             opacity: 1,
           }}
         >
-          ABCDEFGHIJKLM NOPQRSTUVWXYZ 0123456789
+          ABCDEFGHIJKLM
         </div>
         {p.accent_font && (
           <div

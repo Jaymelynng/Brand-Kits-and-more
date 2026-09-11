@@ -117,7 +117,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     const heading = p.sample_heading || kit.gym.name;
     const afterHeading = text(heading, M + 22, 212, 38, ink, CW - 44, p.heading_font, p.heading_weight);
     text(p.sample_body || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789', M + 22, afterHeading + 12, 16, ink, CW - 44, p.body_font, p.body_weight);
-    text('ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789', M + 22, 366, 20, ink, CW - 44, p.heading_font, p.heading_weight);
+    text('ABCDEFGHIJKLM', M + 22, 366, 20, ink, CW - 44, p.heading_font, p.heading_weight);
     let y = text(p.sample_source ? `Campaign sample: ${p.sample_source}. Wording demonstrates type; it is not a current offer.` : 'Type specimen. No campaign offer is implied.', M, 411, 11);
     if (linkedOnly.length) y = text(`${[...new Set(linkedOnly)].join(', ')}: linked, not embedded. The sample uses the document fallback.`, M, y + 7, 11);
     text(`Email fallback: ${p.email_fallback}`, M, Math.max(y + 8, 450), 12);

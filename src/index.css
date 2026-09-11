@@ -117,3 +117,13 @@ All colors MUST be HSL.
     color: hsl(var(--brand-text-primary));
   }
 }
+
+/* Size the primary slides against their column, so laptop widths do not
+   suddenly switch to much smaller cards at a viewport breakpoint. */
+.primary-logo-track {
+  container-type: inline-size;
+  padding-inline: clamp(12px, 3.5vw, 56px);
+}
+.primary-logo-track .primary-logo-slide {
+  flex-basis: min(100%, clamp(240px, 58cqi, 380px));
+}
