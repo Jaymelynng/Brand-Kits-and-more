@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useFontPairings } from '@/hooks/useFontPairings';
-import type { GymWithColors } from '@/hooks/useGyms';
+import { useGyms, type GymWithColors } from '@/hooks/useGyms';
 import { useToast } from '@/hooks/use-toast';
 import { contrast, luminance, shade } from '@/lib/shade';
 import { isActiveLogo } from '@/lib/logoOrder';
+import { fetchAssetFile, assetFilename, saveDownload } from '@/lib/assetFiles';
 
 export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
   const fonts = useFontPairings(gym.id);
+  const inventory = useGyms();
   const [working, setWorking] = useState<'zip' | 'pdf' | 'logo' | null>(null);
   const [status, setStatus] = useState('');
   const { toast } = useToast();
@@ -25,21 +27,20 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
     try {
       if (format === 'logo') {
         if (!featuredLogo) throw new Error('No featured logo is selected.');
-        const response = await fetch(featuredLogo.file_url, { signal: AbortSignal.timeout(25000) });
-        if (!response.ok) throw new Error('Could not download the featured logo. Please try again.');
-        const blob = await response.blob();
-        if (!blob.size || /text\/html/.test(blob.type)) throw new Error('The logo did not return a usable file.');
-        const { saveDownload } = await import('@/lib/brandKit');
-        saveDownload(blob, featuredLogo.filename);
+        const blob = await fetchAssetFile(featuredLogo.file_url, featuredLogo.filename);
+        saveDownload(blob, assetFilename(featuredLogo.filename, blob));
         setStatus('');
         toast({ description: 'Your logo is ready in Downloads.' });
         return;
       }
       // Read current pairings even when the editor changed them after page load.
-      const result = await fonts.refetch();
+      const [result, currentInventory] = await Promise.all([fonts.refetch(), inventory.refetch()]);
+      if (currentInventory.error) throw new Error('Could not refresh the current files. Please try again.');
+      const currentGym = currentInventory.data?.find(item => item.id === gym.id);
+      if (!currentGym) throw new Error('This gym could not be found. Refresh the page and try again.');
       if (result.error) throw new Error('Could not load the saved fonts. Please try again.');
       const [kitTools, pdfTools] = await Promise.all([import('@/lib/brandKit'), import('@/lib/brandKitPdf')]);
-      const kit = await kitTools.prepareBrandKit(gym, result.data || [], setStatus);
+      const kit = await kitTools.prepareBrandKit(currentGym, result.data || [], setStatus);
       setStatus('Building visual guide…');
       const pdf = await pdfTools.createBrandGuide(kit);
       if (format === 'pdf') kitTools.saveDownload(pdf, `${gym.code}-Brand-Guide.pdf`);
@@ -59,7 +60,7 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
     <div className="my-3" data-brand-kit-download aria-busy={!!working}>
       <div className="grid grid-cols-3 gap-2" role="group" aria-label="Download files">
         <Button onClick={() => download('zip')} disabled={!!working} aria-label="Download brand kit"
-          title="ZIP containing primary logos, dividers and graphics, colors, font files and licenses, and the PDF guide"
+          title="Complete ZIP: all active logo categories, original animations, dividers and graphics, colors, fonts and licenses, and the PDF guide. Retired files are excluded."
           className={buttonClass} style={{ backgroundColor: kitFill, color: kitText }}>
           Brand kit
         </Button>
@@ -74,6 +75,9 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
           PDF guide
         </Button>
       </div>
+      <p className="mt-2 text-center text-[15px] leading-snug text-slate-950" data-kit-contents>
+        {gym.logos.filter(isActiveLogo).length} logos · {gym.elements.length} graphics · Fonts &amp; colors
+      </p>
       <p role="status" aria-live="polite" className={status ? 'mt-2 text-sm leading-relaxed text-slate-950' : 'sr-only'}>
         {status}
       </p>

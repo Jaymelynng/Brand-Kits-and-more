@@ -37,7 +37,9 @@ import { ColorSwatch } from "@/components/shared/ColorSwatch";
 import { AssetRenamer } from "@/components/AssetRenamer";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HeroVideoBackground } from "@/components/HeroVideoBackground";
-import JSZip from "jszip";
+import { assetFilename, downloadLogoArchive, fetchAssetFile, saveDownload } from '@/lib/assetFiles';
+import { LogoPreview } from '@/components/LogoPreview';
+import { Search, Eye } from 'lucide-react';
 import { HeroLogo } from "@/components/HeroLogo";
 import { VariationBrowser } from "@/components/VariationBrowser";
 import { useSecretTap } from "@/hooks/useSecretTap";
@@ -63,7 +65,7 @@ const VIEW_LABELS: Record<string, string> = {
 
 const GymProfile = ({ solo = false }: GymProfileProps) => {
   const { gymCode } = useParams<{ gymCode: string }>();
-  const { data: gyms = [], isLoading, error } = useGyms();
+  const { data: gyms = [], isLoading, error, refetch, isFetching } = useGyms();
   const { user, isAdmin: isAdminUser } = useAuth();
   /**
    * A /kit/CODE share link is read-only for everyone, the owner included.
@@ -118,7 +120,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const [selectionMode, setSelectionMode] = useState(false);
   // Clicking a card opens it large. The arrows are for moving.
   const [expandedLogo, setExpandedLogo] = useState<typeof gym.logos[0] | null>(null);
-  const [expandedGround, setExpandedGround] = useState<"light" | "dark" | "brand" | "check">("light");
+  const [logoSearch, setLogoSearch] = useState('');
+  const [downloadStatus, setDownloadStatus] = useState('');
   const [darkPreviewUrls, setDarkPreviewUrls] = useState<Set<string>>(new Set());
   const rememberLogoContrast = useCallback((url: string, preferDark: boolean) => {
     setDarkPreviewUrls(previous => {
@@ -175,12 +178,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const renameLogoMutation = useRenameLogo();
   const renameElementMutation = useRenameElement();
   const handleRenameLogo = (logoId: string, filename: string) => {
+    if (!isAdmin) return;
     renameLogoMutation.mutate({ logoId, filename }, {
       onSuccess: () => toast({ description: `Renamed to ${filename}` }),
       onError: () => toast({ variant: "destructive", description: "Rename failed" }),
     });
   };
   const handleRenameElement = (elementId: string, displayName: string) => {
+    if (!isAdmin) return;
     renameElementMutation.mutate({ elementId, displayName }, {
       onSuccess: () => toast({ description: `Renamed to ${displayName}` }),
       onError: () => toast({ variant: "destructive", description: "Rename failed" }),
@@ -376,19 +381,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
   const downloadLogo = async (logoUrl: string, filename: string) => {
     try {
-      const response = await fetch(logoUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const blob = await fetchAssetFile(logoUrl, filename);
+      saveDownload(blob, assetFilename(filename, blob));
     } catch (err) {
-      console.error('Download failed:', err);
-      toast({ title: "Download Failed", description: "Could not download the logo.", variant: "destructive" });
+      toast({ title: 'Download could not finish', description: err instanceof Error ? err.message : 'Please try again.', variant: 'destructive' });
     }
   };
 
@@ -718,81 +714,18 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     return data.startsWith('http://') || data.startsWith('https://');
   };
 
-  const handleDownloadAllAsZip = useCallback(async () => {
-    if (!gym) return;
-    setDownloadingZip(true);
-    try {
-      const zip = new JSZip();
-      const folder = zip.folder(`${gym.code}-brand-assets`);
-      
-      // Add logos
-      for (const logo of activeLogos) {
-        const response = await fetch(logo.file_url, { signal: AbortSignal.timeout(25000) });
-        if (!response.ok) throw new Error(`Could not download ${logo.filename}`);
-        const blob = await response.blob();
-        if (!blob.size || /text\/html/.test(blob.type)) throw new Error(`Invalid file: ${logo.filename}`);
-        folder?.file(`logos/${logo.filename}`, blob);
-      }
-      
-      // Add color palette as text
-      const colorText = gym.colors.map((c, i) => `Color ${i + 1}: ${c.color_hex}`).join('\n');
-      folder?.file('brand-colors.txt', `${gym.name} (${gym.code}) Brand Colors\n\n${colorText}`);
-      
-      const content = await zip.generateAsync({ type: 'blob' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(content);
-      link.download = `${gym.code}-brand-assets.zip`;
-      link.click();
-      URL.revokeObjectURL(link.href);
-      
-      toast({ description: `${gym.code} brand kit downloaded!` });
-    } catch (err) {
-      toast({ variant: "destructive", description: "Failed to create ZIP" });
-    } finally {
-      setDownloadingZip(false);
-    }
-  }, [gym, activeLogos, toast]);
-
-  /**
-   * Zip whatever is selected. Download active takes the active library;
-   * this takes the selection, so filtering down to "Variations + Circle" and
-   * sending exactly those 13 files is one action.
-   */
   const handleDownloadSelected = useCallback(async () => {
-    if (!gym || selectedLogos.size === 0) return;
+    if (!gym || selectedLogos.size === 0 || downloadingSelected) return;
     const chosen = gym.logos.filter(l => selectedLogos.has(l.id));
-    setDownloadingSelected(true);
-    let failed = 0;
+    setDownloadingSelected(true); setDownloadStatus('Checking selected files…');
     try {
-      const zip = new JSZip();
-      const folder = zip.folder(`${gym.code}-logos`);
-      for (const logo of chosen) {
-        try {
-          const response = await fetch(logo.file_url);
-          folder?.file(logo.filename, await response.blob());
-        } catch {
-          failed += 1;
-        }
-      }
-      const content = await zip.generateAsync({ type: 'blob' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(content);
-      link.download = `${gym.code}-logos-${chosen.length}.zip`;
-      link.click();
-      URL.revokeObjectURL(link.href);
-      // Never claim a clean run that was not one - say what did not make it.
-      toast({
-        description: failed
-          ? `${chosen.length - failed} of ${chosen.length} downloaded · ${failed} could not be fetched`
-          : `${chosen.length} logo${chosen.length === 1 ? '' : 's'} downloaded`,
-        variant: failed ? "destructive" : undefined,
-      });
-    } catch {
-      toast({ variant: "destructive", description: "Failed to build the ZIP" });
-    } finally {
-      setDownloadingSelected(false);
-    }
-  }, [gym, selectedLogos, toast]);
+      await downloadLogoArchive(chosen, `${gym.code}-Selected-Logos.zip`, setDownloadStatus);
+      setDownloadStatus(`${chosen.length} selected logos downloaded.`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not build the ZIP.';
+      setDownloadStatus(message); toast({ variant: 'destructive', description: message });
+    } finally { setDownloadingSelected(false); }
+  }, [gym, selectedLogos, downloadingSelected, toast]);
 
   /** Every selected logo's link, one per line, ready to paste. */
   const handleCopySelectedLinks = useCallback((withNames: boolean) => {
@@ -821,7 +754,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     darkPreviewUrls.has(logo.file_url) || /\bdark backgrounds\b/i.test(logo.filename);
 
   const dragPropsFor = (logo: GymLogo) => ({
-    draggable: true,
+    draggable: isAdmin,
+    tabIndex: 0,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.target !== e.currentTarget) return;
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectionMode ? toggleLogoSelection(logo.id) : setExpandedLogo(logo); }
+    },
     // Hitting Select turns the whole card into the target. Requiring a small
     // checkbox meant aiming at a few pixels on a big picture, which took
     // several attempts per file; the card is the thing you are looking at,
@@ -831,7 +769,6 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       if ((e.target as HTMLElement).closest('button,a,input,[role="checkbox"]')) return;
       if (selectionMode) toggleLogoSelection(logo.id);
       else {
-        setExpandedGround(prefersDarkLogoBackground(logo) ? "dark" : "light");
         setExpandedLogo(logo);
       }
     },
@@ -932,9 +869,22 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   ), [visibleLogos, activeLogos, activeCategories]);
 
   const filteredLogos = useMemo(() => {
-    if (activeTags.length === 0) return inCategory;
-    return inCategory.filter(l => activeTags.every(t => (l.tags || []).includes(t)));
-  }, [inCategory, activeTags]);
+    const terms = logoSearch.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+    return inCategory.filter(l => activeTags.every(t => (l.tags || []).includes(t)) && terms.every(term =>
+      [l.filename, l.variant, l.treatment, ...(l.tags || [])].filter(Boolean).join(' ').toLocaleLowerCase().includes(term)));
+  }, [inCategory, activeTags, logoSearch]);
+
+  const handleDownloadShown = async () => {
+    if (!gym || downloadingZip) return;
+    setDownloadingZip(true); setDownloadStatus('Checking files…');
+    try {
+      await downloadLogoArchive(filteredLogos, `${gym.code}-Logos.zip`, setDownloadStatus);
+      setDownloadStatus(`${filteredLogos.length} logos downloaded.`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not build the ZIP.';
+      setDownloadStatus(message); toast({ variant: 'destructive', description: message });
+    } finally { setDownloadingZip(false); }
+  };
 
   // Only offer tags that would actually return something, with the count of
   // what is left after the tags already picked - never a chip leading to zero.
@@ -965,8 +915,9 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="text-destructive text-xl mb-4">
-            {error ? 'Error loading gym data' : `Gym "${gymCode}" not found`}
+            {error ? 'The brand library could not be loaded.' : `Gym "${gymCode}" not found`}
           </div>
+          {error && <Button disabled={isFetching} onClick={() => refetch()} className="mb-3 cursor-pointer bg-slate-900 text-white hover:bg-slate-700">{isFetching ? 'Retrying…' : 'Retry loading'}</Button>}
           {!solo && (
             <Link to="/">
               <Button className="bg-brand-warm hover:bg-brand-warm/80 text-white">
@@ -1022,6 +973,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
   };
 
+  const actionStyle = { backgroundColor: primaryColor, color: contrast(primaryColor, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111' };
   const primaryHsl = hexToHsl(primaryColor);
   const secondaryHsl = hexToHsl(secondaryColor);
 
@@ -1092,7 +1044,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 {logo.is_main_logo && (
                                   <div 
                                     className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1 shadow-lg z-10"
-                                    style={{ backgroundColor: primaryColor }}
+                                    style={actionStyle}
                                   >
                                     <Star className="w-3 h-3" />
                                     On display
@@ -1113,10 +1065,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 {/* Edit Pencil */}
                                 {!selectionMode && (
                                   <button
-                                    onClick={(e) => { e.stopPropagation(); openAssetModal(logo.file_url); }}
+                                    aria-label={`${isAdmin ? 'Edit' : 'Preview'} ${logo.filename}`}
+                                    onClick={(e) => { e.stopPropagation(); if (isAdmin && gymAssets.some(a => a.file_url === logo.file_url)) openAssetModal(logo.file_url); else setExpandedLogo(logo); }}
                                     className="absolute bottom-3 right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center bg-white/90 hover:bg-white shadow-md transition-all hover:scale-110"
                                   >
-                                    <Pencil className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+                                    {isAdmin ? <Pencil className="w-3.5 h-3.5 text-slate-950" /> : <Eye className="w-3.5 h-3.5 text-slate-950" />}
                                   </button>
                                 )}
                                 
@@ -1137,7 +1090,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 
                                 {/* Logo Info */}
                                 <div className="text-sm font-bold text-foreground mb-4">
-                                  <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
+                                  {isAdmin ? <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} /> : <button onClick={() => setExpandedLogo(logo)} className="block w-full cursor-zoom-in break-words text-left text-[15px] leading-snug hover:underline">{logo.filename.replace(/\.(png|jpe?g|webp|gif|svg|mp4|webm)$/i, '')}</button>}
                                 </div>
                                 
                                 {/* Action Buttons */}
@@ -1149,7 +1102,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                     }}
                                     size="sm"
                                     className="w-full text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                                    style={{ backgroundColor: primaryColor }}
+                                    style={actionStyle}
                                   >
                                     <Download className="w-4 h-4 mr-2" />
                                     Download
@@ -1416,18 +1369,18 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 <div className="border-t-2 pt-5" style={{ borderColor: `${primaryColor}15` }}>
                   <div className="text-lg font-semibold text-foreground mb-3">📊 Brand Assets</div>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-gym-primary text-gym-primary-foreground border-gym-primary-foreground/25">
+                    <button type="button" aria-label="Go to logo gallery" onClick={() => document.getElementById('logo-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="cursor-pointer hover:brightness-110 text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-gym-primary text-gym-primary-foreground border-gym-primary-foreground/25">
                       <div className="text-3xl font-bold mb-1">
                         {activeLogos.length}
                       </div>
-                      <div className="text-sm font-semibold text-gym-primary-foreground/90">Logo Variations</div>
-                    </div>
-                    <div className="text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-gym-secondary text-gym-secondary-foreground border-gym-secondary-foreground/25">
+                      <div className="text-sm font-semibold text-gym-primary-foreground/90">Logos</div>
+                    </button>
+                    <button type="button" aria-label="Go to brand colors" onClick={() => document.getElementById('brand-colors')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="cursor-pointer hover:brightness-110 text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-gym-secondary text-gym-secondary-foreground border-gym-secondary-foreground/25">
                       <div className="text-3xl font-bold mb-1">
                         {gym.colors.length}
                       </div>
                       <div className="text-sm font-semibold text-gym-secondary-foreground/90">Brand Colors</div>
-                    </div>
+                    </button>
                     <button type="button" aria-label="Go to dividers and graphics" disabled={!gym.elements?.length && !isAdmin}
                       onClick={() => document.getElementById('brand-elements')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                       className="cursor-pointer text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-primary text-primary-foreground border-primary-foreground/25 transition-[filter] hover:brightness-125 disabled:cursor-default">
@@ -1443,7 +1396,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
             {/* Right Column: Brand Colors */}
             <div>
-              <BrandCard variant="hero" className="h-full" style={{ borderColor: `${primaryColor}25` }}>
+              <BrandCard id="brand-colors" variant="hero" className="h-full scroll-mt-28" style={{ borderColor: `${primaryColor}25` }}>
                 <BrandCardHeader className="pb-4">
                   <BrandCardTitle className="flex items-center justify-between text-xl">
                     🎨 Brand Colors
@@ -1797,10 +1750,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
         {visibleLogos.length > 0 && (
           <Card
             className={cn(
-              "lg:col-span-4 shadow-2xl border-2 transition-all",
+              "lg:col-span-4 scroll-mt-28 shadow-2xl border-2 transition-all",
               isDragOver && "ring-4 ring-white/60 scale-[1.005]"
             )}
             style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 85%, #1a1a1a)`, borderColor: isDragOver ? '#ffffff' : `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}
+            id="logo-gallery"
             onDragOver={isAdmin ? handleDragOver : undefined}
             onDragLeave={isAdmin ? handleDragLeave : undefined}
             onDrop={isAdmin ? handleDrop : undefined}
@@ -1815,14 +1769,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     onClick={() => setOrderEditor({ logos: filteredLogos, label: activeCategories.length ? activeCategories.join(' + ') : 'All active logos' })}>Change order</Button>}
                   {/* Download the active library, excluding retired and review files. */}
                   <Button
-                    onClick={handleDownloadAllAsZip}
+                    onClick={handleDownloadShown}
                     variant="outline"
                     size="sm"
-                    disabled={downloadingZip}
+                    disabled={downloadingZip || !filteredLogos.length}
                     className="font-semibold shadow-lg bg-white text-foreground border-white/50 hover:bg-white/90"
                   >
                     {downloadingZip ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileArchive className="w-4 h-4 mr-2" />}
-                    {downloadingZip ? 'Zipping...' : 'Download active'}
+                    {downloadingZip ? 'Preparing…' : (activeCategories.length || activeTags.length || logoSearch.trim() ? 'Download shown' : 'Download active')}
                   </Button>
 
                   {tagFacets.length > 0 && (
@@ -1920,6 +1874,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 </div>
               </div>
 
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <label className="relative min-w-0 flex-1 basis-60">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-slate-600" />
+                  <Input aria-label="Search logos" value={logoSearch} onChange={e => setLogoSearch(e.target.value)} placeholder="Search logos, colors, styles…" className="h-10 bg-white pl-9 text-[15px] text-slate-950 placeholder:text-slate-600" />
+                </label>
+                {(logoSearch || activeTags.length > 0 || activeCategories.length > 0) && <Button className="h-10 cursor-pointer bg-slate-900 text-[15px] text-white hover:bg-slate-700" onClick={() => { setLogoSearch(''); setActiveTags([]); setActiveCategories([]); clearSelection(); }}>Clear filters</Button>}
+              </div>
+              <p role="status" className={downloadStatus ? 'mt-2 text-[15px] text-white' : 'sr-only'}>{downloadStatus}</p>
               {/* The tag drawer, now opened from the panel above. */}
               <Sheet open={tagSheetOpen} onOpenChange={setTagSheetOpen}>
                 <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-sm">
@@ -1994,7 +1956,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       clearSelection();
                       setActiveCategories(prev => prev.includes(name) ? prev.filter(x => x !== name) : [...prev, name]);
                     }}
-                    onClearCategories={() => { clearSelection(); setActiveCategories([]); setActiveTags([]); }}
+                    onClearCategories={() => { clearSelection(); setActiveCategories([]); setActiveTags([]); setLogoSearch(''); }}
                     total={activeLogos.length}
                     palette={gym.colors.map(c => c.color_hex)}
                     isAdmin={isAdmin}
@@ -2008,12 +1970,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 )}
 
                 <div className="min-w-0 flex-1">
+              {!filteredLogos.length && <div className="rounded-xl bg-white p-8 text-center text-slate-950"><p className="text-lg font-bold">No logos match these filters.</p><Button className="mt-3 cursor-pointer bg-slate-900 text-white hover:bg-slate-700" onClick={() => { setLogoSearch(''); setActiveCategories([]); setActiveTags([]); }}>Show active logos</Button></div>}
               {viewMode === 'variations' ? (
                 <VariationBrowser
                   logos={filteredLogos}
                   gymCode={gym.code}
                   primaryColor={primaryColor}
                   secondaryColor={secondaryColor}
+                  onDownload={downloadLogo} onCopy={copyUrl} onPreview={setExpandedLogo}
                 />
               ) : viewMode === 'carousel' ? (
                 renderCarousel(filteredLogos)
@@ -2045,7 +2009,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         {logo.is_main_logo && (
                           <div 
                             className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1 shadow-lg"
-                            style={{ backgroundColor: primaryColor }}
+                            style={actionStyle}
                           >
                             <Star className="w-3 h-3" />
                             On display
@@ -2066,10 +2030,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         {/* Edit Pencil */}
                         {!selectionMode && (
                           <button
-                            onClick={(e) => { e.stopPropagation(); openAssetModal(logo.file_url); }}
+                            aria-label={`${isAdmin ? 'Edit' : 'Preview'} ${logo.filename}`}
+                                    onClick={(e) => { e.stopPropagation(); if (isAdmin && gymAssets.some(a => a.file_url === logo.file_url)) openAssetModal(logo.file_url); else setExpandedLogo(logo); }}
                             className="absolute bottom-3 right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center bg-white/90 hover:bg-white shadow-md transition-all hover:scale-110"
                           >
-                            <Pencil className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+                            {isAdmin ? <Pencil className="w-3.5 h-3.5 text-slate-950" /> : <Eye className="w-3.5 h-3.5 text-slate-950" />}
                           </button>
                         )}
                         
@@ -2088,7 +2053,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         
                         {/* Logo Info */}
                         <div className="text-sm font-bold text-foreground mb-4">
-                          <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
+                          {isAdmin ? <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} /> : <button onClick={() => setExpandedLogo(logo)} className="block w-full cursor-zoom-in break-words text-left text-[15px] leading-snug hover:underline">{logo.filename.replace(/\.(png|jpe?g|webp|gif|svg|mp4|webm)$/i, '')}</button>}
                         </div>
                         
                         {/* Action Buttons */}
@@ -2097,7 +2062,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                             onClick={() => downloadLogo(logo.file_url, logo.filename)}
                             size="sm"
                             className="w-full text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                            style={{ backgroundColor: primaryColor }}
+                            style={actionStyle}
                           >
                             <Download className="w-4 h-4 mr-2" />
                             Download
@@ -2200,12 +2165,12 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
                               <div className="text-lg font-bold text-foreground flex-1 min-w-0">
-                                <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
+                                {isAdmin ? <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} /> : <button onClick={() => setExpandedLogo(logo)} className="block w-full cursor-zoom-in break-words text-left text-[15px] leading-snug hover:underline">{logo.filename.replace(/\.(png|jpe?g|webp|gif|svg|mp4|webm)$/i, '')}</button>}
                               </div>
                               {logo.is_main_logo && (
                                 <div 
                                   className="text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1"
-                                  style={{ backgroundColor: primaryColor }}
+                                  style={actionStyle}
                                 >
                                   <Star className="w-3 h-3" />
                                   On display
@@ -2220,7 +2185,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                               onClick={() => downloadLogo(logo.file_url, logo.filename)}
                               size="sm"
                               className="text-white font-semibold"
-                              style={{ backgroundColor: primaryColor }}
+                              style={actionStyle}
                             >
                               <Download className="w-4 h-4 mr-2" />
                               Download
@@ -2303,7 +2268,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         {logo.is_main_logo && (
                           <div 
                             className="absolute top-3 right-3 text-white text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1"
-                            style={{ backgroundColor: primaryColor }}
+                            style={actionStyle}
                           >
                             <Star className="w-3 h-3" />
                             On display
@@ -2325,7 +2290,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         
                         {/* Logo Info */}
                         <div className="text-sm font-bold text-foreground mb-3">
-                          <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} />
+                          {isAdmin ? <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} /> : <button onClick={() => setExpandedLogo(logo)} className="block w-full cursor-zoom-in break-words text-left text-[15px] leading-snug hover:underline">{logo.filename.replace(/\.(png|jpe?g|webp|gif|svg|mp4|webm)$/i, '')}</button>}
                         </div>
                         
                         {/* Action Buttons */}
@@ -2334,7 +2299,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                             onClick={() => downloadLogo(logo.file_url, logo.filename)}
                             size="sm"
                             className="flex-1 text-white font-semibold"
-                            style={{ backgroundColor: primaryColor }}
+                            style={actionStyle}
                           >
                             <Download className="w-4 h-4" />
                           </Button>
@@ -2669,121 +2634,20 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
         />
       )}
 
-      {/* Floating Nav Rail */}
-      {/* Clicked a card: see it big, on whichever ground you need it to survive,
-          then take it. Escape or a click outside closes. */}
-      {expandedLogo && (() => {
-        // The lightbox holds a snapshot. After a tag toggle the query
-        // refetches, so read the live row back or the chip never lights up.
-        const live = gym.logos.find(l => l.id === expandedLogo.id) || expandedLogo;
-        const liveTags = live.tags || [];
-        return (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-          style={{ background: "rgba(6,10,16,0.75)", backdropFilter: "blur(4px)" }}
-          onClick={() => setExpandedLogo(null)}
-        >
-          <div
-            className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              className="flex min-h-[320px] items-center justify-center p-10"
-              style={
-                expandedGround === "brand"
-                  ? { background: primaryColor }
-                  : expandedGround === "check"
-                    ? { backgroundImage: "repeating-conic-gradient(#CBD5E1 0% 25%, #F1F5F9 0% 50%) 50% / 18px 18px" }
-                    : { background: expandedGround === "dark" ? "#0B1119" : "#FFFFFF" }
-              }
-            >
-              <LogoMedia
-                url={expandedLogo.file_url}
-                alt={expandedLogo.filename}
-                className="max-h-[52vh] max-w-full object-contain"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 border-t p-4">
-              <div className="min-w-0 basis-full sm:basis-auto sm:flex-1">
-                <div className="truncate text-sm font-bold" title={expandedLogo.filename}>
-                  {(expandedLogo as any).treatment || expandedLogo.variant || expandedLogo.filename}
-                </div>
-                <div className="text-xs font-semibold text-muted-foreground">
-                  {(expandedLogo as any).width
-                    ? `${(expandedLogo as any).width} × ${(expandedLogo as any).height}`
-                    : "size not measured"}
-                  {(expandedLogo as any).has_alpha === false && " · solid background"}
-                </div>
-              </div>
-
-              <div className="flex gap-1 rounded-lg bg-[#EEF2F6] p-1">
-                {(["light", "dark", "brand", "check"] as const).map((g) => (
-                  <button
-                    key={g}
-                    onClick={() => setExpandedGround(g)}
-                    className="rounded px-2.5 py-1 text-[11px] font-extrabold capitalize"
-                    style={{
-                      background: expandedGround === g ? "#FFFFFF" : "transparent",
-                      color: expandedGround === g ? "#101820" : "#697887",
-                      boxShadow: expandedGround === g ? "0 1px 3px rgba(16,24,32,0.18)" : "none",
-                    }}
-                  >
-                    {g}
-                  </button>
-                ))}
-              </div>
-
-              <Button size="sm" variant="outline" onClick={() => copyUrl(expandedLogo.file_url)}>
-                <Copy className="mr-1.5 h-3.5 w-3.5" /> Copy URL
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => downloadLogo(expandedLogo.file_url, expandedLogo.filename)}
-                style={{ background: primaryColor, color: "#fff" }}
-              >
-                <Download className="mr-1.5 h-3.5 w-3.5" /> Download
-              </Button>
-              {/* What this file is. An admin can change it here; everyone
-                  else just reads it. */}
-              <div className="basis-full border-t pt-3">
-                <div className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  Tags
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {(isAdmin ? logoTags : logoTags.filter(t => liveTags.includes(t.name))).map(t => {
-                    const on = liveTags.includes(t.name);
-                    return (
-                      <button
-                        key={t.id}
-                        disabled={!isAdmin || toggleTag.isPending}
-                        onClick={() => toggleTag.mutate({ logoId: live.id, tagId: t.id, on: !on })}
-                        title={isAdmin ? (on ? `Remove ${t.name}` : `Add ${t.name}`) : t.kind}
-                        className="rounded-full px-2.5 py-1 text-[11px] font-bold transition-all duration-150 border disabled:cursor-default"
-                        style={{
-                          background: on ? primaryColor : "#F1F4F8",
-                          color: on ? "#FFFFFF" : "#697887",
-                          borderColor: on ? primaryColor : "#DCE3EB",
-                        }}
-                      >
-                        {t.name}
-                      </button>
-                    );
-                  })}
-                  {liveTags.length === 0 && !isAdmin && (
-                    <span className="text-xs text-muted-foreground">No tags yet</span>
-                  )}
-                </div>
-              </div>
-
-              <Button size="sm" variant="ghost" onClick={() => setExpandedLogo(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-        );
-      })()}
+      {expandedLogo && <LogoPreview logo={gym.logos.find(l => l.id === expandedLogo.id) || expandedLogo}
+        logos={filteredLogos.some(l => l.id === expandedLogo.id) ? filteredLogos : activeLogos}
+        palette={gym.colors.map(c => c.color_hex)} onChoose={setExpandedLogo} onClose={() => setExpandedLogo(null)}>
+        {isAdmin && <div className="flex flex-wrap gap-2 border-t pt-3" aria-label="Edit logo tags">
+          {logoTags.map(tag => {
+            const live = gym.logos.find(l => l.id === expandedLogo.id) || expandedLogo;
+            const on = (live.tags || []).includes(tag.name);
+            return <button key={tag.id} aria-pressed={on} disabled={toggleTag.isPending}
+              onClick={() => toggleTag.mutate({ logoId: live.id, tagId: tag.id, on: !on })}
+              className="cursor-pointer rounded-full border px-3 py-2 text-[15px] font-semibold hover:brightness-90"
+              style={on ? actionStyle : { background: '#E8EDF2', color: '#111827' }}>{tag.name}</button>;
+          })}
+        </div>}
+      </LogoPreview>}
 
       {/* The clipboard can refuse for reasons that have nothing to do with
           this app - an unfocused page, an insecure origin. Losing 40 asset

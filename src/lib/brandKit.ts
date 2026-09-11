@@ -2,20 +2,16 @@ import type { FontPairing } from '@/hooks/useFontPairings';
 import type { GymElement, GymLogo, GymWithColors } from '@/hooks/useGyms';
 import { bundledFont, fontSource } from './brandKitFonts';
 import { luminance } from './shade';
-import { compareLogoOrder } from './logoOrder';
+import { compareLogoOrder, isActiveLogo } from './logoOrder';
 import { elementFilename, loadElementFile } from './brandElements';
+import { assetFilename, fetchAssetFile, inspectAsset, safeFilename, uniqueAssetPath, type AssetInfo } from './assetFiles';
+export { safeFilename, saveDownload } from './assetFiles';
 
-export interface KitLogo {
+export interface KitLogo extends AssetInfo {
   logo: GymLogo;
   blob: Blob;
   path: string;
   sha256: string;
-  preview: string;
-  width: number;
-  height: number;
-  transparent: boolean;
-  lightArtwork: boolean;
-  colorful: boolean;
 }
 export interface KitFont {
   family: string;
@@ -40,9 +36,6 @@ export interface BrandKit {
   notes: string[];
 }
 
-export const safeFilename = (value: string) =>
-  [...value.normalize('NFKC')].filter(c => c.charCodeAt(0) >= 32).join('').replace(/[<>:"/\\|?*]/g, '-').replace(/^\.+|[. ]+$/g, '').trim().slice(0, 160) || 'asset';
-
 export function primaryLogos(gym: GymWithColors) {
   // Category membership is saved data. Never infer approval from a filename.
   return gym.logos.filter(l => l.variant === 'Primary logos').sort(compareLogoOrder);
@@ -58,57 +51,22 @@ async function fetchFile(url: string, label: string) {
   return blob;
 }
 
-async function measureLogo(blob: Blob, name: string) {
-  const url = URL.createObjectURL(blob);
-  try {
-    const img = new Image();
-    img.src = url;
-    await img.decode();
-    const canvas = document.createElement('canvas');
-    const scale = Math.min(1, 1200 / Math.max(img.naturalWidth, img.naturalHeight));
-    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
-    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) throw new Error('Image preview is unavailable.');
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    let clear = 0, visible = 0, brightness = 0, colored = 0;
-    for (let i = 0; i < pixels.length; i += 16) {
-      if (pixels[i + 3] < 240) clear++;
-      if (pixels[i + 3] < 128) continue;
-      visible++;
-      brightness += pixels[i] * 0.2126 + pixels[i + 1] * 0.7152 + pixels[i + 2] * 0.0722;
-      if (Math.max(pixels[i], pixels[i + 1], pixels[i + 2]) - Math.min(pixels[i], pixels[i + 1], pixels[i + 2]) > 40) colored++;
-    }
-    return { preview: canvas.toDataURL('image/png'), width: img.naturalWidth, height: img.naturalHeight,
-      transparent: clear > 0, lightArtwork: clear > 0 && visible > 0 && brightness / visible > 150,
-      colorful: visible > 0 && colored / visible > 0.2 };
-  } catch { throw new Error(`The artwork ${name} cannot be previewed. Check the file before exporting.`); }
-  finally { URL.revokeObjectURL(url); }
-}
-
 export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[], onProgress: (text: string) => void): Promise<BrandKit> {
-  const originals = primaryLogos(gym);
-  if (!originals.length) throw new Error('Mark a logo as Primary logos before downloading the brand kit.');
+  const originals = gym.logos.filter(isActiveLogo).sort(compareLogoOrder);
+  if (!originals.length) throw new Error('No active logos are saved for this gym.');
   const palette = [...new Set(gym.colors.map(c => c.color_hex.toUpperCase()))];
   if (!palette.length || palette.some(c => !/^#[0-9A-F]{6}$/.test(c))) throw new Error('Save valid brand colors before downloading the kit.');
-  onProgress('Collecting primary logos…');
   const paths = new Set<string>();
-  const planned = originals.map(logo => {
-    const base = safeFilename(logo.filename);
-    let name = base, n = 2;
-    while (paths.has(name.toLowerCase())) name = base.replace(/(\.[^.]+)?$/, (_, ext = '') => `-${n++}${ext}`);
-    paths.add(name.toLowerCase());
-    return { logo, path: `Logos/${name}` };
-  });
   const logos: KitLogo[] = [];
-  // Bounded batches keep large brand libraries from exhausting the browser.
-  for (let i = 0; i < planned.length; i += 4) {
-    logos.push(...await Promise.all(planned.slice(i, i + 4).map(async ({ logo, path }) => {
-      const blob = await fetchFile(logo.file_url, logo.filename);
-      const [preview, digest] = await Promise.all([measureLogo(blob, logo.filename), crypto.subtle.digest('SHA-256', await blob.arrayBuffer())]);
-      return { logo, blob, path, sha256: [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join(''), ...preview };
-    })));
+  // Keep every active category, using original bytes; animation is never flattened in the ZIP.
+  for (let i = 0; i < originals.length; i += 4) {
+    onProgress(`Collecting logos ${i + 1}–${Math.min(i + 4, originals.length)} of ${originals.length}…`);
+    const batch = await Promise.all(originals.slice(i, i + 4).map(async logo => {
+      const blob = await fetchAssetFile(logo.file_url, logo.filename);
+      const [preview, digest] = await Promise.all([inspectAsset(blob), crypto.subtle.digest('SHA-256', await blob.arrayBuffer())]);
+      return { logo, blob, sha256: [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join(''), ...preview };
+    }));
+    batch.forEach(file => logos.push({ ...file, path: uniqueAssetPath(`Logos/${safeFilename(file.logo.variant || 'Uncategorized')}/${assetFilename(file.logo.filename, file.blob)}`, paths) }));
   }
   onProgress('Collecting dividers and graphics…');
   const elements: KitElement[] = [];
@@ -123,7 +81,7 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
     });
     elements.push(...await Promise.all(plannedElements.map(async ({ element, path }) => {
       const blob = await loadElementFile(element);
-      const [preview, digest] = await Promise.all([measureLogo(blob, element.display_name || element.element_type), crypto.subtle.digest('SHA-256', await blob.arrayBuffer())]);
+      const [preview, digest] = await Promise.all([inspectAsset(blob), crypto.subtle.digest('SHA-256', await blob.arrayBuffer())]);
       return { element, blob, path, sha256: [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join(''), ...preview };
     })));
   }
@@ -145,7 +103,7 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
   }));
   const notes: string[] = [];
   if (!pairings.length) notes.push('No font pairings are saved for this gym.');
-  if (!logos.some(l => /\.svg$/i.test(l.path))) notes.push('The saved primary logos are raster images. A vector master is still needed for large signs, embroidery or other production that requires vector artwork.');
+  if (!logos.some(l => l.logo.variant === 'Primary logos' && l.format === 'SVG')) notes.push('No SVG master is saved in Primary logos. A verified vector master is still needed for large signs, embroidery or other production that requires vector artwork.');
   fonts.filter(f => !f.blob).forEach(f => notes.push(`${f.family} ${f.weight}: use the source link in Fonts; its installable file is not bundled.`));
   return { gym, pairings, logos, elements, fonts, palette, created: new Date().toISOString(),
     url: `${location.origin}/kit/${encodeURIComponent(gym.code)}`, notes };
@@ -191,27 +149,21 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
   root.file('Colors/Palette.gpl', `GIMP Palette\nName: ${kit.gym.name.replace(/[\r\n]/g, ' ')}\nColumns: ${colors.length}\n#\n${colors.map(c => `${c.rgb.join(' ')} ${c.hex}`).join('\n')}\n`);
   root.file('START-HERE.txt', [
     `${kit.gym.name} - Brand Kit`, '',
-    'Start with the PDF guide. Logos contains the saved primary marks in their original formats.',
+    'Start with the PDF guide. Logos contains every active logo, organized by its saved category and preserved in its original format.',
     'Fonts contains installable files where available, licenses, pairing weights and source links.',
     'Colors contains HEX/RGB values plus CSS, JSON and a GIMP-compatible palette.',
     ...(kit.elements.length ? [`Graphics contains ${kit.elements.length} saved dividers and supporting graphics in their original formats.`, 'For email, download the PNG or copy its URL from the online kit. Preserve its proportions when sizing it to the email width.'] : []),
     'Transparent logo files have clear pixels, not a printed checkerboard. A white logo needs a dark surface.',
     'Keep logo proportions. Choose a file that reads clearly on its background. Do not enlarge raster files past a useful size.',
-    'Themed logos, animation, retired artwork and uncategorized files remain in the online library.',
+    'Email logos, variations, themed artwork and animations are included when saved. Retired and Needs review artwork are excluded. Uncategorized is an unfiled category, not a claim of approval.',
     'Font pairings are starting points for campaigns, not restrictions on creative work.', '',
     ...kit.notes, '', `Online library: ${kit.url}`, `Exported: ${kit.created}`,
   ].join('\n'));
   root.file('Contents.json', JSON.stringify({ gym: kit.gym.name, code: kit.gym.code, exported_at: kit.created, source: kit.url,
-    logos: kit.logos.map(l => ({ file: l.path, name: l.logo.filename, width: l.width, height: l.height, transparent: l.transparent, sha256: l.sha256, source: l.logo.file_url })),
+    logos: kit.logos.map(l => ({ file: l.path, name: l.logo.filename, category: l.logo.variant || 'Uncategorized', format: l.format, bytes: l.bytes, duration_seconds: l.duration, width: l.width, height: l.height, transparent: l.transparent, sha256: l.sha256, source: l.logo.file_url })),
     graphics: kit.elements.map(e => ({ file: e.path, name: e.element.display_name, type: e.element.element_type, width: e.width, height: e.height, transparent: e.transparent, sha256: e.sha256 })),
     pairings: kit.pairings.map(({ name, heading_font, heading_weight, body_font, body_weight, accent_font, accent_weight, email_fallback, notes, sample_heading, sample_body, sample_source }) =>
       ({ name, heading_font, heading_weight, body_font, body_weight, accent_font, accent_weight, email_fallback, notes, sample_heading, sample_body, sample_source })),
     colors, notes: kit.notes }, null, 2));
   return zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-}
-
-export function saveDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob), link = document.createElement('a');
-  link.href = url; link.download = safeFilename(filename); document.body.appendChild(link); link.click(); link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 30000);
 }

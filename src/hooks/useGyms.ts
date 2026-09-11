@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
+import { readAllPages } from '@/lib/queryPages';
 
 export interface Gym {
   id: string;
@@ -87,56 +88,15 @@ export const useGyms = () => {
   return useQuery({
     queryKey: ['gyms'],
     queryFn: async (): Promise<GymWithColors[]> => {
-      const { data: gyms, error: gymsError } = await supabase
-        .from('gyms')
-        .select('*')
-        .order('code');
-
-      if (gymsError) throw gymsError;
-
-      const { data: colors, error: colorsError } = await supabase
-        .from('gym_colors')
-        .select('*')
-        .order('order_index');
-
-      if (colorsError) throw colorsError;
-
-      // Load the complete library; a truncated set cannot safely be reordered.
-      const logos: Tables<'gym_logos'>[] = [];
-      for (let from = 0; ; from += 1000) {
-        const { data, error } = await supabase.from('gym_logos').select('*')
-          .order('sort_order', { nullsFirst: false }).order('created_at').order('id')
-          .range(from, from + 999);
-        if (error) throw error;
-        logos.push(...(data || []));
-        if (!data || data.length < 1000) break;
-      }
-
-      const { data: elements, error: elementsError } = await supabase
-        .from('gym_elements')
-        .select('*')
-        .order('created_at');
-
-      if (elementsError) throw elementsError;
-
-      // Supabase caps a select at 1000 rows and returns the truncated set
-      // without an error. There are already more tag rows than that, so a
-      // plain select made Transparent read 13 for TIG when the real number
-      // is 63 - a wrong count that looks exactly like a right one. Page it.
-      const allTagRows: { logo_id: string; tag_id: string }[] = [];
-      const PAGE = 1000;
-      for (let from = 0; ; from += PAGE) {
-        const { data, error } = await supabase
-          .from('gym_logo_tags')
-          .select('logo_id, tag_id')
-          .range(from, from + PAGE - 1);
-        if (error) throw error;
-        if (!data || data.length === 0) break;
-        allTagRows.push(...data);
-        if (data.length < PAGE) break;
-      }
-      const tagRows = allTagRows;
-      const { data: tagDefs } = await supabase.from('logo_tags').select('id, name');
+      // Each table is paged in a stable order. A later-page failure rejects the whole snapshot.
+      const [gyms, colors, logos, elements, tagRows, tagDefs] = await Promise.all([
+        readAllPages<Tables<'gyms'>>((from, to) => supabase.from('gyms').select('*').order('code').order('id').range(from, to)),
+        readAllPages<Tables<'gym_colors'>>((from, to) => supabase.from('gym_colors').select('*').order('order_index').order('id').range(from, to)),
+        readAllPages<Tables<'gym_logos'>>((from, to) => supabase.from('gym_logos').select('*').order('sort_order', { nullsFirst: false }).order('created_at').order('id').range(from, to)),
+        readAllPages<Tables<'gym_elements'>>((from, to) => supabase.from('gym_elements').select('*').order('created_at').order('id').range(from, to)),
+        readAllPages<{ logo_id: string; tag_id: string }>((from, to) => supabase.from('gym_logo_tags').select('logo_id, tag_id').order('logo_id').order('tag_id').range(from, to)),
+        readAllPages<{ id: string; name: string }>((from, to) => supabase.from('logo_tags').select('id, name').order('id').range(from, to)),
+      ]);
       const tagName = new Map((tagDefs || []).map(t => [t.id, t.name]));
       const tagsByLogo = new Map<string, string[]>();
       (tagRows || []).forEach(r => {

@@ -37,6 +37,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     doc.setFillColor(fill); doc.setDrawColor(stroke || fill); doc.roundedRect(x, y, w, h, 10, 10, stroke ? 'FD' : 'F');
   };
   const logoImage = (logo: KitLogo | KitElement, x: number, y: number, w: number, h: number) => {
+    if (!logo.preview) { text(`${logo.format} original included`, x + 12, y + h / 2, 14, ink, w - 24); return; }
     const ratio = Math.min(w / logo.width, h / logo.height);
     const dw = logo.width * ratio, dh = logo.height * ratio;
     doc.addImage(logo.preview, 'PNG', x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, logo.sha256, 'FAST');
@@ -61,7 +62,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
   text('BRAND KIT', W - 150, 43, 12, '#FFFFFF', 112);
   text('Brand essentials', M, 106, 42, '#FFFFFF');
   text(kit.elements.length ? 'Logos. Color. Type. Dividers & graphics.' : 'Logos. Color. Type. Ready to use together.', M, 136, 15, '#FFFFFF');
-  const coverLogo = kit.logos.filter(l => l.transparent && l.colorful && l.width / l.height > 2)
+  const coverLogo = kit.logos.find(l => l.logo.is_main_logo && l.preview) || kit.logos.filter(l => l.transparent && l.colorful && l.width / l.height > 2)
     .sort((a, b) => b.width - a.width)[0] || kit.logos.find(l => l.logo.is_main_logo) || kit.logos[0];
   box(M, 164, CW, 192, coverLogo.lightArtwork ? ink : paper, kit.palette[2] || accent);
   logoImage(coverLogo, M + 24, 180, CW - 48, 157);
@@ -70,21 +71,25 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     doc.setFillColor(c); doc.rect(M + i * sw, 380, sw, 60, 'F');
     text(c, M + i * sw + 12, 417, 12, readableOn(c, ink), sw - 24);
   });
-  text(`${kit.logos.length} primary logos  /  ${kit.palette.length} colors  /  ${kit.pairings.length} font pairings`, M, 478, 16, '#FFFFFF');
-  text('Primary files and a practical guide. Seasonal artwork and motion stay in the online library.', M, 507, 12, '#FFFFFF', CW - 60);
+  text(`${kit.logos.length} active logos  /  ${kit.palette.length} colors  /  ${kit.pairings.length} font pairings`, M, 478, 16, '#FFFFFF');
+  text('Primary marks, email treatments, campaign artwork and original animations. All active categories are included.', M, 507, 12, '#FFFFFF', CW - 60);
 
-  // Primary logo contact sheets. The archive contains the untouched source bytes.
-  for (let offset = 0; offset < kit.logos.length; offset += 4) {
-    title('01 / Logo library', 'Primary logos', 'Choose the file for the background and space. Keep its original proportions.');
+  // A separate contact sheet for each saved category keeps email treatments easy to find.
+  const groups = new Map<string, KitLogo[]>();
+  kit.logos.forEach(logo => { const category = logo.logo.variant || 'Uncategorized'; groups.set(category, [...(groups.get(category) || []), logo]); });
+  const orderedGroups = [...groups].sort(([a], [b]) => a === 'Primary logos' ? -1 : b === 'Primary logos' ? 1 : a.localeCompare(b));
+  for (const [category, files] of orderedGroups) for (let offset = 0; offset < files.length; offset += 4) {
+    title('01 / Logo library', category, `${files.length} original files in Logos/${category}/. Previews of animations show one frame; the files retain their motion.`);
     const gap = 18, cardW = (CW - gap) / 2;
-    kit.logos.slice(offset, offset + 4).forEach((l, n) => {
+    files.slice(offset, offset + 4).forEach((l, n) => {
       const x = M + (n % 2) * (cardW + gap), y = 136 + Math.floor(n / 2) * 193;
       const ground = l.lightArtwork ? ink : tint(ink, 0.96);
       box(x, y, cardW, 176, paper, tint(ink, 0.8));
       box(x + 9, y + 9, cardW - 18, 100, ground);
       logoImage(l, x + 20, y + 17, cardW - 40, 84);
       text(l.logo.filename, x + 12, y + 129, 11, ink, cardW - 24);
-      text(`${l.width} x ${l.height} px  |  ${l.transparent ? 'Transparent' : 'Solid background'}`, x + 12, y + 161, 10, ink, cardW - 24);
+      const details = [l.format, l.width ? `${l.width} x ${l.height} px` : '', l.transparent === null ? '' : l.transparent ? 'Transparent' : 'Solid background'].filter(Boolean).join(' | ');
+      text(details, x + 12, y + 161, 10, ink, cardW - 24);
     });
   }
 
@@ -149,7 +154,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     ['Give the logo room', 'Keep the full mark visible. Start with clear space about one quarter of the logo height, then check it in the actual design. Avoid stretching, squashing or rebuilding the lettering with a font.'],
     ['Keep small work readable', 'Judge the logo at its final display size. For email, supply an image around twice its displayed pixel width when an original of that size is available. Preserve aspect ratio.'],
     ['Make type do a job', 'Use the heading face for the message and the body face for the details. The saved pairings are useful starting points; a campaign can take a different direction.'],
-    ['Use the extended library', 'Themed logos and animations are available online for specific campaigns. Retired and uncategorized artwork are excluded from this core kit. Icons and dividers are optional supporting assets.'],
+    ['Use the full library', 'Email treatments, themed logos and animations are included in their own folders. Keep animated originals for motion. Retired and Needs review files are excluded; Uncategorized files are unfiled.'],
   ];
   let y = 150;
   rows.forEach(([head, copy], i) => {
@@ -163,7 +168,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
   title(`${kit.elements.length ? '06' : '05'} / Handoff`, 'What is in the download', 'Open the ZIP once. Start with the guide.');
   const included = [
     ['Brand Guide.pdf', 'The visual guide you are reading, with logo previews, colors, font samples and usage notes.'],
-    ['Logos/', `${kit.logos.length} saved primary logos, preserved in their original formats and sizes.`],
+    ['Logos/', `${kit.logos.length} active logos, filed by category, including email treatments and original animations.`],
     ['Fonts/', 'Installable font files where available, family licenses, saved weights and official source links.'],
     ['Colors/', 'HEX/RGB values as text, JSON, CSS variables and a GIMP-compatible palette.'],
     ...(kit.elements.length ? [['Graphics/', `${kit.elements.length} dividers and supporting graphics in their original formats.`]] : []),
