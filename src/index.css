@@ -288,7 +288,11 @@ All colors MUST be HSL.
 .gym-profile .kit-color-list:not(.is-editing) [data-color-controls] { grid-column: 1 / -1; width: 100%; }
 .gym-profile .kit-color-list:not(.is-editing) [data-color-controls] button { flex: 1; min-height: 44px; font-size: 15px; cursor: pointer; }
 .gym-profile [data-brand-overview] { max-width: none; }
-.gym-profile [data-font-specimen] > div { padding: clamp(16px, 2vw, 26px); }
+.gym-profile [data-font-specimen] > div { padding: clamp(16px, 1.6vw, 20px); }
+@container (max-width: 300px) {
+  .font-specimen-face-label { min-height: 44px; flex-direction: column; align-items: flex-start; justify-content: center; padding-right: 52px; }
+  .font-specimen-copy { position: absolute; top: 12px; right: 12px; }
+}
 .gym-profile #logo-gallery, .gym-profile #brand-colors, .gym-profile #brand-fonts, .gym-profile #brand-elements { scroll-margin-top: calc(var(--strip-h, 110px) + 76px); }
 @container brand-colors (max-width: 430px) {
   .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] { grid-template-columns: 1fr; }

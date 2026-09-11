@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { FontsSection } from "@/components/FontsSection";
 import { useToast } from "@/hooks/use-toast";
 import { copyText } from "@/lib/copyText";
-import { shade, readableOn, luminance } from "@/lib/shade";
+import { shade, tint, readableOn, luminance } from "@/lib/shade";
 
 interface FontSpecimenProps {
   gymId: string;
@@ -44,9 +44,12 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
 
   const accent = palette[0] || "#41505F";
   const darkest = [...palette].sort((a, b) => luminance(a) - luminance(b))[0];
-  const ink = darkest && luminance(darkest) < 0.5 ? darkest : shade(accent, 0.55);
+  const ink = readableOn("#FFFFFF", darkest && luminance(darkest) < 0.5 ? darkest : shade(accent, 0.55));
+  const light = [...palette].filter(color => luminance(color) < 0.9).sort((a, b) => luminance(b) - luminance(a))[0] || accent;
+  const bodySurface = tint(light, 0.65);
   const onInk = readableOn(ink, "#FFFFFF");
   const onAccent = readableOn(accent, "#FFFFFF");
+  const fontCount = new Set(pairings.flatMap(p => [p.heading_font, p.body_font, p.accent_font].filter(Boolean))).size;
 
   const activeIndex = Math.min(index, Math.max(0, pairings.length - 1));
 
@@ -121,7 +124,10 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
     >
       <div className="font-specimen-header flex items-center justify-between gap-3 border-b pb-3" style={{ borderColor: `${ink}22` }}>
         <div className="min-w-0">
-          <div className="text-[15px] font-semibold" style={{ color: ink }}>Font pairing</div>
+          <div className="flex flex-wrap items-center gap-x-1 text-[15px] font-semibold" style={{ color: ink }}>
+            <span className="whitespace-nowrap">{fontCount} {fontCount === 1 ? "font" : "fonts"}</span><span aria-hidden="true">·</span>
+            <span className="whitespace-nowrap">{pairings.length} {pairings.length === 1 ? "pairing" : "pairings"}</span>
+          </div>
           <div className="flex items-center gap-2">
             <strong className="break-words text-[20px] leading-tight" style={{ color: ink }}>{p.name}</strong>
             {p.is_preferred && <Star className="h-4 w-4 shrink-0" style={{ color: ink, fill: accent }} aria-label="Everyday pairing" />}
@@ -157,40 +163,45 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
 
       {/* Put the identity next to the sample it describes. Each family name
           and campaign example renders in that family's actual saved weight. */}
-      <div className="font-specimen-sample flex flex-1 flex-col justify-center gap-4 py-4">
+      <div className="font-specimen-sample grid flex-1 auto-rows-fr gap-3 py-3">
         {[
           { role: "Heading", font: p.heading_font, weight: p.heading_weight, sample: p.sample_heading || gymName },
           { role: "Body", font: p.body_font, weight: p.body_weight, sample: p.sample_body || "Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm" },
           ...(p.accent_font ? [{ role: "Accent", font: p.accent_font, weight: p.accent_weight || "400", sample: "Aa Bb Cc 0123456789" }] : []),
-        ].map((face, faceIndex) => (
+        ].map(face => {
+          const isHeading = face.role === "Heading";
+          const surface = isHeading ? ink : bodySurface;
+          const text = isHeading ? "#FFFFFF" : readableOn(surface, ink);
+          return (
           <section key={face.role} data-font-role={face.role.toLowerCase()}
-            className={faceIndex ? "min-w-0 border-t pt-4" : "min-w-0"}
-            style={{ borderColor: `${ink}22` }} aria-label={`${face.role} font: ${face.font}`}>
-            <div className="mb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[15px] leading-snug">
-              <strong style={{ color: ink }}>{face.role} font</strong>
-              <span style={{ color: ink }}>{weightLabel(face.weight)}</span>
+            className="font-specimen-face relative min-w-0 rounded-xl border p-[clamp(12px,3cqi,16px)]"
+            style={{ background: surface, color: text, borderColor: isHeading ? ink : `${ink}35`, borderTop: `3px solid ${isHeading ? accent : light}`, boxShadow: `0 5px 12px -5px ${ink}66` }}
+            aria-label={`${face.role} font: ${face.font}`}>
+            <div className="font-specimen-face-label mb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[15px] leading-snug">
+              <strong>{face.role} font</strong>
+              <span>{weightLabel(face.weight)}</span>
             </div>
             <div className="mb-2 flex items-center justify-between gap-3">
               <div data-font-name className="min-w-0 break-words leading-tight"
-                style={{ fontFamily: `'${face.font}', sans-serif`, fontWeight: Number(face.weight), fontSize: "clamp(28px, 8cqi, 38px)", color: ink }}>
+                style={{ fontFamily: `'${face.font}', sans-serif`, fontWeight: Number(face.weight), fontSize: "clamp(28px, 8cqi, 38px)", color: text }}>
                 {face.font}
               </div>
               <button type="button" onClick={() => copy(`${face.font} ${face.weight}`, face.font)}
-                className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg hover:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{ background: `${ink}14`, color: ink }} aria-label={`Copy ${face.role.toLowerCase()} font: ${face.font}`} title={`Copy ${face.font}`}>
+                className="font-specimen-copy flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg hover:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{ background: isHeading ? "#FFFFFF" : ink, color: isHeading ? ink : "#FFFFFF" }} aria-label={`Copy ${face.role.toLowerCase()} font: ${face.font}`} title={`Copy ${face.font}`}>
                 <Copy className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
             <div data-font-example className="break-words"
-              style={{ fontFamily: `'${face.font}', sans-serif`, fontWeight: Number(face.weight), fontSize: face.role === "Heading" ? "clamp(24px, 6cqi, 32px)" : "clamp(17px, 4cqi, 19px)", lineHeight: face.role === "Heading" ? 1.2 : 1.5, textWrap: "pretty", color: ink }}>
+              style={{ fontFamily: `'${face.font}', sans-serif`, fontWeight: Number(face.weight), fontSize: isHeading ? "clamp(24px, 6cqi, 32px)" : "clamp(17px, 4cqi, 19px)", lineHeight: isHeading ? 1.2 : 1.5, textWrap: "pretty", color: text }}>
               {face.sample}
             </div>
             {face.role === "Heading" && <div className="mt-2 break-words tracking-wide"
-              style={{ fontFamily: `'${face.font}', sans-serif`, fontWeight: Number(face.weight), fontSize: "clamp(18px, 4.5cqi, 22px)", color: ink }}>
+              style={{ fontFamily: `'${face.font}', sans-serif`, fontWeight: Number(face.weight), fontSize: "clamp(18px, 4.5cqi, 22px)", color: text }}>
               ABCDEFGHIJKLM
             </div>}
           </section>
-        ))}
+        );})}
       </div>
       {p.sample_source && <p className="mb-3 border-l-2 pl-3 text-[15px] leading-snug" style={{ color: ink, borderColor: accent, textWrap: "pretty" }}>Email example: {p.sample_source}</p>}
 
