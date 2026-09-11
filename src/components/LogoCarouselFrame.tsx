@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import Autoplay from "embla-carousel-autoplay";
 import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
 import { Carousel, type CarouselApi } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 
 type LogoNavigation = { id: string; label: string; preview: ReactNode };
+const FIRST_ADVANCE_MS = 2200;
+const ROTATION_INTERVAL_MS = 4500;
 
 /** One motion lifecycle for the primary showcase and the gallery carousel. */
 export function LogoCarouselFrame({
@@ -28,14 +29,12 @@ export function LogoCarouselFrame({
   const [pageVisible, setPageVisible] = useState(!document.hidden);
   const [playing, setPlaying] = useState(false);
   const [timerKey, setTimerKey] = useState(0);
+  const [timerDuration, setTimerDuration] = useState(FIRST_ADVANCE_MS);
+  const nextDelayRef = useRef(FIRST_ADVANCE_MS);
+  const resetPlaybackRef = useRef<() => void>(() => {});
   const [reducedMotion, setReducedMotion] = useState(
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
-  const autoplay = useMemo(() => Autoplay({
-    delay: 6000, playOnInit: false, stopOnInteraction: true,
-    stopOnMouseEnter: false, stopOnFocusIn: false,
-  }), []);
-  const plugins = useMemo(() => [autoplay], [autoplay]);
   const options = useMemo(() => ({
     align: "center" as const, loop: true, containScroll: false as const,
     duration: reducedMotion ? 0 : contained ? 38 : 30,
@@ -63,15 +62,10 @@ export function LogoCarouselFrame({
   useEffect(() => {
     if (!api) return;
     const select = () => setSelected(api.selectedScrollSnap());
-    const play = () => setPlaying(true);
-    const stop = () => setPlaying(false);
-    const timer = () => setTimerKey(value => value + 1);
     api.on("select", select).on("reInit", select);
-    api.on("autoplay:play", play).on("autoplay:stop", stop).on("autoplay:timerset", timer);
     select();
     return () => {
       api.off("select", select).off("reInit", select);
-      api.off("autoplay:play", play).off("autoplay:stop", stop).off("autoplay:timerset", timer);
     };
   }, [api]);
 
@@ -95,7 +89,7 @@ export function LogoCarouselFrame({
     const distance = (i: number) => Math.min(Math.abs(i - from), total - Math.abs(i - from));
     const nearest = copies.reduce((best, i) => distance(i) < distance(best) ? i : best, copies[0]);
     api.scrollTo(nearest);
-    autoplay.reset();
+    resetPlaybackRef.current();
   };
 
   useEffect(() => {
@@ -163,15 +157,53 @@ export function LogoCarouselFrame({
   }, [api, contained, reducedMotion]);
 
   useEffect(() => {
-    if (!api) return;
-    const sync = () => {
-      if (paused || focused || dragging || reducedMotion || suspended || !visible || !pageVisible || api.scrollSnapList().length < 2) autoplay.stop();
-      else autoplay.play();
+    if (!api || paused || focused || dragging || reducedMotion || suspended || !visible || !pageVisible) {
+      setPlaying(false);
+      return;
+    }
+    let timer: number | undefined;
+    const clear = () => {
+      window.clearTimeout(timer);
+      timer = undefined;
     };
-    sync();
-    api.on("reInit", sync);
-    return () => { api.off("reInit", sync); autoplay.stop(); };
-  }, [api, autoplay, paused, focused, dragging, reducedMotion, suspended, visible, pageVisible]);
+    const schedule = (delay: number) => {
+      clear();
+      if (api.scrollSnapList().length < 2) {
+        setPlaying(false);
+        return;
+      }
+      setPlaying(true);
+      setTimerDuration(delay);
+      setTimerKey(value => value + 1);
+      timer = window.setTimeout(() => {
+        timer = undefined;
+        if (document.hidden) return;
+        if (api.canScrollNext()) api.scrollNext();
+        else api.scrollTo(0);
+      }, delay);
+    };
+    const next = () => {
+      nextDelayRef.current = ROTATION_INTERVAL_MS;
+      schedule(ROTATION_INTERVAL_MS);
+    };
+    const refresh = () => {
+      if (api.scrollSnapList().length < 2) {
+        clear();
+        setPlaying(false);
+      } else if (timer === undefined) schedule(nextDelayRef.current);
+    };
+    // Embla reinitializes when fonts, card sizes or the viewport change.
+    // Keep our existing deadline: restarting a plugin here postponed movement
+    // repeatedly while the signed-in layout settled.
+    resetPlaybackRef.current = next;
+    api.on("select", next).on("reInit", refresh);
+    schedule(nextDelayRef.current);
+    return () => {
+      clear();
+      resetPlaybackRef.current = () => {};
+      api.off("select", next).off("reInit", refresh);
+    };
+  }, [api, paused, focused, dragging, reducedMotion, suspended, visible, pageVisible]);
 
   const togglePlayback = () => { setFocused(false); setPaused(value => !value); };
 
@@ -180,7 +212,7 @@ export function LogoCarouselFrame({
       aria-label={contained ? "Primary logos" : "Logo gallery"}
       data-logo-carousel={contained ? "primary" : "gallery"}
       data-playing={playing} data-current-logo={current}
-      opts={options} plugins={plugins} setApi={setApi}
+      opts={options} setApi={setApi}
       onPointerDownCapture={(event) => {
         // Pointer focus on an arrow or thumbnail must not latch rotation off.
         setFocused(false);
@@ -211,7 +243,7 @@ export function LogoCarouselFrame({
         if (!slide) return;
         event.stopPropagation();
         api.scrollTo(api.slideNodes().indexOf(slide));
-        autoplay.reset();
+        resetPlaybackRef.current();
       }}
       onClick={(event) => {
         if (!api || !(event.target instanceof Element)) return;
@@ -235,13 +267,13 @@ export function LogoCarouselFrame({
               <strong>{String(current + 1).padStart(2, "0")}</strong><span aria-hidden="true"> / </span>{String(navigation.length).padStart(2, "0")}
             </span>
             <div className="primary-logo-buttons">
-              <button type="button" className="primary-logo-control" aria-label="Previous slide" onClick={() => { api?.scrollPrev(); autoplay.reset(); }}><ArrowLeft aria-hidden="true" /></button>
+              <button type="button" className="primary-logo-control" aria-label="Previous slide" onClick={() => { api?.scrollPrev(); resetPlaybackRef.current(); }}><ArrowLeft aria-hidden="true" /></button>
               {!reducedMotion && <button type="button" data-playback-control className="primary-logo-control primary-logo-playback"
                 aria-label={paused ? "Resume automatic logo rotation" : "Pause automatic logo rotation"} aria-pressed={paused} onClick={togglePlayback}>
-                <svg className="primary-logo-timer" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" /><circle key={timerKey} className="primary-logo-timer-progress" cx="22" cy="22" r="20" pathLength="100" style={{ animationPlayState: playing ? "running" : "paused" }} /></svg>
+                <svg className="primary-logo-timer" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" /><circle key={timerKey} className="primary-logo-timer-progress" cx="22" cy="22" r="20" pathLength="100" style={{ animationDuration: `${timerDuration}ms`, animationPlayState: playing ? "running" : "paused" }} /></svg>
                 {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
               </button>}
-              <button type="button" className="primary-logo-control" aria-label="Next slide" onClick={() => { api?.scrollNext(); autoplay.reset(); }}><ArrowRight aria-hidden="true" /></button>
+              <button type="button" className="primary-logo-control" aria-label="Next slide" onClick={() => { api?.scrollNext(); resetPlaybackRef.current(); }}><ArrowRight aria-hidden="true" /></button>
             </div>
           </div>
         </div>

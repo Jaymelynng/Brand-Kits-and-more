@@ -215,7 +215,7 @@ All colors MUST be HSL.
 .primary-logo-control:hover { background: #dceaf2; transform: translateY(-2px); }
 .primary-logo-control > svg { width: 18px; height: 18px; }
 .primary-logo-control > .primary-logo-timer { position: absolute; inset: -1px; width: 44px; height: 44px; transform: rotate(-90deg); fill: none; stroke: #ffffff50; stroke-width: 2; pointer-events: none; }
-.primary-logo-timer .primary-logo-timer-progress { stroke: #fff; stroke-dasharray: 100; stroke-dashoffset: 100; animation: logo-rotation-timer 6s linear forwards; }
+.primary-logo-timer .primary-logo-timer-progress { stroke: #fff; stroke-dasharray: 100; stroke-dashoffset: 100; animation: logo-rotation-timer linear forwards; }
 .primary-logo-thumbnail:focus-visible, .primary-logo-control:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
 @keyframes logo-rotation-timer { to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) {
