@@ -990,7 +990,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     basis = "md:basis-1/2 lg:basis-1/3",
     contained = false,
   ) => (
-                <div style={{ perspective: "3000px" }} className={cn("relative isolate w-full min-w-0 overflow-hidden", contained ? "primary-logo-stage flex flex-1 flex-col" : "py-8")}>
+                <div style={{ perspective: "3000px" }} className={cn("relative isolate w-full min-w-0 overflow-hidden", contained ? "primary-logo-stage flex flex-1 flex-col" : "gallery-logo-stage")}>
                   <LogoCarouselFrame
                     key={items.map(logo => logo.id).join(':')}
                     contained={contained}
@@ -999,13 +999,13 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       id: logo.id, label: logo.filename,
                       preview: <span className="flex h-full w-full items-center justify-center rounded-md" style={{ background: logoPreviewBackground(logo) }}><LogoMedia url={logo.file_url} alt="" className="h-full w-full object-contain p-1" /></span>,
                     })) : undefined}
-                    className={cn("w-full max-w-5xl mx-auto", contained ? "primary-logo-track flex flex-1 flex-col" : "px-16")}
+                    className={cn("w-full max-w-5xl mx-auto", contained ? "primary-logo-track flex flex-1 flex-col" : "gallery-logo-track")}
                   >
                     <CarouselContent viewportClassName={contained ? "flex min-w-0 flex-1" : undefined} className={contained ? "min-w-0 flex-1" : undefined}>
                       {items.map((logo, index) => (
                         <CarouselItem 
                           key={`${logo.id}-${index}`} 
-                          className={cn(basis, "flex")}
+                          className={cn(contained ? basis : "gallery-logo-slide", "flex")}
                           style={{
                             transformStyle: contained ? "flat" : "preserve-3d",
                           }}
@@ -1036,7 +1036,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 `,
                               }}
                             >
-                              <CardContent className={cn("flex h-full min-w-0 flex-col", contained ? "p-[clamp(12px,2cqi,20px)]" : "p-6")}>
+                              <CardContent className={cn("flex h-full min-w-0 flex-col", contained ? "p-[clamp(12px,2cqi,20px)]" : "gallery-logo-card-content")}>
                                 {/* Selection Checkbox */}
                                 {selectionMode && (
                                   <div className="absolute top-3 left-3 z-10">
@@ -1186,13 +1186,13 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       ))}
                     </CarouselContent>
                     {!contained && <><CarouselPrevious
-                      className={cn("bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg", contained ? "left-0" : "left-4")}
+                      className="gallery-logo-previous bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
                       style={{ 
                         boxShadow: `0 4px 12px ${primaryColor}50`
                       }}
                     />
                     <CarouselNext 
-                      className={cn("bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg", contained ? "right-0" : "right-4")}
+                      className="gallery-logo-next bg-background/95 border-gym-primary/40 text-foreground hover:bg-gym-primary/10 shadow-lg"
                       style={{ 
                         boxShadow: `0 4px 12px ${primaryColor}40`
                       }}
@@ -1988,7 +1988,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   />
                 )}
 
-                <div className="min-w-0 flex-1">
+                <div data-logo-results className="min-w-0 flex-1">
               {!filteredLogos.length && <div className="rounded-xl bg-white p-8 text-center text-slate-950"><p className="text-lg font-bold">No logos match these filters.</p><Button className="mt-3 cursor-pointer bg-slate-900 text-white hover:bg-slate-700" onClick={() => { setLogoSearch(''); setActiveCategories([]); setActiveTags([]); }}>Show active logos</Button></div>}
               {viewMode === 'variations' ? (
                 <VariationBrowser
@@ -2145,7 +2145,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   ))}
                 </div>
               ) : viewMode === 'list' ? (
-                <div className="space-y-4">
+                <div data-logo-list className="space-y-4">
                   {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 
@@ -2157,7 +2157,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       style={{ borderColor: `${primaryColor}35`, backgroundColor: '#ffffff' }}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
+                        <div className="logo-list-row flex items-center gap-4">
                           {/* Selection Checkbox */}
                           {selectionMode && (
                             <Checkbox
@@ -2169,7 +2169,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           
                           {/* Logo Thumbnail */}
                           <div 
-                            className="w-20 h-20 flex items-center justify-center rounded-lg border-2 border-gym-primary/35 flex-shrink-0"
+                            className="logo-list-image w-20 h-20 flex items-center justify-center rounded-lg border-2 border-gym-primary/35 flex-shrink-0"
                             style={{ backgroundColor: logoPreviewBackground(logo) }}
                           >
                             <LogoMedia
@@ -2181,7 +2181,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           </div>
                           
                           {/* Logo Info */}
-                          <div className="flex-1 min-w-0">
+                          <div className="logo-list-info flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
                               <div className="text-lg font-bold text-foreground flex-1 min-w-0">
                                 {isAdmin ? <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} /> : <button onClick={() => setExpandedLogo(logo)} className="block w-full cursor-zoom-in break-words text-left text-[15px] leading-snug hover:underline">{logo.filename.replace(/\.(png|jpe?g|webp|gif|svg|mp4|webm)$/i, '')}</button>}
@@ -2199,7 +2199,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           </div>
                           
                           {/* Action Buttons */}
-                          <div className="flex gap-2">
+                          <div className="logo-list-actions flex flex-wrap gap-2">
                             <Button
                               onClick={() => downloadLogo(logo.file_url, logo.filename)}
                               size="sm"
@@ -2212,6 +2212,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                             
                             <Button
                               onClick={() => copyUrl(logo.file_url)}
+                              aria-label={`Copy URL for ${logo.filename}`}
                               size="sm"
                               variant="outline"
                               className="bg-background/85 border-gym-primary/35 hover:bg-gym-primary/12"
@@ -2260,7 +2261,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   ))}
                 </div>
               ) : (
-                <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+                <div data-logo-masonry className="gap-6 space-y-6">
                   {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 

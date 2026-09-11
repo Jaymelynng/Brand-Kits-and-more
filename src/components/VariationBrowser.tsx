@@ -65,22 +65,24 @@ export const VariationBrowser = ({
   const hasAlpha = active.has_alpha as boolean | undefined;
 
   return (
-    <div className="rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
+    <div data-logo-variations className="min-w-0 rounded-2xl border bg-white p-4 shadow-sm sm:p-5">
       {/* The stage */}
       <div
-        className="relative flex min-h-[280px] items-center justify-center rounded-xl p-8 transition-colors duration-300 sm:min-h-[360px]"
+        className="flex flex-col items-center gap-3 rounded-xl p-3 transition-colors duration-300 sm:p-4"
         style={{ background: stageBg }}
       >
-        <LogoMedia
-          key={active.id}
-          url={active.file_url}
-          alt={active.filename}
-          className="max-h-[240px] max-w-full object-contain sm:max-h-[300px]"
-        />
+        <div className="flex h-[clamp(160px,45cqi,260px)] w-full min-w-0 items-center justify-center">
+          <LogoMedia
+            key={active.id}
+            url={active.file_url}
+            alt={active.filename}
+            className="h-full max-w-full object-contain"
+          />
+        </div>
         <style>{`@keyframes varIn{0%{opacity:0;transform:scale(0.97)}100%{opacity:1;transform:scale(1)}}`}</style>
 
         {/* what this file actually is, measured */}
-        <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
+        <div className="flex w-full flex-wrap gap-1.5">
           {w && h && (
             <span className="rounded-full bg-black/65 px-2.5 py-1 text-[15px] font-bold text-white">
               {w} × {h}
@@ -97,15 +99,16 @@ export const VariationBrowser = ({
         </div>
 
         {/* pick the ground */}
-        <div className="absolute right-3 top-3 flex gap-1 rounded-lg bg-black/55 p-1 backdrop-blur-sm">
+        <div className="order-first flex self-end gap-1 rounded-lg bg-black/65 p-1">
           {GROUNDS.map((g) => (
             <button
               key={g.key}
               onClick={() => setGround(g.key)}
-              className="rounded px-2.5 py-1 text-[15px] font-extrabold transition-colors"
+              aria-pressed={ground === g.key}
+              className="min-h-11 cursor-pointer rounded px-2.5 py-1 text-[15px] font-extrabold transition-colors hover:brightness-90"
               style={{
                 background: ground === g.key ? "#FFFFFF" : "transparent",
-                color: ground === g.key ? "#0B1119" : "#E2E8F0",
+                color: ground === g.key ? "#0B1119" : "#FFFFFF",
               }}
             >
               {g.label}
@@ -116,8 +119,8 @@ export const VariationBrowser = ({
 
       {/* What it is, and what to do with it */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="truncate text-sm font-bold text-foreground" title={active.filename}>
+        <div className="w-full min-w-0">
+          <div className="break-words text-[15px] font-bold text-foreground" title={active.filename}>
             {active.filename}
           </div>
           {active.colorway && (
@@ -132,7 +135,7 @@ export const VariationBrowser = ({
             </div>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="variation-actions flex w-full flex-wrap gap-2">
           <button
             onClick={() => onCopy(active.file_url)}
             className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[15px] font-bold hover:bg-muted"
@@ -169,6 +172,8 @@ export const VariationBrowser = ({
                     key={l.id}
                     onClick={() => setActiveId(l.id)}
                     title={l.filename}
+                    aria-label={`Preview ${l.filename}`}
+                    aria-pressed={on}
                     className="flex h-14 w-16 items-center justify-center rounded-lg p-1 transition-all duration-150"
                     style={{
                       background: ground === "dark" ? "#0B1119" : "#FFFFFF",

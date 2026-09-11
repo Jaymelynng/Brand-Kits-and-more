@@ -38,7 +38,7 @@ export function BrandExamples({ code, ink, accent }: { code: string; ink: string
           <DialogTitle className="text-2xl">Brand in use</DialogTitle>
           <DialogDescription className="mt-1 text-[15px] text-slate-950">Adapted from sent campaigns. Design references, not live offers.</DialogDescription>
         </div>
-        <DialogClose asChild><button aria-label="Close examples" className="absolute right-0 top-0 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg hover:brightness-90" style={{ backgroundColor: ink, color: '#FFFFFF' }}><X size={19} /></button></DialogClose>
+        <DialogClose asChild><button aria-label="Close examples" className="absolute right-0 top-0 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg hover:brightness-90" style={{ backgroundColor: ink, color: '#FFFFFF' }}><X size={19} /></button></DialogClose>
         <div className="mt-4 grid grid-cols-3 gap-2" role="group" aria-label="Choose a design example">
           {examples.map((example, i) => <Button key={example.id} aria-pressed={index === i}
             onClick={() => { setIndex(i); setImageError(false); }}

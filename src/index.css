@@ -226,6 +226,42 @@ All colors MUST be HSL.
 
 /* The same kit on a phone: a complete hero, direct section access, and a
    compact library. Desktop keeps its existing overview and 60/40 showcase. */
+/* Gallery views respond to their panel, including space used by the category rail. */
+.gym-profile [data-logo-results] { container: logo-results / inline-size; }
+.gym-profile [data-logo-masonry] { columns: 240px; }
+.gym-profile .gallery-logo-stage { padding: 8px 0 72px; }
+.gym-profile .gallery-logo-track { padding-inline: 4px; }
+.gym-profile .gallery-logo-slide { flex-basis: min(100%, max(260px, 33.333%)); }
+.gym-profile .gallery-logo-card-content { padding: clamp(12px, 2cqi, 20px); }
+.gym-profile .gallery-logo-card-content .mt-auto > button { min-height: 44px; height: auto; white-space: normal; }
+.gym-profile[data-public-kit="true"] .gallery-logo-card-content > .absolute.bottom-3 { display: none; }
+.gym-profile[data-public-kit="false"] .gallery-logo-card-content > .absolute.bottom-3 { top: 12px; bottom: auto; left: 12px; right: auto; width: 44px; height: 44px; }
+.gym-profile .gallery-logo-previous,
+.gym-profile .gallery-logo-next {
+  top: auto; bottom: -56px; transform: none; width: 44px; height: 44px; cursor: pointer;
+}
+.gym-profile .gallery-logo-previous { left: 4px; }
+.gym-profile .gallery-logo-next { left: 56px; right: auto; }
+.gym-profile .gallery-logo-track > [data-playback-control] { bottom: -56px; right: 4px; min-height: 44px; font-size: 15px; }
+.gym-profile .logo-list-actions { flex-shrink: 0; }
+.gym-profile .logo-list-actions > button { min-width: 44px; min-height: 44px; cursor: pointer; }
+.gym-profile .variation-actions > button {
+  flex: 1 1 110px; min-width: 0; min-height: 44px; justify-content: center; cursor: pointer;
+}
+[data-logo-preview] button, [data-graphic-preview] button { min-width: 44px; min-height: 44px; }
+@container logo-results (max-width: 680px) {
+  .gym-profile .logo-list-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; }
+  .gym-profile .logo-list-row > [role="checkbox"] { grid-column: 1 / -1; }
+  .gym-profile .logo-list-image { width: 64px; height: 64px; }
+  .gym-profile .logo-list-info > div { flex-direction: column; align-items: flex-start; margin-bottom: 0; }
+  .gym-profile .logo-list-actions { grid-column: 1 / -1; }
+  .gym-profile .logo-list-actions > button:first-child { flex: 1; }
+}
+@container logo-results (max-width: 340px) {
+  .gym-profile [data-logo-variations] { padding: 12px; }
+  .gym-profile .variation-actions svg { display: none; }
+}
+
 .kit-mobile-navigation { display: none; }
 @media (max-width: 1023px) {
   .gym-profile .kit-hero-video {

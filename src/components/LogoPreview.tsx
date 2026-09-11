@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, Check, Copy, Download, Loader2, RotateCcw } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, ArrowRight, Check, Copy, Download, Loader2, RotateCcw, X } from 'lucide-react';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import type { GymLogo } from '@/hooks/useGyms';
 import { fetchAssetFile, inspectAsset, assetFilename, saveDownload, type AssetInfo } from '@/lib/assetFiles';
@@ -55,20 +55,27 @@ export function LogoPreview<T extends PreviewAsset>({ logo, logos, palette, onCh
         objectUrl = URL.createObjectURL(blob); setFile({ blob, info, url: objectUrl });
       } catch (e) { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'This file could not be opened.'); }
     })();
-    selectedThumb.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const thumb = selectedThumb.current;
+    const strip = thumb?.parentElement;
+    if (thumb && strip) {
+      const thumbRect = thumb.getBoundingClientRect();
+      const stripRect = strip.getBoundingClientRect();
+      strip.scrollLeft += thumbRect.left - stripRect.left - (strip.clientWidth - thumb.clientWidth) / 2;
+    }
     return () => { controller.abort(); if (objectUrl) URL.revokeObjectURL(objectUrl); };
   }, [logo.id, logo.file_url, logo.filename, retry]);
 
   return <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
-    <DialogContent data-activity-asset={logo.filename} data-logo-preview={kind === 'logo' ? '' : undefined} data-graphic-preview={kind === 'graphic' ? '' : undefined} className="z-[100] max-h-[94dvh] w-[calc(100%_-_24px)] max-w-5xl grid-cols-[minmax(0,1fr)] gap-0 overflow-y-auto rounded-2xl border-2 bg-white p-0 text-slate-950 shadow-2xl [&>button]:rounded-full [&>button]:bg-slate-900 [&>button]:p-2 [&>button]:text-white [&>button]:opacity-100"
+    <DialogContent data-activity-asset={logo.filename} data-logo-preview={kind === 'logo' ? '' : undefined} data-graphic-preview={kind === 'graphic' ? '' : undefined} className="z-[100] max-h-[94dvh] w-[calc(100%_-_24px)] max-w-5xl grid-cols-[minmax(0,1fr)] gap-0 overflow-y-auto rounded-2xl border-2 bg-white p-0 text-slate-950 shadow-2xl [&>button]:hidden"
       style={{ borderColor: accent }}
       onKeyDown={event => {
         if ((event.target as HTMLElement).closest('input,textarea,select,video')) return;
         if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); step(event.key === 'ArrowRight' ? 1 : -1); }
       }}>
-      <div className="px-4 pb-3 pt-5 pr-16 sm:px-6 sm:pr-16">
+      <div className="sticky top-0 z-20 bg-white px-4 pb-3 pt-5 pr-16 sm:px-6 sm:pr-16">
         <DialogDescription className="mb-1 text-[15px] font-semibold text-slate-700">{logo.variant || 'Uncategorized'}{index >= 0 && ` · ${index + 1} of ${logos.length}`}</DialogDescription>
         <DialogTitle className="break-words text-lg font-bold leading-snug sm:text-2xl">{logo.filename.replace(/\.(png|jpe?g|webp|gif|svg|mp4|webm)$/i, '')}</DialogTitle>
+        <DialogClose asChild><button aria-label="Close preview" className="absolute right-3 top-3 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-700"><X className="h-5 w-5" /></button></DialogClose>
       </div>
       <div className={`relative mx-3 flex items-center justify-center rounded-xl border border-slate-300 py-4 sm:mx-6 ${kind === 'graphic' ? 'min-h-[140px] px-3' : 'h-[clamp(180px,36dvh,440px)] px-12 sm:px-16'}`} style={{ background: ground }} data-preview-stage>
         {!file && !error && <span role="status" className="flex items-center gap-2 rounded-lg bg-white p-3 text-[15px] text-slate-950"><Loader2 className="h-5 w-5 animate-spin" />Loading original…</span>}

@@ -74,7 +74,7 @@ export function LogoCarouselFrame({
     };
   }, [api]);
 
-  const current = navigation.length ? selected % navigation.length : 0;
+  const current = navigation.length ? selected % navigation.length : selected;
   useEffect(() => {
     // Scroll only the thumbnail strip, never the page around the showcase.
     const strip = stripRef.current;
