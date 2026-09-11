@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy, Trash2, Download, Plus, Check, AlertTriangle, X, MessageSquare, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
-import JSZip from "jszip";
+import { assetFilename, fetchAssetFile, safeFilename, saveDownload } from '@/lib/assetFiles';
 
 interface AssetModalProps {
   open: boolean;
@@ -196,25 +196,20 @@ const AssetModal = ({ open, onOpenChange, assetId }: AssetModalProps) => {
     if (assigned.length === 0) return;
     setDownloading(true);
     try {
+      const { default: JSZip } = await import('jszip');
       const zip = new JSZip();
-      await Promise.all(assigned.map(async (row) => {
-        try {
-          const res = await fetch(row.fileUrl);
-          const blob = await res.blob();
-          const ext = row.fileUrl.split('.').pop()?.split('?')[0] || 'png';
-          zip.file(`${row.gym.code}_${assetName || 'asset'}.${ext}`, blob);
-        } catch {}
-      }));
+      for (let offset = 0; offset < assigned.length; offset += 4) {
+        await Promise.all(assigned.slice(offset, offset + 4).map(async (row) => {
+          const name = `${row.gym.code}_${assetName || 'asset'}`;
+          const blob = await fetchAssetFile(row.fileUrl, name);
+          zip.file(assetFilename(name, blob), blob);
+        }));
+      }
       const blob = await zip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${assetName || 'asset'}_all_gyms.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
+      saveDownload(blob, `${safeFilename(assetName || 'asset')}_all_gyms.zip`);
       toast({ description: "ZIP downloaded!" });
-    } catch {
-      toast({ description: "Download failed", variant: "destructive" });
+    } catch (error) {
+      toast({ description: error instanceof Error ? error.message : 'Download failed. No archive was saved.', variant: "destructive" });
     } finally {
       setDownloading(false);
     }

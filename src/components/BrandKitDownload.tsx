@@ -10,7 +10,8 @@ import { BrandExamples } from './BrandExamples';
 
 export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
   const fonts = useFontPairings(gym.id);
-  const inventory = useGyms();
+  // The page already loads inventory. Refresh explicitly only when exporting.
+  const inventory = useGyms({ enabled: false });
   const [working, setWorking] = useState<'zip' | 'pdf' | 'logo' | null>(null);
   const [status, setStatus] = useState('');
   const { toast } = useToast();

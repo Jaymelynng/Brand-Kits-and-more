@@ -5,7 +5,6 @@ import type { GymLogo } from "@/hooks/useGyms";
 import { useGyms, useSetMainLogo, useUploadLogo, useDeleteLogo, useUploadElement, useDeleteElement, useUpdateElementType, useUpdateGymColor, useAddGymColor, useUpdateGymInfo, useRenameLogo, useRenameElement } from "@/hooks/useGyms";
 import { InlineRename } from "@/components/shared/InlineRename";
 import { useGymAssets, useAssetCategories } from "@/hooks/useAssets";
-import { HeroVideoManager } from "@/components/HeroVideoManager";
 import { useAuth } from "@/hooks/useAuth";
 import { Settings, MapPin, Phone, Mail, Globe, ExternalLink, ClipboardList, Facebook, Instagram } from "lucide-react";
 
@@ -23,20 +22,18 @@ import { LogoMedia } from "@/components/LogoMedia";
 import { FontSpecimen } from "@/components/FontSpecimen";
 import { BrandElements } from '@/components/BrandElements';
 import { BrandKitDownload } from "@/components/BrandKitDownload";
-import { LogoOrderEditor } from "@/components/LogoOrderEditor";
 import { isActiveLogo } from "@/lib/logoOrder";
 import { contrast, describeColor, luminance, shade } from "@/lib/shade";
 import { logoUsage } from "@/lib/brandExamples";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { lazy, Suspense, useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { cn, scrollToSection } from "@/lib/utils";
 import { GymColorProvider } from "@/components/shared/GymColorProvider";
 import { BrandCard, BrandCardHeader, BrandCardContent, BrandCardTitle } from "@/components/shared/BrandCard";
 import { ColorSwatch } from "@/components/shared/ColorSwatch";
-import { AssetRenamer } from "@/components/AssetRenamer";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HeroVideoBackground } from "@/components/HeroVideoBackground";
 import { assetFilename, downloadLogoArchive, fetchAssetFile, saveDownload } from '@/lib/assetFiles';
@@ -46,10 +43,14 @@ import { HeroLogo } from "@/components/HeroLogo";
 import { VariationBrowser } from "@/components/VariationBrowser";
 import { useSecretTap } from "@/hooks/useSecretTap";
 import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
-import AssetModal from "@/components/AssetModal";
 import { Pencil } from "lucide-react";
 import { useLogoCategories, useBulkSetLogoCategory } from "@/hooks/useLogoCategories";
 import { useLogoTags, useToggleLogoTag, useBulkToggleLogoTag } from "@/hooks/useLogoTags";
+
+const AssetModal = lazy(() => import('@/components/AssetModal'));
+const AssetRenamer = lazy(() => import('@/components/AssetRenamer').then(module => ({ default: module.AssetRenamer })));
+const HeroVideoManager = lazy(() => import('@/components/HeroVideoManager').then(module => ({ default: module.HeroVideoManager })));
+const LogoOrderEditor = lazy(() => import('@/components/LogoOrderEditor').then(module => ({ default: module.LogoOrderEditor })));
 
 interface GymProfileProps {
   /** Solo mode: a shareable single-gym page with no way into the rest of the app. */
@@ -1344,6 +1345,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 <SheetTitle className="text-lg font-bold">Hero Video — {gym.name}</SheetTitle>
               </SheetHeader>
               <div className="mt-6">
+                <Suspense fallback={<p role="status">Loading editor…</p>}>
                 <HeroVideoManager
                   gymId={gym.id}
                   gymName={gym.name}
@@ -1351,6 +1353,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   currentVideoUrl={gym.hero_video_url || null}
                   primaryColor={primaryColor}
                 />
+                </Suspense>
               </div>
             </SheetContent>
           </Sheet>
@@ -2638,7 +2641,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
 
       {/* Asset Renamer Modal */}
-      {gym && (
+      {isAdmin && showRenamer && (
+        <Suspense fallback={<p role="status">Loading editor…</p>}>
         <AssetRenamer
           open={showRenamer}
           onClose={() => setShowRenamer(false)}
@@ -2654,6 +2658,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
             });
           }}
         />
+        </Suspense>
       )}
 
       {expandedLogo && <LogoPreview logo={gym.logos.find(l => l.id === expandedLogo.id) || expandedLogo}
@@ -2723,9 +2728,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
 
       {/* Asset Modal */}
-      {isAdmin && orderEditor && <LogoOrderEditor gymId={gym.id} gymCode={gym.code} allLogos={gym.logos} logos={orderEditor.logos}
-        label={orderEditor.label} ink={showcaseInk} accent={primaryColor} onClose={() => setOrderEditor(null)} />}
-      <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />
+      <Suspense fallback={<p role="status">Loading editor…</p>}>
+        {isAdmin && orderEditor && <LogoOrderEditor gymId={gym.id} gymCode={gym.code} allLogos={gym.logos} logos={orderEditor.logos}
+          label={orderEditor.label} ink={showcaseInk} accent={primaryColor} onClose={() => setOrderEditor(null)} />}
+        {isAdmin && assetModalOpen && <AssetModal open={assetModalOpen} onOpenChange={setAssetModalOpen} assetId={selectedAssetId} />}
+      </Suspense>
       <KitActivityTracker gymId={gym.id} enabled={!authLoading && !isAdminUser} token={session?.access_token} />
     </div>
     </GymColorProvider>

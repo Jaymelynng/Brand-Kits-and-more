@@ -57,7 +57,7 @@ Settings → **Kit Activity** reports visits, labeled button clicks, opened logo
 
 Collection starts when this feature is deployed; historical visits cannot be recovered. The public kit and working gym pages record anonymous activity, except signed-in administrators. A session ID lives in session storage, expires after 30 minutes of inactivity and is not a person identifier. No names, emails, input values, full user agents, query strings or referrer URLs are collected. Events record only gym, action/item label, server timestamp, temporary session ID, coarse device type and gateway IP. Direct Storage URLs, offline PDFs and actions blocked by privacy tools are outside coverage. A prepared download means a file was handed to the browser, not that it was saved or read.
 
-`record-kit-activity` requires the project's JWT and accepts only the two production site origins. It validates each event, ignores client-supplied IP fields and reads only the managed Supabase Cloudflare gateway's `cf-connecting-ip`. Missing addresses stay unavailable. No events or IPs can be read through that endpoint. The database writer is service-role-only; reporting and table reads require the current admin role. Atomic limits allow 120 requests per network address per minute and 3,000 globally; duplicate event IDs cannot produce duplicate rows. Known preview bots, Do Not Track and Global Privacy Control are excluded. **Usage & privacy** on gym pages explains collection and offers a browser opt-out.
+`record-kit-activity` requires the project's JWT and accepts only the two production site origins. It validates each event, ignores client-supplied IP fields and reads only the managed Supabase Cloudflare gateway's `cf-connecting-ip`. Missing addresses stay unavailable. No events or IPs can be read through that endpoint. The database writer is service-role-only; reporting and table reads require the current admin role. Atomic limits allow 120 requests per network address per minute and 3,000 globally; duplicate event IDs cannot produce duplicate rows. Known preview bots, Do Not Track and Global Privacy Control are excluded. The collector also honors an existing browser opt-out. There is no activity notice or opt-out control in the public kit interface.
 
 Activity reports cover the last 30 days. The `prune-kit-activity` database cron job deletes older rows and expired rate counters daily. IPs never appear on the public kit. The rate-counter table deliberately has RLS with no browser policies. `tests/kit-activity-access.sql` verifies role boundaries, pagination, date filters, rate limits and deduplication inside a transaction that rolls back all fixtures. The Edge Function and migration must be deployed before the frontend. Disabling the collector can never block previews or downloads; delivery is best effort.
 
@@ -111,17 +111,20 @@ Add `--resume .backups/storage/manifests/FILE.json` to reuse verified unchanged 
 
 ## Development and deployment
 
-React 18, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query and Supabase.
+Node 22, React 18, TypeScript, Vite 7, React Router 7, Tailwind, shadcn/ui, TanStack Query and Supabase.
+
+The public kit is available in the initial bundle. Working routes and editing dialogs load on demand; closed administrative dialogs do not fetch data on the share page. ZIP and PDF libraries load when exporting. `PageBoundary` catches rendering and lazy-import failures and provides an explicit reload action instead of leaving an empty page.
 
 ```sh
 npm ci
 npm run dev
+npm run audit:dependencies
 npm run check
 ```
 
 Vite serves port 8080. Commit and push reviewed changes to `main`; Vercel deploys the connected repository. Confirm the resulting deployment is ready for that exact commit and recheck the public share route. Supabase migrations and Edge Functions are separate deployments and must be applied before dependent frontend code.
 
-`npm run check` runs TypeScript, automated download/security/backup tests and the production build. GitHub runs the same checks on pushes to `main` and pull requests, with read-only repository permissions and actions pinned to commit hashes. These checks report failures; they do not currently block a Vercel deployment or require pull requests.
+`npm run check` runs TypeScript, automated download/security/backup tests and the production build. GitHub runs the same checks plus a dependency audit on pushes to `main` and pull requests, with read-only repository permissions and actions pinned to commit hashes. High or critical dependency advisories fail the audit. These checks report failures; they do not currently block a Vercel deployment or require pull requests.
 
 Use the administrative SQL connection to run `tests/brandKit-access.sql` and `tests/brandKit-rate-limit.sql` after migrations. They exercise public/non-admin/admin boundaries, atomic display selection and PIN throttling inside transactions that roll back all fixtures.
 

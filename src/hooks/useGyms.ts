@@ -84,9 +84,10 @@ export const useSaveLogoOrder = () => {
   });
 };
 
-export const useGyms = () => {
+export const useGyms = ({ enabled = true }: { enabled?: boolean } = {}) => {
   return useQuery({
     queryKey: ['gyms'],
+    enabled,
     queryFn: async (): Promise<GymWithColors[]> => {
       // Each table is paged in a stable order. A later-page failure rejects the whole snapshot.
       const [gyms, colors, logos, elements, tagRows, tagDefs] = await Promise.all([
