@@ -43,7 +43,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
   const onInk = readableOn(ink, "#FFFFFF");
   const onAccent = readableOn(accent, "#FFFFFF");
 
-  const p: FontPairing | undefined = pairings[index];
+  const activeIndex = Math.min(index, Math.max(0, pairings.length - 1));
 
   const copy = (text: string, what: string) =>
     copyText(text).then(ok =>
@@ -78,10 +78,10 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
     </Sheet>
   );
 
-  if (!p) {
+  if (!pairings.length) {
     return (
       <div
-        className="flex flex-col items-center justify-center rounded-2xl p-6 text-center"
+        className="flex flex-1 flex-col items-center justify-center rounded-2xl p-6 text-center"
         style={{ background: ink, color: onInk, minHeight: 260 }}
       >
         <Type className="mb-2 h-6 w-6" style={{ color: accent }} />
@@ -92,9 +92,18 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
   }
 
   return (
+    // Overlapping grid cells reserve the tallest pairing's natural height.
+    // Hidden pairings still size the card, but cannot be seen or tabbed into.
+    <div className="grid min-w-0 flex-1 md:py-9" data-font-specimen>
+    {pairings.map((p: FontPairing, panelIndex) => (
     <div
-      className="flex flex-col rounded-2xl p-5"
+      key={p.id}
+      data-font-pairing={p.id}
+      data-active={panelIndex === activeIndex}
+      aria-hidden={panelIndex !== activeIndex}
+      className="col-start-1 row-start-1 flex min-w-0 flex-col rounded-2xl p-5"
       style={{
+        visibility: panelIndex === activeIndex ? "visible" : "hidden",
         containerType: "inline-size",
         // The card behind this is already the gym's dark tone, so a dark panel
         // on it was invisible - the same colour as its own background. White
@@ -105,7 +114,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         boxShadow: `0 10px 30px rgba(0,0,0,0.28), inset 0 0 0 2px ${accent}`,
       }}
     >
-      <div className="mb-2 flex items-center gap-2">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
         <span
           className="text-[10px] font-extrabold uppercase tracking-widest"
           style={{ color: accent }}
@@ -131,7 +140,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
             <span className="text-[10px] font-bold tabular-nums" style={{ color: ink, opacity: 0.7 }}>
-              {index + 1}/{pairings.length}
+              {panelIndex + 1}/{pairings.length}
             </span>
             <button
               onClick={() => setIndex(i => (i + 1) % pairings.length)}
@@ -148,7 +157,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
 
       {/* Size type against this column, and balance the saved email copy
           without inserting hard line breaks that fail at another width. */}
-      <div className="flex flex-col gap-3 py-1">
+      <div className="flex flex-col gap-3 pb-4 pt-1">
         <div
           className="break-words leading-[1.02]"
           style={{
@@ -176,7 +185,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         </div>
         {/* The alphabet, which is what a specimen is actually for. */}
         <div
-          className="tracking-wide"
+          className="break-all tracking-wide"
           style={{
             fontFamily: `'${p.heading_font}', sans-serif`,
             fontWeight: Number(p.heading_weight),
@@ -204,7 +213,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
       </div>
 
       {/* Names and controls, compact, under the sample. */}
-      <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t pt-2.5" style={{ borderColor: `${ink}22` }}>
+      <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t pt-2.5" style={{ borderColor: `${ink}22` }}>
         <button
           onClick={() => copy(`${p.heading_font} ${p.heading_weight}`, p.heading_font)}
           className="rounded-full px-2.5 py-1 text-[11px] font-bold"
@@ -244,6 +253,8 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
           {canEdit && editor}
         </div>
       </div>
+    </div>
+    ))}
     </div>
   );
 };

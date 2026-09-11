@@ -67,12 +67,12 @@ export const CategoryRail = ({
 
   return (
     <div
-      className="sticky shrink-0 self-start rounded-2xl bg-white p-3"
+      className="w-full min-w-0 shrink-0 self-start rounded-2xl bg-white p-3 md:sticky md:w-[202px]"
+      data-category-rail
       style={{
         // The rail is tall, so it needs far less help than the row did - but
         // sticking it under the gym strip keeps it in reach on a long gallery.
         top: "calc(var(--strip-h, 96px) + 8px)",
-        width: 202,
         boxShadow: "0 20px 60px rgba(0,0,0,0.30), 0 8px 20px rgba(0,0,0,0.20)",
       }}
     >
@@ -83,7 +83,7 @@ export const CategoryRail = ({
         Categories
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
 
         {categories.map(c => {
           const on = activeCategories.includes(c.name);
@@ -95,7 +95,7 @@ export const CategoryRail = ({
               title={c.name === "Uncategorized"
                 ? (c.count ? `${c.count} waiting to be filed` : "Nothing waiting — everything is filed")
                 : undefined}
-              className="flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-[14px] leading-tight transition-all duration-150 active:translate-y-[2px]"
+              className="flex w-auto shrink-0 items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-[14px] leading-tight transition-all duration-150 active:translate-y-[2px] md:w-full"
               style={row(on, waiting)}
             >
               <span className="min-w-0 truncate">{c.name}</span>
@@ -111,7 +111,7 @@ export const CategoryRail = ({
 
         <button
           onClick={onClearCategories}
-          className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[14px] transition-all duration-150 active:translate-y-[2px]"
+          className="flex w-auto shrink-0 items-center justify-between rounded-xl px-3 py-2 text-left text-[14px] transition-all duration-150 active:translate-y-[2px] md:w-full"
           style={row(activeCategories.length === 0, false)}
         >
           All

@@ -1047,22 +1047,22 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     basis = "md:basis-1/2 lg:basis-1/3",
     contained = false,
   ) => (
-                <div style={{ perspective: "3000px" }} className="relative isolate w-full min-w-0 overflow-hidden py-8">
+                <div style={{ perspective: "3000px" }} className={cn("relative isolate w-full min-w-0 overflow-hidden py-8", contained && "flex flex-1 flex-col")}>
                   <LogoCarouselFrame
                     contained={contained}
-                    className="w-full max-w-5xl mx-auto px-16"
+                    className={cn("w-full max-w-5xl mx-auto px-16", contained && "flex flex-1 flex-col")}
                   >
-                    <CarouselContent>
+                    <CarouselContent viewportClassName={contained ? "flex min-w-0 flex-1" : undefined} className={contained ? "min-w-0 flex-1" : undefined}>
                       {items.map((logo, index) => (
                         <CarouselItem 
                           key={`${logo.id}-${index}`} 
-                          className={basis}
+                          className={cn(basis, "flex")}
                           style={{
                             transformStyle: "preserve-3d",
                           }}
                         >
                           <div 
-                            className="p-1"
+                            className="flex w-full min-w-0 p-1"
                             style={{
                               transformStyle: "preserve-3d",
                             }}
@@ -1071,7 +1071,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                               data-card
                               {...dragPropsFor(logo)}
                               className={cn(
-                                "relative shadow-2xl transition-all duration-700 border-2",
+                                "relative flex h-full w-full min-w-0 flex-col shadow-2xl transition-all duration-700 border-2",
                                 !selectionMode && "cursor-zoom-in",
                                 selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                               )}
@@ -1086,7 +1086,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 `,
                               }}
                             >
-                              <CardContent className="p-6">
+                              <CardContent className="flex h-full min-w-0 flex-col p-6">
                                 {/* Selection Checkbox */}
                                 {selectionMode && (
                                   <div className="absolute top-3 left-3 z-10">
@@ -1132,7 +1132,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 
                                 {/* Logo Display with 3D effect */}
                                 <div 
-                                  className="aspect-[4/3] flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
+                                  className="aspect-[4/3] w-full min-h-0 shrink-0 overflow-hidden flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
                                   style={{ 
                                     backgroundColor: logoPreviewBackground(logo),
                                   }}
@@ -1141,7 +1141,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                     url={logo.file_url}
                                     onContrast={(preferDark) => rememberLogoContrast(logo.file_url, preferDark)}
                                     alt={logo.filename}
-                                    className="max-w-full max-h-full object-contain p-4"
+                                    className="h-full w-full object-contain p-4"
                                   />
                                 </div>
                                 
@@ -1151,7 +1151,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 </div>
                                 
                                 {/* Action Buttons */}
-                                <div className="flex flex-col gap-2">
+                                <div className="mt-auto flex flex-col gap-2">
                                   <Button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -1396,7 +1396,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
           </Sheet>
 
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-8 max-w-6xl mx-auto" data-brand-overview>
+          <div className="grid grid-cols-1 items-stretch md:grid-cols-2 gap-4 lg:gap-8 max-w-6xl mx-auto" data-brand-overview>
             {/* Left Column: Logo + Brand Assets Stats */}
             <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
               <BrandCardContent className="p-6">
@@ -1665,15 +1665,15 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   {/* 60 / 40. Fonts used to be their own full-width slab, which
                       pushed the logos below the fold - the thing she opens the
                       kit for sat behind a wall of type. */}
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start">
-                    <div className="min-w-0 md:w-[60%]">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-stretch" data-brand-showcase>
+                    <div className="flex min-w-0 flex-col md:w-[60%]">
                       <CardTitle className="mb-2 text-2xl text-white">Primary logos</CardTitle>
                       {/* Half-width slides, not thirds: in the narrower column
                           thirds shrank the cards until the buttons stopped
                           being readable. */}
                       {renderCarousel(reel, "basis-4/5 lg:basis-1/2", true)}
                     </div>
-                    <div className="min-w-0 md:w-[40%]">
+                    <div className="flex min-w-0 flex-col md:w-[40%]">
                       {/* The carousel was titled and the type was not, so
                           nothing on screen said the panel beside it was the
                           brand's fonts. */}
@@ -1985,7 +1985,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               </Sheet>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4">
+              <div className="flex flex-col gap-4 md:flex-row">
                 {/* Categories live down the side now - a column stays beside
                     the logos where a row of pills wrapped and scrolled away. */}
                 {logoCategories.length > 0 && (
@@ -2025,18 +2025,18 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
               ) : viewMode === 'carousel' ? (
                 renderCarousel(filteredLogos)
               ) : viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid auto-rows-fr grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" data-logo-grid>
                   {filteredLogos.map((logo) => (
                     <Card 
                       key={logo.id} 
                       {...dragPropsFor(logo)}
                       className={cn(
-                        "relative border-2 shadow-lg hover:shadow-xl transition-all duration-300",
+                        "relative h-full min-w-0 border-2 shadow-lg hover:shadow-xl transition-all duration-300",
                         selectionMode && selectedLogos.has(logo.id) && "ring-4 ring-gym-primary"
                       )}
                       style={{ borderColor: `${primaryColor}35`, backgroundColor: '#ffffff' }}
                     >
-                      <CardContent className="p-6">
+                      <CardContent className="flex h-full min-w-0 flex-col p-6">
                         {/* Selection Checkbox */}
                         {selectionMode && (
                           <div className="absolute top-3 left-3 z-10">
@@ -2082,14 +2082,14 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         
                         {/* Logo Display */}
                         <div 
-                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
+                          className="aspect-square w-full min-h-0 shrink-0 overflow-hidden flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner"
                           style={{ backgroundColor: logoPreviewBackground(logo) }}
                         >
                           <LogoMedia
                                     url={logo.file_url}
                                     onContrast={(preferDark) => rememberLogoContrast(logo.file_url, preferDark)}
                                     alt={logo.filename}
-                                    className="max-w-full max-h-full object-contain p-4"
+                                    className="h-full w-full object-contain p-4"
                                   />
                         </div>
                         
@@ -2099,7 +2099,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         </div>
                         
                         {/* Action Buttons */}
-                        <div className="flex flex-col gap-2">
+                        <div className="mt-auto flex flex-col gap-2">
                           <Button
                             onClick={() => downloadLogo(logo.file_url, logo.filename)}
                             size="sm"
@@ -2405,9 +2405,9 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
         {gym.elements && gym.elements.length > 0 ? (
           <Card className="bg-white shadow-2xl mb-8 border-2" style={{ borderColor: `${primaryColor}50`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle className="text-2xl">📦 Brand Elements ({gym.elements.length} files)</CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     onClick={() => setShowElementUpload(!showElementUpload)}
                     variant="outline"
@@ -2453,10 +2453,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
             </CardHeader>
             <CardContent>
               {elementViewMode === 'grid' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid auto-rows-fr grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {gym.elements.map((element) => (
-                    <Card key={element.id} className="relative bg-white border-2 shadow-lg hover:shadow-xl transition-all duration-300" style={{ borderColor: `${primaryColor}35` }}>
-                      <CardContent className="p-6">
+                    <Card key={element.id} className="relative h-full min-w-0 bg-white border-2 shadow-lg hover:shadow-xl transition-all duration-300" style={{ borderColor: `${primaryColor}35` }}>
+                      <CardContent className="flex h-full min-w-0 flex-col p-6">
                         <div 
                           className="absolute top-3 right-3 text-white text-xs px-3 py-1.5 rounded-full font-bold capitalize"
                           style={{ backgroundColor: primaryColor }}
@@ -2465,7 +2465,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                         </div>
                         
                         <div 
-                          className="aspect-square flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner bg-background/80"
+                          className="aspect-square w-full min-h-0 shrink-0 overflow-hidden flex items-center justify-center mb-4 rounded-xl border-2 border-gym-primary/35 shadow-inner bg-background/80"
                         >
                           {element.svg_data.startsWith('http') ? (
                             <img 
@@ -2488,7 +2488,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                           />
                         </div>
                         
-                        <div className="flex flex-col gap-2">
+                        <div className="mt-auto flex flex-col gap-2">
                           <Select 
                             value={element.element_type} 
                             onValueChange={(value) => handleUpdateElementType(element.id, value)}
