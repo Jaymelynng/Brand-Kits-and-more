@@ -1368,13 +1368,13 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
           {/* Two Column Layout: Logo + Stats on Left, Colors on Right */}
           <div className="grid grid-cols-1 items-stretch md:grid-cols-2 gap-[clamp(16px,2vw,32px)] max-w-6xl mx-auto" data-brand-overview>
             {/* Left Column: Logo + Brand Assets Stats */}
-            <BrandCard variant="hero" style={{ borderColor: `${primaryColor}35`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
-              <BrandCardContent className="p-[clamp(12px,1.5vw,24px)]">
+            <BrandCard variant="hero" className="flex flex-col" style={{ borderColor: `${primaryColor}35`, boxShadow: `0 12px 40px -8px ${primaryColor}35, 0 4px 16px rgba(0,0,0,0.08)` }}>
+              <BrandCardContent className="flex flex-1 flex-col p-[clamp(12px,1.5vw,24px)]">
                 {/* Main Logo Showcase */}
                 {mainLogo && (
-                  <div className="flex flex-col items-center">
+                  <div className="flex grow flex-col items-center">
                     <div 
-                      className="kit-display-logo flex items-center justify-center w-full rounded-2xl border-2 shadow-inner"
+                      className="kit-display-logo flex grow items-center justify-center w-full rounded-2xl border-2 shadow-inner"
                       style={{
                         height: 'clamp(200px, 18vw, 300px)',
                         background: 'linear-gradient(145deg, #fafafa 0%, #f0f0f0 100%)',
@@ -1423,7 +1423,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
             {/* Right Column: Brand Colors */}
             <div>
-              <BrandCard id="brand-colors" variant="hero" className="h-full scroll-mt-28" style={{ borderColor: `${primaryColor}25` }}>
+              <BrandCard id="brand-colors" variant="hero" className="flex h-full flex-col scroll-mt-28" style={{ borderColor: `${primaryColor}25` }}>
                 <BrandCardHeader className="pb-4">
                   <BrandCardTitle className="flex items-center justify-between text-xl">
                     🎨 Brand Colors
@@ -1458,7 +1458,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     </div>
                   </BrandCardTitle>
                 </BrandCardHeader>
-                <BrandCardContent className="pt-0">
+                <BrandCardContent className="flex flex-1 flex-col pt-0">
                   <div className={cn("kit-color-list space-y-3", isEditingColors && "is-editing")}>
                     {gym.colors.map((color) => (
                       <ColorSwatch

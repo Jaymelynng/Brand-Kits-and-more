@@ -280,10 +280,10 @@ All colors MUST be HSL.
 .gym-profile .kit-asset-stats button { padding: 8px; border-radius: 12px; }
 .gym-profile .kit-asset-stats button > div:first-child { font-size: 24px; line-height: 1.1; }
 .gym-profile #brand-colors { container: brand-colors / inline-size; }
-.gym-profile .kit-color-list:not(.is-editing) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.gym-profile .kit-color-list:not(.is-editing) { display: grid; flex: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 12px; }
 .gym-profile .kit-color-list:not(.is-editing) > * { margin: 0; }
-.gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding: 12px; }
-.gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] > div:first-child { width: 44px; height: 44px; border-radius: 10px; }
+.gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] { display: grid; grid-template-columns: clamp(44px, 12cqi, 72px) minmax(0, 1fr); grid-template-rows: minmax(44px, 1fr) auto; gap: 10px; padding: 12px; }
+.gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] > div:first-child { width: 100%; height: 100%; min-height: 44px; border-radius: 10px; }
 .gym-profile .kit-color-list:not(.is-editing) [data-color-label] > div { font-size: 15px; color: #111827; }
 .gym-profile .kit-color-list:not(.is-editing) [data-color-controls] { grid-column: 1 / -1; width: 100%; }
 .gym-profile .kit-color-list:not(.is-editing) [data-color-controls] button { flex: 1; min-height: 44px; font-size: 15px; cursor: pointer; }
@@ -295,8 +295,8 @@ All colors MUST be HSL.
 }
 .gym-profile #logo-gallery, .gym-profile #brand-colors, .gym-profile #brand-fonts, .gym-profile #brand-elements { scroll-margin-top: calc(var(--strip-h, 110px) + 76px); }
 @container brand-colors (max-width: 430px) {
-  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] { grid-template-columns: 1fr; }
-  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] > div:first-child { width: 100%; height: 40px; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] { grid-template-columns: 1fr; grid-template-rows: minmax(44px, 1fr) auto auto; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] > div:first-child { width: 100%; height: 100%; }
 }
 @media (max-width: 1023px) {
   .gym-profile .kit-hero-video { display: block; }

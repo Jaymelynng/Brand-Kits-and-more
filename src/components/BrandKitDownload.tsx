@@ -79,9 +79,6 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
           PDF guide
         </Button>
       </div>
-      <p className="mt-2 text-center text-[15px] leading-snug text-slate-950" data-kit-contents>
-        {gym.logos.filter(isActiveLogo).length} logos · {gym.elements.length} {collectionName} · Fonts &amp; colors
-      </p>
       <BrandExamples code={gym.code} ink={darkFill} accent={accent} />
       <p role="status" aria-live="polite" className={status ? 'mt-2 text-sm leading-relaxed text-slate-950' : 'sr-only'}>
         {status}
