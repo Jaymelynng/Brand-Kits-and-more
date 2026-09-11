@@ -12,8 +12,9 @@ Brand libraries for independently branded gyms, with a shared dashboard for bulk
 - **`/`** is the dashboard: responsive gym cards, selection, bulk copying of colors or logo links, and per-gym profile, copy and download actions.
 - **`/gym/:gymCode`** includes the gym navigation. Authorized administrators can upload, rename, categorize, tag, reorder, change the display logo and edit fonts or colors.
 - The primary carousel supports thumbnails, arrows, dragging and pause/resume. Rotation pauses during inspection, while offscreen, behind a preview, and when the tab is hidden. Reduced-motion preference disables automatic rotation and depth animation.
-- Preview opens the original image or animation and measures its dimensions, format and transparency. Preview background selection does not change the downloaded file.
-- The public gallery excludes Retired and Needs review artwork. Retired database rows are also hidden by RLS from non-admins. These visibility rules do not revoke previously shared public storage URLs.
+- The gallery's Browse kit rail links directly to graphics, colors and fonts. Graphics provides return links to the other sections. Section jumps preserve the page and move keyboard focus to the destination; reduced-motion preference disables smooth scrolling.
+- Preview opens the original image or animation and measures its dimensions, format and transparency. Graphics use the same viewer with email and phone preview widths, light/dark and palette backgrounds, original downloads and next/previous navigation. Previews scale down when the screen is narrower than the requested width. Preview choices do not change the downloaded file.
+- The public gallery excludes Retired and Needs review artwork and hides empty categories. Administrators keep empty filing categories. Retired database rows are also hidden by RLS from non-admins. These visibility rules do not revoke previously shared public storage URLs.
 
 ## Downloads
 

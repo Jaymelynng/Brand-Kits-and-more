@@ -1614,7 +1614,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       {/* A continuous width avoids the old 80% to 50% jump. */}
                       {renderCarousel(reel, "primary-logo-slide", true)}
                     </div>
-                    <div className="flex min-w-0 flex-col">
+                    <div id="brand-fonts" className="flex min-w-0 scroll-mt-28 flex-col">
                       {/* The carousel was titled and the type was not, so
                           nothing on screen said the panel beside it was the
                           brand's fonts. */}
@@ -1965,6 +1965,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       if (selectionMode) setSelectedLogos(new Set());
                     }}
                     solo={solo}
+                    sections={[
+                      ...(gym.elements.length || isAdmin ? [{ id: 'brand-elements', label: 'Dividers & graphics', count: gym.elements.length }] : []),
+                      { id: 'brand-colors', label: 'Colors' },
+                      ...(activeLogos.some(l => l.variant === 'Primary logos') ? [{ id: 'brand-fonts', label: 'Fonts' }] : []),
+                    ]}
                   />
                 )}
 
@@ -2635,7 +2640,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
       {expandedLogo && <LogoPreview logo={gym.logos.find(l => l.id === expandedLogo.id) || expandedLogo}
         logos={filteredLogos.some(l => l.id === expandedLogo.id) ? filteredLogos : activeLogos}
-        palette={gym.colors.map(c => c.color_hex)} onChoose={setExpandedLogo} onClose={() => setExpandedLogo(null)}>
+        palette={gym.colors.map(c => c.color_hex)} onChoose={asset => setExpandedLogo(gym.logos.find(logo => logo.id === asset.id) || null)} onClose={() => setExpandedLogo(null)}>
         {isAdmin && <div className="flex flex-wrap gap-2 border-t pt-3" aria-label="Edit logo tags">
           {logoTags.map(tag => {
             const live = gym.logos.find(l => l.id === expandedLogo.id) || expandedLogo;

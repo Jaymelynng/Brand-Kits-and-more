@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { Download, Copy, Grid3X3, Rows3, Columns, Plus, Trash2, Moon, Sun, Loader2 } from 'lucide-react';
+import { Download, Copy, Grid3X3, Rows3, Columns, Plus, Trash2, Moon, Sun, Loader2, Eye, ArrowUp } from 'lucide-react';
 import type { GymElement, GymWithColors } from '@/hooks/useGyms';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InlineRename } from '@/components/shared/InlineRename';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, scrollToSection } from '@/lib/utils';
+import { LogoPreview, type PreviewAsset } from '@/components/LogoPreview';
 import { contrast, luminance } from '@/lib/shade';
 import { copyText } from '@/lib/copyText';
 import { elementFilename, elementSource, elementTypes, isInlineSvg, loadElementFile } from '@/lib/brandElements';
 import { safeFilename, saveDownload } from '@/lib/brandKit';
+import { isActiveLogo } from '@/lib/logoOrder';
 
 interface Props {
   gym: GymWithColors;
@@ -26,6 +28,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
   const [filter, setFilter] = useState('all');
   const [darkPreview, setDarkPreview] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const { toast } = useToast();
   const accent = gym.colors[0]?.color_hex || '#111827';
   const ink = [...gym.colors].sort((a, b) => luminance(a.color_hex) - luminance(b.color_hex))[0]?.color_hex || '#111827';
@@ -33,6 +36,11 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
   const accentText = contrast(accent, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111';
   const types = [...new Set(gym.elements.map(e => e.element_type))];
   const visible = filter === 'all' ? gym.elements : gym.elements.filter(e => e.element_type === filter);
+  const previewAssets: PreviewAsset[] = visible.map(element => ({
+    id: element.id, filename: elementFilename(element), file_url: elementSource(element), variant: element.element_type,
+  }));
+  const preview = previewAssets.find(asset => asset.id === previewId);
+  const previewElement = visible.find(element => element.id === previewId);
   const buttonClass = 'h-10 min-w-0 cursor-pointer px-2 text-[15px] font-semibold shadow-sm hover:brightness-90';
   const actionStyle = { backgroundColor: accent, color: accentText };
   const secondaryStyle = { backgroundColor: darkFill, color: '#FFFFFF' };
@@ -65,8 +73,13 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
   };
 
   if (!gym.elements.length && !isAdmin) return null;
-  return <Card id="brand-elements" data-brand-elements className="mb-8 scroll-mt-24 border-2 bg-white shadow-xl" style={{ borderColor: `${accent}65` }}>
+  return <><Card id="brand-elements" data-brand-elements className="mb-8 scroll-mt-24 border-2 bg-white shadow-xl" style={{ borderColor: `${accent}65` }}>
     <CardHeader className="gap-3 p-4 sm:p-6 sm:pb-4">
+      <nav aria-label="Browse from graphics" className="flex flex-wrap gap-2">
+        {[...(gym.logos.some(isActiveLogo) || isAdmin && gym.logos.length ? [{ id: 'logo-gallery', label: 'Logos' }] : []), { id: 'brand-colors', label: 'Brand colors' },
+          ...(gym.logos.some(logo => logo.variant === 'Primary logos') ? [{ id: 'brand-fonts', label: 'Fonts' }] : [])].map(section =>
+          <Button key={section.id} onClick={() => scrollToSection(section.id)} className={buttonClass} style={secondaryStyle}><ArrowUp className="mr-1 h-4 w-4" />{section.label}</Button>)}
+      </nav>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <CardTitle className="text-2xl text-slate-950">Dividers &amp; graphics <span className="text-base font-medium">({gym.elements.length})</span></CardTitle>
         <div className="flex flex-wrap gap-2">
@@ -96,9 +109,11 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
       {!gym.elements.length ? <p className="text-base text-slate-950">Add dividers, banners, backgrounds or icons to this kit.</p> :
         <div data-graphic-view={view} className={cn(view === 'strip' ? 'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4' : 'grid auto-rows-fr gap-4', view === 'grid' && 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3')}>
           {visible.map(element => <article key={element.id} data-element-id={element.id} className={cn('flex min-w-0 flex-col rounded-xl border-2 bg-white p-4 shadow-md', view === 'strip' && 'w-[min(90%,440px)] shrink-0 snap-start', view === 'list' && 'sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-5')} style={{ borderColor: `${accent}55` }}>
-            <div className="flex h-28 w-full min-w-0 items-center justify-center overflow-hidden rounded-lg border border-slate-300 p-2" style={{ backgroundColor: darkPreview ? darkFill : '#FFFFFF' }}>
+            <button type="button" aria-label={`Preview graphic: ${element.display_name || element.element_type}`} onClick={() => setPreviewId(element.id)}
+              className="group relative flex h-28 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-300 p-2 transition-shadow hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2" style={{ backgroundColor: darkPreview ? darkFill : '#FFFFFF' }}>
               <img src={elementSource(element)} alt={element.display_name || element.element_type} className="max-h-full w-full object-contain" loading="lazy" />
-            </div>
+              <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full px-2 py-1 text-[15px] font-semibold shadow-md" style={secondaryStyle}><Eye className="h-4 w-4" />Preview</span>
+            </button>
             <div className="flex min-w-0 flex-1 flex-col">
               <h3 className="my-3 break-words text-base font-bold text-slate-950">
                 {isAdmin ? <InlineRename value={element.display_name || element.element_type} onSave={name => onRename(element.id, name)} /> : element.display_name || element.element_type}
@@ -122,5 +137,10 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
           </article>)}
         </div>}
     </CardContent>
-  </Card>;
+  </Card>
+    {preview && previewElement && <LogoPreview logo={preview} logos={previewAssets} kind="graphic"
+      palette={gym.colors.map(color => color.color_hex)} onChoose={asset => setPreviewId(asset.id)} onClose={() => setPreviewId(null)}
+      copyValue={isInlineSvg(previewElement.svg_data) ? previewElement.svg_data : new URL(previewElement.svg_data, window.location.origin).href}
+      copyLabel={isInlineSvg(previewElement.svg_data) ? 'Copy SVG' : 'Copy URL'} />}
+  </>;
 }

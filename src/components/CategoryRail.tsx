@@ -1,6 +1,7 @@
 import { CheckSquare, ChevronDown, ChevronUp, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { shade, readableOn, luminance, tint } from "@/lib/shade";
+import { shade, readableOn, luminance, tint, contrast } from "@/lib/shade";
+import { scrollToSection } from "@/lib/utils";
 
 interface CategoryRailProps {
   categories: { name: string; count: number }[];
@@ -15,6 +16,7 @@ interface CategoryRailProps {
   onToggleSelection: () => void;
   /** A share link must not offer a way back into the rest of the app. */
   solo?: boolean;
+  sections?: { id: string; label: string; count?: number }[];
 }
 
 /**
@@ -29,12 +31,12 @@ interface CategoryRailProps {
  */
 export const CategoryRail = ({
   categories, activeCategories, onToggleCategory, onClearCategories, total, palette,
-  isAdmin, selectionMode, onToggleSelection, solo = false,
+  isAdmin, selectionMode, onToggleSelection, solo = false, sections = [],
 }: CategoryRailProps) => {
   const navigate = useNavigate();
   const accent = palette[0] || "#41505F";
   const darkest = [...palette].sort((a, b) => luminance(a) - luminance(b))[0];
-  const ink = darkest && luminance(darkest) < 0.5 ? darkest : shade(accent, 0.55);
+  const ink = darkest && contrast(darkest, '#FFFFFF') >= 4.5 ? darkest : shade(accent, 0.65);
   const onInk = readableOn(ink, "#FFFFFF");
   const onAccent = readableOn(accent, "#FFFFFF");
 
@@ -77,28 +79,41 @@ export const CategoryRail = ({
       }}
     >
       <div
-        className="mb-2 px-1 text-[11px] font-extrabold uppercase tracking-wider"
-        style={{ color: tint(ink, 0.35) }}
+        className="mb-3 px-1 text-[15px] font-extrabold"
+        style={{ color: ink }}
       >
-        Categories
+        Browse kit
       </div>
+
+      <nav aria-label="Kit sections" className="mb-3 grid grid-cols-2 gap-2 pb-2">
+        {sections.map(section => <button key={section.id} type="button"
+          onClick={() => scrollToSection(section.id)}
+          className="flex min-h-10 cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-[15px] font-bold shadow-md transition-[filter] hover:brightness-125"
+          style={{ background: ink, color: '#FFFFFF', gridColumn: section.count !== undefined ? '1 / -1' : undefined }}>
+          <span>{section.label}</span>
+          {section.count !== undefined && <span className="rounded-full bg-white px-2 text-[13px]" style={{ color: ink }}>{section.count}</span>}
+        </button>)}
+      </nav>
+
+      <div className="mb-2 px-1 text-[15px] font-bold" style={{ color: ink }}>Logos</div>
 
       <div className="flex gap-2 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
 
-        {categories.map(c => {
+        {categories.filter(c => isAdmin || c.count > 0).map(c => {
           const on = activeCategories.includes(c.name);
           const waiting = c.name === "Uncategorized" && c.count > 0;
           return (
             <button
               key={c.name}
+              aria-pressed={on}
               onClick={() => onToggleCategory(c.name)}
               title={c.name === "Uncategorized"
                 ? (c.count ? `${c.count} waiting to be filed` : "Nothing waiting — everything is filed")
                 : undefined}
-              className="flex w-auto shrink-0 items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-[14px] leading-tight transition-all duration-150 active:translate-y-[2px] md:w-full"
+              className="flex w-auto shrink-0 cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-[15px] leading-tight transition-all duration-150 hover:brightness-95 active:translate-y-[2px] md:w-full"
               style={row(on, waiting)}
             >
-              <span className="min-w-0 truncate">{c.name}</span>
+              <span className="min-w-0">{c.name}</span>
               <span
                 className="inline-flex min-w-[26px] shrink-0 items-center justify-center rounded-full px-1.5 py-0.5 text-[12px] font-black tabular-nums"
                 style={chip(on, waiting)}
@@ -111,10 +126,11 @@ export const CategoryRail = ({
 
         <button
           onClick={onClearCategories}
-          className="flex w-auto shrink-0 items-center justify-between rounded-xl px-3 py-2 text-left text-[14px] transition-all duration-150 active:translate-y-[2px] md:w-full"
+          aria-pressed={activeCategories.length === 0}
+          className="flex w-auto shrink-0 cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-left text-[15px] transition-all duration-150 hover:brightness-95 active:translate-y-[2px] md:w-full"
           style={row(activeCategories.length === 0, false)}
         >
-          All active
+          All logos
           <span
             className="ml-2 inline-flex min-w-[26px] items-center justify-center rounded-full px-1.5 py-0.5 text-[12px] font-black tabular-nums"
             style={chip(activeCategories.length === 0, false)}
