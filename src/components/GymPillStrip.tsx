@@ -103,6 +103,8 @@ export const GymPillStrip = ({
   return (
     <div
       ref={stripRef}
+      role="region"
+      aria-label="Gym logos"
       className="sticky top-0 z-50 flex flex-nowrap overflow-x-auto items-center justify-start gap-x-2 gap-y-2 px-4 py-3 sm:flex-wrap sm:overflow-visible sm:justify-center"
       style={{
         background: `linear-gradient(180deg, #1B222B 0%, ${SHELL} 60%, #10151B 100%)`,
@@ -132,7 +134,7 @@ export const GymPillStrip = ({
         </div>
       )}
 
-      {!isDashboard && (
+      {!isDashboard && !readOnly && (
         <div
           onClick={() => { if (!readOnly) navigate("/"); }}
           className="flex flex-1 cursor-pointer flex-col items-stretch gap-1"
@@ -271,8 +273,12 @@ export const GymPillStrip = ({
             {/* Code label — click to jump to that gym */}
             <button
               onClick={(e) => handleCodeClick(e, gym.code)}
-              title={isDashboard ? `Scroll to ${gym.code}` : `Go to ${gym.code}`}
-              className="rounded-full py-1 text-center text-[15px] font-extrabold leading-none tracking-[0.05em] transition-transform duration-150 hover:scale-105"
+              disabled={readOnly}
+              title={readOnly ? gym.name : isDashboard ? `Scroll to ${gym.code}` : `Go to ${gym.code}`}
+              className={cn(
+                "rounded-full py-1 text-center text-[15px] font-extrabold leading-none tracking-[0.05em] transition-transform duration-150",
+                readOnly ? "cursor-default" : "hover:scale-105"
+              )}
               style={{
                 // Always filled. The halo on the tile above already says what is
                 // picked, so the label does not need to carry state too - it

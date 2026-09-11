@@ -8,7 +8,7 @@ Brand libraries for independently branded gyms, with a shared dashboard for bulk
 
 ## Sharing and workflow
 
-- **`/kit/:gymCode`** is the external share page. It shows that gym's colors, primary-logo carousel, actual font specimens, gallery, graphics and downloads without navigation to other gyms. TIGAR: [`/kit/TIG`](https://gym-brand-kits.vercel.app/kit/TIG).
+- **`/kit/:gymCode`** is the external share page. The top strip shows every gym's logo, with the current gym highlighted. The strip is display-only on share pages, so visitors stay on the linked gym's colors, primary-logo carousel, actual font specimens, gallery, graphics and downloads. Home and administrator tools remain on the working pages. TIGAR: [`/kit/TIG`](https://gym-brand-kits.vercel.app/kit/TIG).
 - **`/`** is the dashboard: responsive gym cards, selection, bulk copying of colors or logo links, and per-gym profile, copy and download actions.
 - **`/gym/:gymCode`** includes the gym navigation. Authorized administrators can upload, rename, categorize, tag, reorder, change the display logo and edit fonts or colors.
 - The primary carousel supports thumbnails, arrows, dragging and pause/resume. Rotation pauses during inspection, while offscreen, behind a preview, and when the tab is hidden. Reduced-motion preference disables automatic rotation and depth animation.

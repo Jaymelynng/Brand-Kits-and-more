@@ -1201,7 +1201,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
   return (
     <GymColorProvider primaryColor={primaryColor} secondaryColor={secondaryColor}>
-      {!solo && <div className="sticky top-0 z-50"><GymPillStrip /></div>}
+      <div className="sticky top-0 z-50"><GymPillStrip readOnly={solo} /></div>
       <div 
         className="min-h-screen"
         style={{
