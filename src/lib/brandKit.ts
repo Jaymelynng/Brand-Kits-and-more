@@ -117,7 +117,7 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
   }));
   const notes: string[] = [];
   if (!pairings.length) notes.push('No font pairings are saved for this gym.');
-  if (!logos.some(l => l.logo.variant === 'Primary logos' && l.format === 'SVG')) notes.push('No SVG master is saved in Primary logos. A verified vector master is still needed for large signs, embroidery or other production that requires vector artwork.');
+  if (!logos.some(l => l.logo.variant === 'Primary logos' && l.format === 'SVG')) notes.push('No SVG master is included in Primary logos. Confirm artwork and color requirements with your production supplier. Embroidery requires a separate digitized stitch file.');
   fonts.filter(f => !f.blob).forEach(f => notes.push(`${f.family} ${f.weight}: use the source link in Fonts; its installable file is not bundled.`));
   return { gym, pairings, logos, elements, examples, presentation, fonts, palette, created: new Date().toISOString(),
     url: `${location.origin}/kit/${encodeURIComponent(gym.code)}`, notes };

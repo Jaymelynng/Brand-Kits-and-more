@@ -216,7 +216,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     ['Colors/', 'Exact HEX/RGB values, CSS variables, JSON and a GIMP-compatible palette.'],
     ...(kit.elements.length ? [['Graphics/', `${kit.elements.length} original dividers and graphics. All remain available, including treatments not featured here.`]] : []),
     ...(kit.examples.length ? [['Examples/', `${kit.examples.length} adapted compositions, with source dates and usage notes. Design references only.`]] : []),
-    ['Contents.json', 'The complete file inventory with dimensions, source references and integrity hashes.'],
+    ['Contents.json', 'Artwork inventory with dimensions and verification checksums.'],
   ];
   let y = 155;
   included.forEach(([name, description]) => {
