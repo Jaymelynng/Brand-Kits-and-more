@@ -762,7 +762,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     tabIndex: 0,
     onKeyDown: (e: React.KeyboardEvent) => {
       if (e.target !== e.currentTarget) return;
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectionMode ? toggleLogoSelection(logo.id) : setExpandedLogo(logo); }
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        if (selectionMode) toggleLogoSelection(logo.id);
+        else setExpandedLogo(logo);
+      }
     },
     // Hitting Select turns the whole card into the target. Requiring a small
     // checkbox meant aiming at a few pixels on a big picture, which took
@@ -960,7 +964,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
     
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
     
     if (max !== min) {
       const d = max - min;
@@ -1255,10 +1260,10 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
           {/* Hero Video or Compact Hero Header */}
           {gym.hero_video_url ? (
-            <HeroVideoBackground videoUrl={gym.hero_video_url} title={gym.name} accent={primaryColor} posterUrl={mainLogo?.file_url} overlayOpacity={(gym as any).hero_includes_logo ? 0.12 : 0.5}>
+            <HeroVideoBackground videoUrl={gym.hero_video_url} title={gym.name} accent={primaryColor} posterUrl={mainLogo?.file_url} overlayOpacity={gym.hero_includes_logo ? 0.12 : 0.5}>
               {/* If the mark is already composited into the video, painting
                   another one over it just doubles the logo. */}
-              {(gym as any).hero_includes_logo ? (
+              {gym.hero_includes_logo ? (
                 <div className="h-full w-full" onClick={onSecretTap} />
               ) : (
                 <HeroLogo
@@ -1834,7 +1839,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     ] as const).map(([key, Icon, label]) => (
                       <button
                         key={key}
-                        onClick={() => setViewMode(key as any)}
+                        onClick={() => setViewMode(key)}
                         title={label}
                         aria-label={label}
                         aria-pressed={viewMode === key}

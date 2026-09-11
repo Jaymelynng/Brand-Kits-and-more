@@ -8,6 +8,7 @@ export interface Gym {
   name: string;
   code: string;
   hero_video_url?: string | null;
+  hero_includes_logo?: boolean;
   address?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -113,8 +114,8 @@ export const useGyms = ({ enabled = true }: { enabled?: boolean } = {}) => {
         // a correction is made once - but a gym that sets its own colours still
         // wins, which is how a deliberate exception stays visible as one.
         const own = colors.filter(color => color.gym_id === gym.id);
-        const family = (gym as any).brand_id
-          ? colors.filter(color => (color as any).brand_id === (gym as any).brand_id)
+        const family = gym.brand_id
+          ? colors.filter(color => color.brand_id === gym.brand_id)
           : [];
         return {
           ...gym,

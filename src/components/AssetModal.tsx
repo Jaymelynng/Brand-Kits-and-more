@@ -68,9 +68,9 @@ const AssetModal = ({ open, onOpenChange, assetId }: AssetModalProps) => {
     
     if (asset) {
       setAssetName(asset.filename);
-      setAssetDescription((asset as any).description || "");
+      setAssetDescription(asset.description || "");
       setAssetTypeId(asset.asset_type_id);
-      setIsAllGyms((asset as any).is_all_gyms || false);
+      setIsAllGyms(asset.is_all_gyms || false);
     }
 
     const { data: assignments } = await supabase
@@ -81,7 +81,7 @@ const AssetModal = ({ open, onOpenChange, assetId }: AssetModalProps) => {
     if (assignments) {
       const urls: Record<string, string> = {};
       const assigned: Record<string, boolean> = {};
-      assignments.forEach((a: any) => {
+      assignments.forEach((a) => {
         urls[a.gym_id] = a.file_url || "";
         assigned[a.gym_id] = true;
       });
@@ -132,7 +132,7 @@ const AssetModal = ({ open, onOpenChange, assetId }: AssetModalProps) => {
         description: assetDescription,
         asset_type_id: assetTypeId,
         is_all_gyms: isAllGyms,
-      } as any)
+      })
       .eq('id', assetId);
     if (error) {
       toast({ description: "Failed to save", variant: "destructive" });
@@ -151,7 +151,7 @@ const AssetModal = ({ open, onOpenChange, assetId }: AssetModalProps) => {
     if (gymAssigned[gymId]) {
       await supabase
         .from('gym_asset_assignments')
-        .update({ file_url: url } as any)
+        .update({ file_url: url })
         .eq('asset_id', assetId)
         .eq('gym_id', gymId);
     }
@@ -164,7 +164,7 @@ const AssetModal = ({ open, onOpenChange, assetId }: AssetModalProps) => {
     if (checked) {
       await supabase
         .from('gym_asset_assignments')
-        .insert({ asset_id: assetId, gym_id: gymId, file_url: gymUrls[gymId] || "" } as any);
+        .insert({ asset_id: assetId, gym_id: gymId, file_url: gymUrls[gymId] || "" });
     } else {
       await supabase
         .from('gym_asset_assignments')
@@ -324,7 +324,7 @@ const AssetModal = ({ open, onOpenChange, assetId }: AssetModalProps) => {
                           if (row.isAssigned && assetId) {
                             supabase
                               .from('gym_asset_assignments')
-                              .update({ file_url: gymUrls[row.gym.id] || "" } as any)
+                              .update({ file_url: gymUrls[row.gym.id] || "" })
                               .eq('asset_id', assetId)
                               .eq('gym_id', row.gym.id);
                           }

@@ -31,6 +31,7 @@ export function trackKitActivity(kind: ActivityKind, label: string) {
   if (!context || activityOptedOut() || !import.meta.env.PROD) return;
   try {
     const body = { id: crypto.randomUUID(), gym_id: context.gymId, session_id: sessionId(),
+      // eslint-disable-next-line no-control-regex -- Intentionally remove control characters from event labels.
       event_kind: kind, label: label.replace(/[\x00-\x1f]/g, ' ').trim().slice(0,240), page_path: context.path };
     void fetch(`${SUPABASE_URL}/functions/v1/record-kit-activity`, {
       method: 'POST', keepalive: true,

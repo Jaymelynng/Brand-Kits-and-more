@@ -113,7 +113,7 @@ Add `--resume .backups/storage/manifests/FILE.json` to reuse verified unchanged 
 
 Node 22, React 18, TypeScript, Vite 7, React Router 7, Tailwind, shadcn/ui, TanStack Query and Supabase.
 
-The public kit is available in the initial bundle. Working routes and editing dialogs load on demand; closed administrative dialogs do not fetch data on the share page. ZIP and PDF libraries load when exporting. `PageBoundary` catches rendering and lazy-import failures and provides an explicit reload action instead of leaving an empty page.
+The public kit is available in the initial bundle. Working routes and editing dialogs load on demand; closed administrative dialogs do not fetch data on the share page. ZIP and PDF libraries load when exporting. `PageBoundary` catches rendering and lazy-import failures and provides an explicit reload action instead of leaving an empty page. Database types in `src/integrations/supabase/types.ts` are generated from the BRAND KIT schema; regenerate them after schema changes instead of bypassing checks with `any`.
 
 ```sh
 npm ci
@@ -124,7 +124,7 @@ npm run check
 
 Vite serves port 8080. Commit and push reviewed changes to `main`; Vercel deploys the connected repository. Confirm the resulting deployment is ready for that exact commit and recheck the public share route. Supabase migrations and Edge Functions are separate deployments and must be applied before dependent frontend code.
 
-`npm run check` runs TypeScript, automated download/security/backup tests and the production build. GitHub runs the same checks plus a dependency audit on pushes to `main` and pull requests, with read-only repository permissions and actions pinned to commit hashes. High or critical dependency advisories fail the audit. These checks report failures; they do not currently block a Vercel deployment or require pull requests.
+`npm run check` runs ESLint, TypeScript, automated download/security/backup tests and the production build. GitHub runs the same checks plus a dependency audit on pushes to `main` and pull requests, with read-only repository permissions and actions pinned to commit hashes. Lint errors and high or critical dependency advisories fail the checks. These checks report failures; they do not currently block a Vercel deployment or require pull requests.
 
 Use the administrative SQL connection to run `tests/brandKit-access.sql` and `tests/brandKit-rate-limit.sql` after migrations. They exercise public/non-admin/admin boundaries, atomic display selection and PIN throttling inside transactions that roll back all fixtures.
 

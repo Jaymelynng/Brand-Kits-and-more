@@ -156,7 +156,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
             onSuccess: () => {
               toast({ description: `Logo replaced with "${file.name}"!`, duration: 2000 });
             },
-            onError: (error: any) => {
+            onError: (error) => {
               toast({ title: "Upload Failed", description: error?.message || "Failed to upload replacement logo.", variant: "destructive" });
             },
           }
@@ -236,7 +236,7 @@ export const GymCard = ({ gym, editMode, showAllLogos = false, selected = false,
               description: `Logo "${file.name}" uploaded successfully!`,
             });
           },
-          onError: (error: any) => {
+          onError: (error) => {
             if (imageFiles.length > 1) {
               setUploadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
             }

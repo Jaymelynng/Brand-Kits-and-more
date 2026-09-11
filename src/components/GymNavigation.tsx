@@ -4,6 +4,7 @@ import { LogOut, Layers, Palette, Check, ExternalLink } from "lucide-react";
 import { GymWithColors } from "@/hooks/useGyms";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import type { User } from '@supabase/supabase-js';
 
 interface GymNavigationProps {
   gyms: GymWithColors[];
@@ -16,7 +17,7 @@ interface GymNavigationProps {
   onToggleGymSelection: (gymCode: string) => void;
   onSelectAllGyms: () => void;
   onDeselectAllGyms: () => void;
-  user?: any;
+  user?: User | null;
   isAdmin?: boolean;
   onAdminClick: () => void;
   onSignOut: () => void;

@@ -25,6 +25,7 @@ Deno.serve(async (req) => {
     const body = JSON.parse(text);
     if (!body || !uuid.test(body.id) || !uuid.test(body.session_id) || !uuid.test(body.gym_id)
       || !kinds.has(body.event_kind) || typeof body.label!=='string' || !body.label.trim()
+      // eslint-disable-next-line no-control-regex -- Intentionally reject control characters at the API boundary.
       || body.label.length>240 || /[\x00-\x1f]/.test(body.label)
       || typeof body.page_path!=='string' || !/^\/(kit|gym)\/[a-zA-Z0-9_-]{1,80}$/.test(body.page_path)) {
       return reply(400,{error:'Invalid activity event'});

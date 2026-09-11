@@ -32,7 +32,7 @@ const DECORATED = /sticker|backdrop|gradient frame|glow|shadow/i;
 
 const sectionOf = (l: GymLogo): Section => {
   const v = l.variant || "";
-  const t = (l as any).treatment || "";
+  const t = l.treatment || "";
   if (v === "Needs review" || DECORATED.test(t)) return "themed";
   if (v === "Styles") return "variations";
   return "main";
@@ -56,7 +56,7 @@ export const LogoCatalog = ({ logos, primaryColor }: LogoCatalogProps) => {
   const colourways = useMemo(() => {
     const s = new Set<string>();
     bySection[section].forEach((l) => {
-      const c = (l as any).colorway;
+      const c = l.colorway;
       if (c) s.add(c);
     });
     return [...s].sort();
@@ -64,8 +64,8 @@ export const LogoCatalog = ({ logos, primaryColor }: LogoCatalogProps) => {
 
   const shown = useMemo(() => {
     return bySection[section].filter((l) => {
-      if (onlyTransparent && (l as any).has_alpha === false) return false;
-      if (colorway && (l as any).colorway !== colorway) return false;
+      if (onlyTransparent && l.has_alpha === false) return false;
+      if (colorway && l.colorway !== colorway) return false;
       return true;
     });
   }, [bySection, section, onlyTransparent, colorway]);
@@ -177,7 +177,7 @@ export const LogoCatalog = ({ logos, primaryColor }: LogoCatalogProps) => {
             <button
               key={l.id}
               onClick={() => setOpen(l)}
-              title={(l as any).treatment || l.filename}
+              title={l.treatment || l.filename}
               className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-xl p-2 transition-all duration-150 hover:z-10 hover:scale-105"
               style={{ ...groundStyle(ground), border: "1px solid #E2E8F0" }}
             >
@@ -187,7 +187,7 @@ export const LogoCatalog = ({ logos, primaryColor }: LogoCatalogProps) => {
                 loading="lazy"
                 className="max-h-full max-w-full object-contain"
               />
-              {(l as any).has_alpha === false && (
+              {l.has_alpha === false && (
                 <span
                   className="absolute right-1 top-1 h-2 w-2 rounded-full"
                   title="has a solid background"
@@ -228,11 +228,11 @@ export const LogoCatalog = ({ logos, primaryColor }: LogoCatalogProps) => {
             <div className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="min-w-0">
                 <div className="truncate text-sm font-bold">
-                  {(open as any).treatment || open.variant || open.filename}
+                  {open.treatment || open.variant || open.filename}
                 </div>
                 <div className="text-xs font-semibold text-muted-foreground">
-                  {(open as any).width} × {(open as any).height}
-                  {(open as any).has_alpha === false && " · solid background"}
+                  {open.width} × {open.height}
+                  {open.has_alpha === false && " · solid background"}
                 </div>
               </div>
               <div className="flex gap-2">

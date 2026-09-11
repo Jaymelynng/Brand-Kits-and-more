@@ -89,7 +89,7 @@ const Auth = () => {
         description: "Access granted.",
       });
       navigate(returnTo);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Unexpected error:', error);
       toast({
         title: "Error",

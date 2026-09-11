@@ -185,6 +185,24 @@ export type Database = {
         }
         Relationships: []
       }
+      brands: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       gym_asset_assignments: {
         Row: {
           asset_id: string
@@ -290,6 +308,7 @@ export type Database = {
       }
       gym_colors: {
         Row: {
+          brand_id: string | null
           color_hex: string
           created_at: string | null
           gym_id: string | null
@@ -297,6 +316,7 @@ export type Database = {
           order_index: number
         }
         Insert: {
+          brand_id?: string | null
           color_hex: string
           created_at?: string | null
           gym_id?: string | null
@@ -304,6 +324,7 @@ export type Database = {
           order_index?: number
         }
         Update: {
+          brand_id?: string | null
           color_hex?: string
           created_at?: string | null
           gym_id?: string | null
@@ -311,6 +332,13 @@ export type Database = {
           order_index?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "gym_colors_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gym_colors_gym_id_fkey"
             columns: ["gym_id"]
@@ -375,36 +403,159 @@ export type Database = {
           },
         ]
       }
+      gym_font_pairings: {
+        Row: {
+          accent_font: string | null
+          accent_weight: string | null
+          body_font: string
+          body_weight: string
+          created_at: string
+          email_fallback: string
+          gym_id: string
+          heading_font: string
+          heading_weight: string
+          id: string
+          is_preferred: boolean
+          name: string
+          notes: string | null
+          order_index: number
+          sample_body: string | null
+          sample_heading: string | null
+          sample_source: string | null
+        }
+        Insert: {
+          accent_font?: string | null
+          accent_weight?: string | null
+          body_font: string
+          body_weight?: string
+          created_at?: string
+          email_fallback?: string
+          gym_id: string
+          heading_font: string
+          heading_weight?: string
+          id?: string
+          is_preferred?: boolean
+          name?: string
+          notes?: string | null
+          order_index?: number
+          sample_body?: string | null
+          sample_heading?: string | null
+          sample_source?: string | null
+        }
+        Update: {
+          accent_font?: string | null
+          accent_weight?: string | null
+          body_font?: string
+          body_weight?: string
+          created_at?: string
+          email_fallback?: string
+          gym_id?: string
+          heading_font?: string
+          heading_weight?: string
+          id?: string
+          is_preferred?: boolean
+          name?: string
+          notes?: string | null
+          order_index?: number
+          sample_body?: string | null
+          sample_heading?: string | null
+          sample_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_font_pairings_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_font_pairings_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_logo_tags: {
+        Row: {
+          logo_id: string
+          tag_id: string
+        }
+        Insert: {
+          logo_id: string
+          tag_id: string
+        }
+        Update: {
+          logo_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_logo_tags_logo_id_fkey"
+            columns: ["logo_id"]
+            isOneToOne: false
+            referencedRelation: "gym_logos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_logo_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "logo_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gym_logos: {
         Row: {
-          sort_order: number | null
+          category: string | null
+          colorway: string | null
           created_at: string | null
           file_url: string
           filename: string
           gym_id: string | null
+          has_alpha: boolean | null
+          height: number | null
           id: string
           is_main_logo: boolean | null
+          sort_order: number | null
+          treatment: string | null
           variant: string | null
+          width: number | null
         }
         Insert: {
-          sort_order?: number | null
+          category?: string | null
+          colorway?: string | null
           created_at?: string | null
           file_url: string
           filename: string
           gym_id?: string | null
+          has_alpha?: boolean | null
+          height?: number | null
           id?: string
           is_main_logo?: boolean | null
+          sort_order?: number | null
+          treatment?: string | null
           variant?: string | null
+          width?: number | null
         }
         Update: {
-          sort_order?: number | null
+          category?: string | null
+          colorway?: string | null
           created_at?: string | null
           file_url?: string
           filename?: string
           gym_id?: string | null
+          has_alpha?: boolean | null
+          height?: number | null
           id?: string
           is_main_logo?: boolean | null
+          sort_order?: number | null
+          treatment?: string | null
           variant?: string | null
+          width?: number | null
         }
         Relationships: [
           {
@@ -426,11 +577,15 @@ export type Database = {
       gyms: {
         Row: {
           address: string | null
+          brand_id: string | null
           code: string
           created_at: string | null
           email: string | null
           facebook_url: string | null
+          google_maps_url: string | null
+          hero_includes_logo: boolean
           hero_video_url: string | null
+          iclass_portal_url: string | null
           id: string
           instagram_url: string | null
           name: string
@@ -441,11 +596,15 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          brand_id?: string | null
           code: string
           created_at?: string | null
           email?: string | null
           facebook_url?: string | null
+          google_maps_url?: string | null
+          hero_includes_logo?: boolean
           hero_video_url?: string | null
+          iclass_portal_url?: string | null
           id?: string
           instagram_url?: string | null
           name: string
@@ -456,11 +615,15 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          brand_id?: string | null
           code?: string
           created_at?: string | null
           email?: string | null
           facebook_url?: string | null
+          google_maps_url?: string | null
+          hero_includes_logo?: boolean
           hero_video_url?: string | null
+          iclass_portal_url?: string | null
           id?: string
           instagram_url?: string | null
           name?: string
@@ -468,6 +631,101 @@ export type Database = {
           programs_offered?: string | null
           updated_at?: string | null
           website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gyms_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kit_activity: {
+        Row: {
+          created_at: string
+          device: string
+          event_kind: string
+          gym_id: string
+          id: string
+          ip_address: unknown
+          label: string
+          page_path: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          device: string
+          event_kind: string
+          gym_id: string
+          id: string
+          ip_address?: unknown
+          label: string
+          page_path: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          device?: string
+          event_kind?: string
+          gym_id?: string
+          id?: string
+          ip_address?: unknown
+          label?: string
+          page_path?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_activity_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "kit_activity_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kit_activity_limits: {
+        Row: {
+          attempts: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          attempts: number
+          key: string
+          window_start: string
+        }
+        Update: {
+          attempts?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      kit_auth_attempts: {
+        Row: {
+          attempts: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          attempts: number
+          key: string
+          window_start: string
+        }
+        Update: {
+          attempts?: number
+          key?: string
+          window_start?: string
         }
         Relationships: []
       }
@@ -515,81 +773,6 @@ export type Database = {
           id?: string
           kind?: string
           name?: string
-          order_index?: number
-        }
-        Relationships: []
-      }
-      gym_logo_tags: {
-        Row: {
-          logo_id: string
-          tag_id: string
-        }
-        Insert: {
-          logo_id: string
-          tag_id: string
-        }
-        Update: {
-          logo_id?: string
-          tag_id?: string
-        }
-        Relationships: []
-      }
-      gym_font_pairings: {
-        Row: {
-          sample_heading: string | null
-          sample_body: string | null
-          sample_source: string | null
-          accent_font: string | null
-          accent_weight: string | null
-          body_font: string
-          body_weight: string
-          created_at: string
-          email_fallback: string
-          gym_id: string
-          heading_font: string
-          heading_weight: string
-          id: string
-          is_preferred: boolean
-          name: string
-          notes: string | null
-          order_index: number
-        }
-        Insert: {
-          sample_heading?: string | null
-          sample_body?: string | null
-          sample_source?: string | null
-          accent_font?: string | null
-          accent_weight?: string | null
-          body_font: string
-          body_weight?: string
-          created_at?: string
-          email_fallback?: string
-          gym_id: string
-          heading_font: string
-          heading_weight?: string
-          id?: string
-          is_preferred?: boolean
-          name?: string
-          notes?: string | null
-          order_index?: number
-        }
-        Update: {
-          sample_heading?: string | null
-          sample_body?: string | null
-          sample_source?: string | null
-          accent_font?: string | null
-          accent_weight?: string | null
-          body_font?: string
-          body_weight?: string
-          created_at?: string
-          email_fallback?: string
-          gym_id?: string
-          heading_font?: string
-          heading_weight?: string
-          id?: string
-          is_preferred?: boolean
-          name?: string
-          notes?: string | null
           order_index?: number
         }
         Relationships: []
@@ -792,6 +975,27 @@ export type Database = {
         }
         Relationships: []
       }
+      tig_variant_snapshot_20260910: {
+        Row: {
+          filename: string | null
+          id: string
+          is_main_logo: boolean | null
+          variant: string | null
+        }
+        Insert: {
+          filename?: string | null
+          id: string
+          is_main_logo?: boolean | null
+          variant?: string | null
+        }
+        Update: {
+          filename?: string | null
+          id?: string
+          is_main_logo?: boolean | null
+          variant?: string | null
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string | null
@@ -845,17 +1049,16 @@ export type Database = {
       }
     }
     Functions: {
+      consume_pin_attempt: { Args: { p_client_key: string }; Returns: number }
       get_kit_activity: {
-        Args: { p_days?: number; p_gym_id?: string | null; p_kind?: string | null; p_session_id?: string | null; p_offset?: number }
+        Args: {
+          p_days?: number
+          p_gym_id?: string
+          p_kind?: string
+          p_offset?: number
+          p_session_id?: string
+        }
         Returns: Json
-      }
-      set_featured_gym_logo: {
-        Args: { p_gym_id: string; p_logo_id: string }
-        Returns: undefined
-      }
-      reorder_gym_logos: {
-        Args: { p_gym_id: string; p_ordered_ids: string[]; p_expected_ids: string[] }
-        Returns: undefined
       }
       has_role: {
         Args: {
@@ -863,6 +1066,32 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      record_kit_activity: {
+        Args: {
+          p_device: string
+          p_event_kind: string
+          p_gym_id: string
+          p_id: string
+          p_ip: unknown
+          p_label: string
+          p_network_key: string
+          p_page_path: string
+          p_session_id: string
+        }
+        Returns: boolean
+      }
+      reorder_gym_logos: {
+        Args: {
+          p_expected_ids: string[]
+          p_gym_id: string
+          p_ordered_ids: string[]
+        }
+        Returns: undefined
+      }
+      set_featured_gym_logo: {
+        Args: { p_gym_id: string; p_logo_id: string }
+        Returns: undefined
       }
     }
     Enums: {
