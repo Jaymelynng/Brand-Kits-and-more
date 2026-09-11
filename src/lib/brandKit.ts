@@ -3,7 +3,7 @@ import type { GymElement, GymLogo, GymWithColors } from '@/hooks/useGyms';
 import { bundledFont, fontSource } from './brandKitFonts';
 import { luminance } from './shade';
 import { compareLogoOrder, isActiveLogo } from './logoOrder';
-import { elementFilename, loadElementFile } from './brandElements';
+import { elementCollectionName, elementFilename, loadElementFile } from './brandElements';
 import { brandPresentation, type BrandExample, type BrandPresentation } from './brandExamples';
 import { assetFilename, fetchAssetFile, inspectAsset, safeFilename, uniqueAssetPath, type AssetInfo } from './assetFiles';
 export { safeFilename, saveDownload } from './assetFiles';
@@ -74,7 +74,8 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
     }));
     batch.forEach(file => logos.push({ ...file, path: uniqueAssetPath(`Logos/${safeFilename(file.logo.variant || 'Uncategorized')}/${assetFilename(file.logo.filename, file.blob)}`, paths) }));
   }
-  onProgress('Collecting dividers and graphics…');
+  const elementFolder = elementCollectionName(gym.elements);
+  onProgress(`Collecting ${elementFolder.toLowerCase()}…`);
   const elements: KitElement[] = [];
   const elementPaths = new Set<string>();
   for (let i = 0; i < gym.elements.length; i += 4) {
@@ -83,7 +84,7 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
       let name = base, n = 2;
       while (elementPaths.has(name.toLowerCase())) name = base.replace(/(\.[^.]+)$/, `-${n++}$1`);
       elementPaths.add(name.toLowerCase());
-      return { element, path: `Graphics/${safeFilename(element.element_type)}/${name}` };
+      return { element, path: `${elementFolder}/${safeFilename(element.element_type)}/${name}` };
     });
     elements.push(...await Promise.all(plannedElements.map(async ({ element, path }) => {
       const blob = await loadElementFile(element);
@@ -133,6 +134,7 @@ export function colorValues(hex: string) {
 }
 
 export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
+  const elementFolder = elementCollectionName(kit.elements.map(item => item.element));
   const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
   const root = zip.folder(`${safeFilename(kit.gym.code)}-Brand-Kit`)!;
@@ -174,7 +176,7 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
     'Fonts contains installable files where available, licenses, pairing weights and source links.',
     'Colors contains HEX/RGB values plus CSS, JSON and a GIMP-compatible palette.',
     ...(kit.examples.length ? ['Examples contains adapted campaign compositions. These are design references, not current offers or send-ready email templates.'] : []),
-    ...(kit.elements.length ? [`Graphics contains ${kit.elements.length} saved dividers and supporting graphics in their original formats.`, 'For email, download the PNG or copy its URL from the online kit. Preserve its proportions when sizing it to the email width.'] : []),
+    ...(kit.elements.length ? [`${elementFolder} contains ${kit.elements.length} saved ${elementFolder.toLowerCase()} in their original formats.`, 'For email, download the PNG or copy its URL from the online kit. Preserve its proportions when sizing it to the email width.'] : []),
     'Transparent logo files have clear pixels, not a printed checkerboard. A white logo needs a dark surface.',
     'Keep logo proportions. Choose a file that reads clearly on its background. Do not enlarge raster files past a useful size.',
     'Email logos, variations, themed artwork and animations are included when saved. Retired and Needs review artwork are excluded. Uncategorized is an unfiled category, not a claim of approval.',

@@ -2,6 +2,14 @@ import type { GymElement } from '@/hooks/useGyms';
 
 export const elementTypes = ['divider', 'banner', 'shape', 'background', 'icon', 'other'];
 
+/** Name the saved collection by its contents, without promising absent asset types. */
+export function elementCollectionName(elements: readonly Pick<GymElement, 'element_type'>[], plural = true) {
+  const types = [...new Set(elements.map(element => element.element_type))];
+  const names: Record<string, string> = { divider: 'Divider', banner: 'Banner', shape: 'Shape', background: 'Background', icon: 'Icon' };
+  const name = types.length === 1 ? names[types[0]] || 'Graphic' : 'Graphic';
+  return plural ? `${name}s` : name;
+}
+
 export const isInlineSvg = (value: string) => /^\s*</.test(value) && /<svg(?:\s|>)/i.test(value);
 
 export function elementSource(element: GymElement) {

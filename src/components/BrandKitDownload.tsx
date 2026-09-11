@@ -7,9 +7,11 @@ import { contrast, luminance, shade } from '@/lib/shade';
 import { isActiveLogo } from '@/lib/logoOrder';
 import { fetchAssetFile, assetFilename, saveDownload } from '@/lib/assetFiles';
 import { BrandExamples } from './BrandExamples';
+import { elementCollectionName } from '@/lib/brandElements';
 
 export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
   const fonts = useFontPairings(gym.id);
+  const collectionName = elementCollectionName(gym.elements).toLowerCase();
   // The page already loads inventory. Refresh explicitly only when exporting.
   const inventory = useGyms({ enabled: false });
   const [working, setWorking] = useState<'zip' | 'pdf' | 'logo' | null>(null);
@@ -62,7 +64,7 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
     <div className="my-3" data-brand-kit-download aria-busy={!!working}>
       <div className="grid grid-cols-3 gap-2" role="group" aria-label="Download files">
         <Button onClick={() => download('zip')} disabled={!!working} aria-label="Download brand kit"
-          title="Complete ZIP: all active logo categories, original animations, dividers and graphics, colors, fonts and licenses, and the PDF guide. Retired files are excluded."
+          title={`Complete ZIP: all active logo categories, original animations, ${gym.elements.length ? `${collectionName}, ` : ''}colors, fonts and licenses, and the PDF guide. Retired files are excluded.`}
           className={buttonClass} style={{ backgroundColor: kitFill, color: kitText }}>
           Brand kit
         </Button>
@@ -78,7 +80,7 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
         </Button>
       </div>
       <p className="mt-2 text-center text-[15px] leading-snug text-slate-950" data-kit-contents>
-        {gym.logos.filter(isActiveLogo).length} logos · {gym.elements.length} graphics · Fonts &amp; colors
+        {gym.logos.filter(isActiveLogo).length} logos · {gym.elements.length} {collectionName} · Fonts &amp; colors
       </p>
       <BrandExamples code={gym.code} ink={darkFill} accent={accent} />
       <p role="status" aria-live="polite" className={status ? 'mt-2 text-sm leading-relaxed text-slate-950' : 'sr-only'}>

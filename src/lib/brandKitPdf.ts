@@ -2,9 +2,11 @@ import { jsPDF } from 'jspdf';
 import type { BrandKit, KitLogo, KitElement, KitExample } from './brandKit';
 import { colorValues, kitInk } from './brandKit';
 import { contrast, describeColor, readableOn, tint } from './shade';
+import { elementCollectionName } from './brandElements';
 
 /** A visual usage guide. The complete original-file catalog belongs in the ZIP. */
 export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
+  const elementCollection = elementCollectionName(kit.elements.map(item => item.element));
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4', compress: true, putOnlyUsedFonts: true });
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
   const M = 38, CW = W - M * 2;
@@ -73,7 +75,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     doc.setFillColor(c); doc.rect(M + i * sw, 450, sw, 52, 'F');
     text(c, M + i * sw + 12, 482, 12, readableOn(c, ink), sw - 20);
   });
-  text(['Identity', 'Color', ...(kit.pairings.length ? ['Type'] : []), ...(kit.elements.length ? ['Graphics'] : []), ...(kit.examples.length ? ['Brand in use'] : [])].join('  /  '), M, 535, 13, '#FFFFFF');
+  text(['Identity', 'Color', ...(kit.pairings.length ? ['Type'] : []), ...(kit.elements.length ? [elementCollection] : []), ...(kit.examples.length ? ['Brand in use'] : [])].join('  /  '), M, 535, 13, '#FFFFFF');
 
   // 2. Explicit placement roles prevent a dark-background logo appearing on white.
   const curated = [
@@ -168,7 +170,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
   const selected = (kit.presentation?.featuredGraphics || []).map(name => kit.elements.find(e => e.element.display_name === name)).filter((e): e is KitElement => !!e);
   const graphics = (selected.length ? selected : kit.elements.filter(e => e.element.element_type === 'divider')).slice(0, 2);
   if (graphics.length) {
-    title('05 / GRAPHICS', 'Let the divider do a job', 'Use a transition to connect two sections, then leave the reading area calm.');
+    title(`05 / ${elementCollectionName(graphics.map(item => item.element)).toUpperCase()}`, 'Let the divider do a job', 'Use a transition to connect two sections, then leave the reading area calm.');
     for (const [i, e] of graphics.entries()) {
       const x = M + i * (cardW + 20), y = 150, width = cardW - 2;
       const height = Math.min(width * e.height / e.width, 130);
@@ -188,7 +190,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
       text(e.element.display_name || e.element.element_type, x, 453, 23, ink, cardW, face);
       text(i === 0 ? 'A more expressive transition. Let the shape reach both edges of the content area.' : 'A quieter repeat. Carry the accent through the design while keeping the message clear.', x, 480, 13, ink, cardW);
     }
-    text('Use the original PNG at its natural proportions. View every saved graphic in the online library.', M, 544, 11);
+    text(`Use the original PNG at its natural proportions. View all saved ${elementCollection.toLowerCase()} in the online library.`, M, 544, 11);
   }
 
   // 7-9. Each enhanced example has a traceable historical source and a visible status.
@@ -214,7 +216,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     ['Logos/', `${kit.logos.length} active logo files, organized by saved category. Original animations keep their motion.`],
     ['Fonts/', kit.fonts.length ? 'Installable files where available, licenses, saved weights and official sources.' : 'Font-guide.txt records that no font pairings are saved.'],
     ['Colors/', 'Exact HEX/RGB values, CSS variables, JSON and a GIMP-compatible palette.'],
-    ...(kit.elements.length ? [['Graphics/', `${kit.elements.length} original dividers and graphics. All remain available, including treatments not featured here.`]] : []),
+    ...(kit.elements.length ? [[`${elementCollection}/`, `${kit.elements.length} original ${elementCollection.toLowerCase()}. All remain available, including treatments not featured here.`]] : []),
     ...(kit.examples.length ? [['Examples/', `${kit.examples.length} adapted compositions, with source dates and usage notes. Design references only.`]] : []),
     ['Contents.json', 'Artwork inventory with dimensions and verification checksums.'],
   ];

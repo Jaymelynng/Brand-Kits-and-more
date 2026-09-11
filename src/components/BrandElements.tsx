@@ -10,7 +10,7 @@ import { cn, scrollToSection } from '@/lib/utils';
 import { LogoPreview, type PreviewAsset } from '@/components/LogoPreview';
 import { contrast, luminance } from '@/lib/shade';
 import { copyText } from '@/lib/copyText';
-import { elementFilename, elementSource, elementTypes, isInlineSvg, loadElementFile } from '@/lib/brandElements';
+import { elementCollectionName, elementFilename, elementSource, elementTypes, isInlineSvg, loadElementFile } from '@/lib/brandElements';
 import { safeFilename, saveDownload } from '@/lib/brandKit';
 import { isActiveLogo } from '@/lib/logoOrder';
 
@@ -35,6 +35,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
   const darkFill = contrast(ink, '#FFFFFF') >= 4.5 ? ink : '#111827';
   const accentText = contrast(accent, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111';
   const types = [...new Set(gym.elements.map(e => e.element_type))];
+  const collectionName = elementCollectionName(gym.elements);
   const visible = filter === 'all' ? gym.elements : gym.elements.filter(e => e.element_type === filter);
   const previewAssets: PreviewAsset[] = visible.map(element => ({
     id: element.id, filename: elementFilename(element), file_url: elementSource(element), variant: element.element_type,
@@ -53,6 +54,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
       else {
         const { default: JSZip } = await import('jszip');
         const zip = new JSZip();
+        const folder = `${safeFilename(gym.code)}-${elementCollectionName(elements)}`;
         const used = new Set<string>();
         for (let i = 0; i < elements.length; i += 4) {
           const batch = await Promise.all(elements.slice(i, i + 4).map(async element => ({ element, blob: await loadElementFile(element) })));
@@ -61,12 +63,12 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
             let name = original, n = 2;
             while (used.has(name.toLowerCase())) name = original.replace(/(\.[^.]+)$/, `-${n++}$1`);
             used.add(name.toLowerCase());
-            zip.file(`${safeFilename(gym.code)}-Graphics/${name}`, blob);
+            zip.file(`${folder}/${name}`, blob);
           }
         }
-        saveDownload(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), `${gym.code}-Graphics.zip`);
+        saveDownload(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), `${folder}.zip`);
       }
-      toast({ description: `${elements.length === 1 ? 'Graphic' : `${elements.length} graphics`} downloaded.` });
+      toast({ description: `${elements.length === 1 ? elementCollectionName(elements, false) : `${elements.length} ${elementCollectionName(elements).toLowerCase()}`} downloaded.` });
     } catch (error) {
       toast({ variant: 'destructive', description: error instanceof Error ? error.message : 'Download could not finish. Please try again.' });
     } finally { setBusy(null); }
@@ -75,13 +77,13 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
   if (!gym.elements.length && !isAdmin) return null;
   return <><Card id="brand-elements" data-brand-elements className="mb-8 scroll-mt-24 border-2 bg-white shadow-xl" style={{ borderColor: `${accent}65` }}>
     <CardHeader className="gap-3 p-4 sm:p-6 sm:pb-4">
-      <nav aria-label="Browse from graphics" className="flex flex-wrap gap-2">
+      <nav aria-label={`Browse from ${collectionName.toLowerCase()}`} className="flex flex-wrap gap-2">
         {[...(gym.logos.some(isActiveLogo) || isAdmin && gym.logos.length ? [{ id: 'logo-gallery', label: 'Logos' }] : []), { id: 'brand-colors', label: 'Brand colors' },
           ...(gym.logos.some(logo => logo.variant === 'Primary logos') ? [{ id: 'brand-fonts', label: 'Fonts' }] : [])].map(section =>
           <Button key={section.id} onClick={() => scrollToSection(section.id)} className={buttonClass} style={secondaryStyle}><ArrowUp className="mr-1 h-4 w-4" />{section.label}</Button>)}
       </nav>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <CardTitle className="text-2xl text-slate-950">Dividers &amp; graphics <span className="text-base font-medium">({gym.elements.length})</span></CardTitle>
+        <CardTitle className="text-2xl text-slate-950">{collectionName} <span className="text-base font-medium">({gym.elements.length})</span></CardTitle>
         <div className="flex flex-wrap gap-2">
           {!!gym.elements.length && <Button disabled={!!busy || !visible.length} onClick={() => download(visible, true)} className={buttonClass} style={actionStyle}>
             {busy === 'zip' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}Download {filter === 'all' ? 'all' : 'shown'}
@@ -109,7 +111,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
       {!gym.elements.length ? <p className="text-base text-slate-950">Add dividers, banners, backgrounds or icons to this kit.</p> :
         <div data-graphic-view={view} className={cn(view === 'strip' ? 'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4' : 'grid auto-rows-fr gap-4', view === 'grid' && 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3')}>
           {visible.map(element => <article key={element.id} data-element-id={element.id} data-activity-asset={element.display_name || element.element_type} className={cn('flex min-w-0 flex-col rounded-xl border-2 bg-white p-4 shadow-md', view === 'strip' && 'w-[min(90%,440px)] shrink-0 snap-start', view === 'list' && 'sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-5')} style={{ borderColor: `${accent}55` }}>
-            <button type="button" aria-label={`Preview graphic: ${element.display_name || element.element_type}`} onClick={() => setPreviewId(element.id)}
+            <button type="button" aria-label={`Preview ${elementCollectionName([element], false).toLowerCase()}: ${element.display_name || element.element_type}`} onClick={() => setPreviewId(element.id)}
               className="group relative flex h-28 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-300 p-2 transition-shadow hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2" style={{ backgroundColor: darkPreview ? darkFill : '#FFFFFF' }}>
               <img src={elementSource(element)} alt={element.display_name || element.element_type} className="max-h-full w-full object-contain" loading="lazy" />
               <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full px-2 py-1 text-[15px] font-semibold shadow-md" style={secondaryStyle}><Eye className="h-4 w-4" />Preview</span>

@@ -21,6 +21,7 @@ import { copyText } from "@/lib/copyText";
 import { LogoMedia } from "@/components/LogoMedia";
 import { FontSpecimen } from "@/components/FontSpecimen";
 import { BrandElements } from '@/components/BrandElements';
+import { elementCollectionName } from '@/lib/brandElements';
 import { BrandKitDownload } from "@/components/BrandKitDownload";
 import { isActiveLogo } from "@/lib/logoOrder";
 import { contrast, describeColor, luminance, shade } from "@/lib/shade";
@@ -82,6 +83,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   
   // Find gym
   const gym = gyms.find(g => g.code === gymCode || g.id === gymCode);
+  const elementCollection = elementCollectionName(gym?.elements || []);
   const activeLogos = useMemo(() => gym?.logos.filter(isActiveLogo) || [], [gym]);
   const [orderEditor, setOrderEditor] = useState<{ logos: GymLogo[]; label: string } | null>(null);
   
@@ -1216,7 +1218,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
         <nav className="kit-mobile-navigation" aria-label="Jump to kit section" style={{ background: showcaseInk }}>
           {[
             ...(activeLogos.length ? [{ id: 'logo-gallery', label: 'Logos' }] : []),
-            ...(gym.elements.length ? [{ id: 'brand-elements', label: 'Graphics' }] : []),
+            ...(gym.elements.length ? [{ id: 'brand-elements', label: elementCollection }] : []),
             { id: 'brand-colors', label: 'Colors' },
             ...(activeLogos.some(logo => logo.variant === 'Primary logos') ? [{ id: 'brand-fonts', label: 'Fonts' }] : []),
           ].map(section => <button key={section.id} type="button" onClick={() => scrollToSection(section.id)}>{section.label}</button>)}
@@ -1406,13 +1408,13 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                       </div>
                       <div className="text-sm font-semibold text-gym-secondary-foreground/90">Brand Colors</div>
                     </button>
-                    <button type="button" aria-label="Go to dividers and graphics" disabled={!gym.elements?.length && !isAdmin}
+                    <button type="button" aria-label={`Go to ${elementCollection.toLowerCase()}`} disabled={!gym.elements?.length && !isAdmin}
                       onClick={() => document.getElementById('brand-elements')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                       className="cursor-pointer text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-primary text-primary-foreground border-primary-foreground/25 transition-[filter] hover:brightness-125 disabled:cursor-default">
                       <div className="text-3xl font-bold mb-1">
                         {gym.elements?.length || 0}
                       </div>
-                      <div className="text-sm font-semibold text-primary-foreground">Graphics</div>
+                      <div className="text-sm font-semibold text-primary-foreground">{elementCollection}</div>
                     </button>
                   </div>
                 </div>
@@ -1991,7 +1993,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                     }}
                     solo={solo}
                     sections={[
-                      ...(gym.elements.length || isAdmin ? [{ id: 'brand-elements', label: 'Dividers & graphics', count: gym.elements.length }] : []),
+                      ...(gym.elements.length || isAdmin ? [{ id: 'brand-elements', label: elementCollection, count: gym.elements.length }] : []),
                       { id: 'brand-colors', label: 'Colors' },
                       ...(activeLogos.some(l => l.variant === 'Primary logos') ? [{ id: 'brand-fonts', label: 'Fonts' }] : []),
                     ]}
