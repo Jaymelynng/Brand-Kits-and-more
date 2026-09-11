@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import type { BrandKit, KitLogo, KitElement, KitExample } from './brandKit';
 import { colorValues, kitInk } from './brandKit';
-import { contrast, readableOn, tint } from './shade';
+import { contrast, describeColor, readableOn, tint } from './shade';
 
 /** A visual usage guide. The complete original-file catalog belongs in the ZIP. */
 export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
@@ -129,7 +129,8 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
       const x = M + i * (pw + 14), on = contrast(c, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#101010';
       box(x, 150, pw, 159, c, tint(ink, .8));
       text('Aa', x + 17, 262, 60, on, pw - 34, face);
-      text(c, x, 341, 20, ink, pw, face);
+      text(describeColor(c), x, 325, 12, ink, pw);
+      text(c, x, 347, 20, ink, pw, face);
       text(`RGB ${colorValues(c).rgb.join(' / ')}`, x, 364, 12, ink, pw);
       text(`${on === '#FFFFFF' ? 'White' : 'Dark'} text`, x, 386, 12, ink, pw);
     });

@@ -10,6 +10,10 @@
     "holiday": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-TIG-christmas-script-circle.png",
     "square": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/gen-TIG-TIG_v19_brand-backdrop__c2.png"
   },
+  "usageNotes": {
+    "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-review-TIG_Logo_DarkBlueBG_OrangeLetters.png": "Horizontal layouts with a navy background",
+    "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-0.45365681789627166.png": "Square layouts with a navy background"
+  },
   "featuredGraphics": [
     "Gloss wave",
     "Gloss ribbon"

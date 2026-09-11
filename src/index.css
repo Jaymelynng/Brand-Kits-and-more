@@ -202,8 +202,8 @@ All colors MUST be HSL.
   align-items: center;
   justify-content: center;
   position: relative;
-  height: 38px;
-  width: 38px;
+  height: 44px;
+  width: 44px;
   background: #fff;
   color: #101820;
   border: 1px solid #ffffffcc;
@@ -214,7 +214,7 @@ All colors MUST be HSL.
 }
 .primary-logo-control:hover { background: #dceaf2; transform: translateY(-2px); }
 .primary-logo-control > svg { width: 18px; height: 18px; }
-.primary-logo-control > .primary-logo-timer { position: absolute; inset: -4px; width: 44px; height: 44px; transform: rotate(-90deg); fill: none; stroke: #ffffff50; stroke-width: 2; pointer-events: none; }
+.primary-logo-control > .primary-logo-timer { position: absolute; inset: -1px; width: 44px; height: 44px; transform: rotate(-90deg); fill: none; stroke: #ffffff50; stroke-width: 2; pointer-events: none; }
 .primary-logo-timer .primary-logo-timer-progress { stroke: #fff; stroke-dasharray: 100; stroke-dashoffset: 100; animation: logo-rotation-timer 6s linear forwards; }
 .primary-logo-thumbnail:focus-visible, .primary-logo-control:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
 @keyframes logo-rotation-timer { to { stroke-dashoffset: 0; } }
@@ -262,15 +262,49 @@ All colors MUST be HSL.
   .gym-profile .variation-actions svg { display: none; }
 }
 
-.kit-mobile-navigation { display: none; }
+.gym-profile-navigation [aria-label="Gym logos"] { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; }
+.gym-profile-navigation [aria-label="Gym logos"] > :first-child { margin-left: auto; }
+.gym-profile-navigation [aria-label="Gym logos"] > :last-child { margin-right: auto; }
+.kit-mobile-navigation { display: flex; justify-content: center; gap: 8px; padding: 7px 24px; box-shadow: 0 4px 12px #0003; }
+.kit-mobile-navigation button { min-width: 100px; min-height: 44px; border: 1px solid #ffffff60; border-radius: 8px; background: #ffffff18; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+.kit-mobile-navigation button:hover { background: #ffffff35; }
+.kit-mobile-navigation button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.gym-profile .kit-intro { padding-top: 20px; padding-bottom: 24px; }
+.gym-profile .kit-hero-video { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); background: #081725; margin-bottom: 24px; border-radius: 16px; box-shadow: 0 12px 30px -16px #0008; }
+.kit-hero-heading { align-self: center; padding: clamp(24px, 4vw, 58px); }
+.kit-hero-media { position: relative; min-width: 0; width: 100%; aspect-ratio: 16 / 9; }
+.kit-hero-media > video { object-fit: contain; }
+.gym-profile .kit-display-logo { height: clamp(160px, 12vw, 190px) !important; }
+.gym-profile .kit-asset-stats { padding-top: 12px; }
+.gym-profile .kit-asset-stats > div:first-child { display: none; }
+.gym-profile .kit-asset-stats button { padding: 8px; border-radius: 12px; }
+.gym-profile .kit-asset-stats button > div:first-child { font-size: 24px; line-height: 1.1; }
+.gym-profile #brand-colors { container: brand-colors / inline-size; }
+.gym-profile .kit-color-list:not(.is-editing) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.gym-profile .kit-color-list:not(.is-editing) > * { margin: 0; }
+.gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding: 12px; }
+.gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] > div:first-child { width: 44px; height: 44px; border-radius: 10px; }
+.gym-profile .kit-color-list:not(.is-editing) [data-color-label] > div { font-size: 15px; color: #111827; }
+.gym-profile .kit-color-list:not(.is-editing) [data-color-controls] { grid-column: 1 / -1; width: 100%; }
+.gym-profile .kit-color-list:not(.is-editing) [data-color-controls] button { flex: 1; min-height: 44px; font-size: 15px; cursor: pointer; }
+.gym-profile [data-brand-overview] { max-width: none; }
+.gym-profile [data-font-specimen] > div { padding: clamp(16px, 2vw, 26px); }
+.gym-profile [data-font-pairing] > div:last-child { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; gap: 8px; }
+.gym-profile [data-font-pairing] > div:last-child > button { white-space: normal; text-align: left; }
+.gym-profile [data-font-pairing] > div:last-child > div { grid-column: 1 / -1; margin-left: 0; justify-content: flex-end; }
+.gym-profile #logo-gallery, .gym-profile #brand-colors, .gym-profile #brand-fonts, .gym-profile #brand-elements { scroll-margin-top: calc(var(--strip-h, 110px) + 76px); }
+@container brand-colors (max-width: 430px) {
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] { grid-template-columns: 1fr; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] > div:first-child { width: 100%; height: 40px; }
+}
 @media (max-width: 1023px) {
+  .gym-profile .kit-hero-video { display: block; }
+  .kit-hero-heading { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   .gym-profile .kit-hero-video {
     height: auto;
-    aspect-ratio: 16 / 9;
-    max-height: 60svh;
     background: #081725;
   }
-  .gym-profile .kit-hero-video > video { object-fit: contain; }
+  .gym-profile .kit-hero-media { max-height: 60svh; }
 }
 @media (max-width: 767px) {
   .gym-profile-navigation [aria-label="Gym logos"] { padding: 8px 12px; }
@@ -312,10 +346,10 @@ All colors MUST be HSL.
   .gym-profile .kit-color-list:not(.is-editing) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .gym-profile .kit-color-list:not(.is-editing) > * { margin: 0; }
   .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] { flex-wrap: wrap; padding: 8px; gap: 8px; }
-  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] > div:first-child { width: 36px; height: 36px; border-radius: 8px; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-swatch] > div:first-child { width: 100%; height: 44px; border-radius: 8px; }
   .gym-profile .kit-color-list:not(.is-editing) [data-color-label] { flex-basis: 68px; }
   .gym-profile .kit-color-list:not(.is-editing) [data-color-label] > div:first-child { font-size: 15px; }
-  .gym-profile .kit-color-list:not(.is-editing) [data-color-label] > div:last-child:not(:first-child) { display: none; }
+  .gym-profile .kit-color-list:not(.is-editing) [data-color-label] > div:last-child:not(:first-child) { display: block; }
   .gym-profile .kit-color-list:not(.is-editing) [data-color-controls] { width: 100%; gap: 8px; }
   .gym-profile .kit-color-list:not(.is-editing) [data-color-controls] button { flex: 1; height: 44px; padding: 4px; font-size: 15px; }
   .gym-profile [data-brand-showcase] { gap: 20px; }
@@ -329,9 +363,9 @@ All colors MUST be HSL.
   .gym-profile .primary-logo-actions > button { height: 44px; }
   .gym-profile [data-font-specimen] { padding-block: 0; }
   .gym-profile [data-font-pairing] > div:first-child { gap: 6px; }
-  .gym-profile [data-font-pairing] > div:first-child > span { font-size: 14px; }
+  .gym-profile [data-font-pairing] > div:first-child > span { font-size: 15px; }
   .gym-profile [data-font-pairing] > div:first-child button { min-width: 44px; min-height: 44px; cursor: pointer; }
-  .gym-profile [data-font-pairing] > div:last-child button { min-height: 44px; font-size: 14px; cursor: pointer; }
+  .gym-profile [data-font-pairing] > div:last-child button { min-height: 44px; font-size: 15px; cursor: pointer; }
   .gym-profile #logo-gallery > div { padding: 12px; }
   .gym-profile #logo-gallery h3 { font-size: 21px; line-height: 1.3; }
   .gym-profile .kit-gallery-tools { width: 100%; gap: 8px; }

@@ -21,10 +21,11 @@ interface Props<T extends PreviewAsset> {
   kind?: 'logo' | 'graphic';
   copyValue?: string;
   copyLabel?: string;
+  usageNote?: string;
 }
 
 /** A file inspector: backgrounds affect the preview only, and facts come from decoded bytes. */
-export function LogoPreview<T extends PreviewAsset>({ logo, logos, palette, onChoose, onClose, children, kind = 'logo', copyValue, copyLabel = 'Copy URL' }: Props<T>) {
+export function LogoPreview<T extends PreviewAsset>({ logo, logos, palette, onChoose, onClose, children, kind = 'logo', copyValue, copyLabel = 'Copy URL', usageNote }: Props<T>) {
   const [file, setFile] = useState<{ url: string; blob: Blob; info: AssetInfo } | null>(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -75,6 +76,7 @@ export function LogoPreview<T extends PreviewAsset>({ logo, logos, palette, onCh
       <div className="sticky top-0 z-20 bg-white px-4 pb-3 pt-5 pr-16 sm:px-6 sm:pr-16">
         <DialogDescription className="mb-1 text-[15px] font-semibold text-slate-700">{logo.variant || 'Uncategorized'}{index >= 0 && ` · ${index + 1} of ${logos.length}`}</DialogDescription>
         <DialogTitle className="break-words text-lg font-bold leading-snug sm:text-2xl">{logo.filename.replace(/\.(png|jpe?g|webp|gif|svg|mp4|webm)$/i, '')}</DialogTitle>
+        {usageNote && <p className="mt-2 text-[15px] leading-snug text-slate-700">{usageNote}</p>}
         <DialogClose asChild><button aria-label="Close preview" className="absolute right-3 top-3 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-700"><X className="h-5 w-5" /></button></DialogClose>
       </div>
       <div className={`relative mx-3 flex items-center justify-center rounded-xl border border-slate-300 py-4 sm:mx-6 ${kind === 'graphic' ? 'min-h-[140px] px-3' : 'h-[clamp(180px,36dvh,440px)] px-12 sm:px-16'}`} style={{ background: ground }} data-preview-stage>

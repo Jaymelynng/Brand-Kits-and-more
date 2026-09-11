@@ -25,7 +25,8 @@ import { BrandElements } from '@/components/BrandElements';
 import { BrandKitDownload } from "@/components/BrandKitDownload";
 import { LogoOrderEditor } from "@/components/LogoOrderEditor";
 import { isActiveLogo } from "@/lib/logoOrder";
-import { contrast, luminance, shade } from "@/lib/shade";
+import { contrast, describeColor, luminance, shade } from "@/lib/shade";
+import { logoUsage } from "@/lib/brandExamples";
 import { FilingTray } from "@/components/FilingTray";
 import { CategoryRail } from "@/components/CategoryRail";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
@@ -1099,6 +1100,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                                 {/* Logo Info */}
                                 <div className="text-sm font-bold text-foreground mb-4">
                                   {isAdmin ? <InlineRename value={logo.filename} onSave={(v) => handleRenameLogo(logo.id, v)} /> : <button onClick={() => setExpandedLogo(logo)} className="block w-full cursor-zoom-in break-words text-left text-[15px] leading-snug hover:underline">{logo.filename.replace(/\.(png|jpe?g|webp|gif|svg|mp4|webm)$/i, '')}</button>}
+                                  {contained && logoUsage(gym.code, logo.file_url) && <p className="mt-2 text-[15px] font-normal leading-snug text-slate-700" data-logo-usage>{logoUsage(gym.code, logo.file_url)}</p>}
                                 </div>
                                 
                                 {/* Action Buttons */}
@@ -1252,7 +1254,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
           {/* Hero Video or Compact Hero Header */}
           {gym.hero_video_url ? (
-            <HeroVideoBackground videoUrl={gym.hero_video_url} overlayOpacity={0.5}>
+            <HeroVideoBackground videoUrl={gym.hero_video_url} title={gym.name} accent={primaryColor} posterUrl={mainLogo?.file_url} overlayOpacity={(gym as any).hero_includes_logo ? 0.12 : 0.5}>
               {/* If the mark is already composited into the video, painting
                   another one over it just doubles the logo. */}
               {(gym as any).hero_includes_logo ? (
@@ -1382,7 +1384,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
 
                 {/* Brand Assets Stats */}
                 <div className="kit-asset-stats border-t-2 pt-5" style={{ borderColor: `${primaryColor}15` }}>
-                  <div className="text-lg font-semibold text-foreground mb-3">📊 Brand Assets</div>
+                  <div className="text-lg font-semibold text-foreground mb-3">Browse the kit</div>
                   <div className="grid grid-cols-3 gap-3">
                     <button type="button" aria-label="Go to logo gallery" onClick={() => document.getElementById('logo-gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="cursor-pointer hover:brightness-110 text-center p-2 lg:p-4 rounded-2xl border-2 shadow-lg bg-gym-primary text-gym-primary-foreground border-gym-primary-foreground/25">
                       <div className="text-3xl font-bold mb-1">
@@ -1448,11 +1450,11 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                 </BrandCardHeader>
                 <BrandCardContent className="pt-0">
                   <div className={cn("kit-color-list space-y-3", isEditingColors && "is-editing")}>
-                    {gym.colors.map((color, index) => (
+                    {gym.colors.map((color) => (
                       <ColorSwatch
                         key={color.id}
                         color={color.color_hex}
-                        label={`Primary Color ${index + 1}`}
+                        label={describeColor(color.color_hex)}
                         size="lg"
                         showControls={true}
                         editMode={isEditingColors}
@@ -2655,6 +2657,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
       )}
 
       {expandedLogo && <LogoPreview logo={gym.logos.find(l => l.id === expandedLogo.id) || expandedLogo}
+        usageNote={logoUsage(gym.code, expandedLogo.file_url)}
         logos={filteredLogos.some(l => l.id === expandedLogo.id) ? filteredLogos : activeLogos}
         palette={gym.colors.map(c => c.color_hex)} onChoose={asset => setExpandedLogo(gym.logos.find(logo => logo.id === asset.id) || null)} onClose={() => setExpandedLogo(null)}>
         {isAdmin && <div className="flex flex-wrap gap-2 border-t pt-3" aria-label="Edit logo tags">

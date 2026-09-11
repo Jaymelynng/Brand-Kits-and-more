@@ -94,7 +94,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
   return (
     // Overlapping grid cells reserve the tallest pairing's natural height.
     // Hidden pairings still size the card, but cannot be seen or tabbed into.
-    <div className="grid min-w-0 flex-1 md:py-9" data-font-specimen>
+    <div className="grid min-w-0 flex-1 py-[18px]" data-font-specimen>
     {pairings.map((p: FontPairing, panelIndex) => (
     <div
       key={p.id}
@@ -116,12 +116,12 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span
-          className="text-[10px] font-extrabold uppercase tracking-widest"
-          style={{ color: accent }}
+          className="text-[15px] font-extrabold uppercase tracking-wider"
+          style={{ color: ink }}
         >
           Typeface
         </span>
-        <span className="truncate text-[12px] font-bold" style={{ color: ink }}>
+        <span className="text-[15px] font-bold" style={{ color: ink }}>
           {p.name}
         </span>
         {p.is_preferred && (
@@ -132,19 +132,19 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
           <div className="ml-auto flex items-center gap-1">
             <button
               onClick={() => setIndex(i => (i - 1 + pairings.length) % pairings.length)}
-              className="rounded-full p-1"
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full hover:brightness-90"
               style={{ background: `${ink}14`, color: ink }}
               aria-label="Previous pairing"
               title="Previous pairing"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
-            <span className="text-[10px] font-bold tabular-nums" style={{ color: ink, opacity: 0.7 }}>
+            <span className="text-[15px] font-bold tabular-nums" style={{ color: ink }}>
               {panelIndex + 1}/{pairings.length}
             </span>
             <button
               onClick={() => setIndex(i => (i + 1) % pairings.length)}
-              className="rounded-full p-1"
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full hover:brightness-90"
               style={{ background: `${ink}14`, color: ink }}
               aria-label="Next pairing"
               title="Next pairing"
@@ -157,13 +157,13 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
 
       {/* Size type against this column, and balance the saved email copy
           without inserting hard line breaks that fail at another width. */}
-      <div className="flex flex-col gap-3 pb-4 pt-1">
+      <div className="font-specimen-sample flex flex-1 flex-col justify-center gap-4 py-5">
         <div
           className="break-words leading-[1.02]"
           style={{
             fontFamily: `'${p.heading_font}', sans-serif`,
             fontWeight: Number(p.heading_weight),
-            fontSize: p.sample_heading ? "clamp(30px, 9cqi, 60px)" : "clamp(42px, 12cqi, 82px)",
+            fontSize: p.sample_heading ? "clamp(30px, 11cqi, 58px)" : "clamp(42px, 12cqi, 82px)",
             textWrap: "balance",
             color: ink,
           }}
@@ -174,8 +174,8 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
           style={{
             fontFamily: `'${p.body_font}', sans-serif`,
             fontWeight: Number(p.body_weight),
-            fontSize: "clamp(15px, 3.8cqi, 17px)",
-            lineHeight: 1.7,
+            fontSize: "clamp(16px, 4cqi, 19px)",
+            lineHeight: 1.6,
             textWrap: "balance",
             color: ink,
             opacity: 0.88,
@@ -209,14 +209,14 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
             Aa Bb Cc 0123456789
           </div>
         )}
-        {p.sample_source && <p className="text-xs leading-relaxed" style={{ color: ink }}>Campaign example · {p.sample_source}</p>}
+        {p.sample_source && <p className="border-l-2 pl-3 text-[15px] leading-snug" style={{ color: ink, borderColor: accent, textWrap: 'balance' }}>Campaign example · {p.sample_source}</p>}
       </div>
 
       {/* Names and controls, compact, under the sample. */}
       <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t pt-2.5" style={{ borderColor: `${ink}22` }}>
         <button
           onClick={() => copy(`${p.heading_font} ${p.heading_weight}`, p.heading_font)}
-          className="rounded-full px-2.5 py-1 text-[11px] font-bold"
+          className="min-h-11 cursor-pointer rounded-lg px-2.5 py-2 text-[15px] font-bold hover:brightness-90"
           style={{ background: `${ink}14`, color: ink }}
           title="Copy heading font"
         >
@@ -224,7 +224,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         </button>
         <button
           onClick={() => copy(`${p.body_font} ${p.body_weight}`, p.body_font)}
-          className="rounded-full px-2.5 py-1 text-[11px] font-bold"
+          className="min-h-11 cursor-pointer rounded-lg px-2.5 py-2 text-[15px] font-bold hover:brightness-90"
           style={{ background: `${ink}14`, color: ink }}
           title="Copy body font"
         >
@@ -244,7 +244,7 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
                 "Pairing"
               )
             }
-            className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold"
+            className="flex min-h-11 cursor-pointer items-center gap-1 rounded-lg px-2.5 py-2 text-[15px] font-extrabold hover:brightness-90"
             style={{ background: accent, color: onAccent }}
             title="Copy all font names"
           >

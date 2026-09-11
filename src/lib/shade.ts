@@ -19,6 +19,20 @@ const parse = (hex: string): [number, number, number] => {
 const toHex = (r: number, g: number, b: number) =>
   `#${[r, g, b].map(v => clamp(v).toString(16).padStart(2, "0")).join("")}`;
 
+/** Plain color descriptions derived from HEX, not official brand color names. */
+export function describeColor(hex: string): string {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return 'Color';
+  const [r, g, b] = parse(hex).map(value => value / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), delta = max - min;
+  const lightness = (max + min) / 2;
+  if (delta < 0.06) return lightness > 0.94 ? 'White' : lightness < 0.08 ? 'Black' : lightness < 0.3 ? 'Charcoal' : lightness > 0.7 ? 'Light gray' : 'Gray';
+  let hue = (max === r ? (g - b) / delta : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4) * 60;
+  hue = (hue + 360) % 360;
+  if (hue >= 190 && hue < 250) return lightness < 0.3 ? 'Navy' : lightness > 0.64 ? 'Sky blue' : 'Blue';
+  const name = hue < 15 || hue >= 345 ? 'Red' : hue < 45 ? 'Orange' : hue < 70 ? 'Yellow' : hue < 160 ? 'Green' : hue < 190 ? 'Teal' : hue < 290 ? 'Purple' : 'Pink';
+  return lightness < 0.25 ? `Deep ${name.toLowerCase()}` : name;
+}
+
 /** Mix toward white. amount 0 = unchanged, 1 = white. */
 export const tint = (hex: string, amount: number) => {
   const [r, g, b] = parse(hex);
