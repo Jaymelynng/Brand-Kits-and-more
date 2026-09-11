@@ -2,13 +2,13 @@
 
 Brand libraries for independently branded gyms, with a shared dashboard for bulk work and a focused public kit for each gym. Gym names, counts, colors, categories and assets come from the database.
 
-**Live:** [Gym Brand Kits](https://gym-brand-kits.vercel.app/)
+**Live:** [Gym Brand Kits](https://brandkits.mygymtools.com/)
 **Repository:** [Jaymelynng/Brand-Kits-and-more](https://github.com/Jaymelynng/Brand-Kits-and-more)
 **Original Lovable project:** [Project editor](https://lovable.dev/projects/4567f4e3-1d91-48bc-a40a-7900771efd38)
 
 ## Sharing and workflow
 
-- **`/kit/:gymCode`** is the external share page. The top strip shows every gym's logo, with the current gym highlighted. The strip is display-only on share pages, so visitors stay on the linked gym's colors, primary-logo carousel, actual font specimens, gallery, graphics and downloads. Home and administrator tools remain on the working pages. TIGAR: [`/kit/TIG`](https://gym-brand-kits.vercel.app/kit/TIG).
+- **`/kit/:gymCode`** is the external share page. The top strip shows every gym's logo, with the current gym highlighted. The strip is display-only on share pages, so visitors stay on the linked gym's colors, primary-logo carousel, actual font specimens, gallery, graphics and downloads. Home and administrator tools remain on the working pages. TIGAR: [`/kit/TIG`](https://brandkits.mygymtools.com/kit/TIG). The original production hostname redirects to the branded domain and preserves the requested path.
 - **`/`** is the dashboard: responsive gym cards, selection, bulk copying of colors or logo links, and per-gym profile, copy and download actions.
 - **`/gym/:gymCode`** includes the gym navigation. Authorized administrators can upload, rename, categorize, tag, reorder, change the display logo and edit fonts or colors.
 - The primary carousel supports thumbnails, arrows, dragging and pause/resume. Rotation pauses during inspection, while offscreen, behind a preview, and when the tab is hidden. Reduced-motion preference disables automatic rotation and depth animation.
