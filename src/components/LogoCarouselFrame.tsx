@@ -22,7 +22,6 @@ export function LogoCarouselFrame({
   const [api, setApi] = useState<CarouselApi>();
   const [selected, setSelected] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -49,9 +48,11 @@ export function LogoCarouselFrame({
     const updateVisibility = () => setPageVisible(!document.hidden);
     document.addEventListener("visibilitychange", updateVisibility);
     const observer = new IntersectionObserver(([entry]) => {
-      setVisible(entry.isIntersecting && entry.intersectionRatio >= 0.35);
-    }, { threshold: [0, 0.35] });
-    if (frameRef.current) observer.observe(frameRef.current);
+      setVisible(entry.isIntersecting && entry.intersectionRatio >= 0.1);
+    }, { threshold: [0, 0.1] });
+    // A tall card can never be 35% visible on some landscape phones.
+    const viewport = frameRef.current?.querySelector("[data-carousel-viewport]") || frameRef.current;
+    if (viewport) observer.observe(viewport);
     return () => {
       preference.removeEventListener("change", update);
       document.removeEventListener("visibilitychange", updateVisibility);
@@ -164,13 +165,13 @@ export function LogoCarouselFrame({
   useEffect(() => {
     if (!api) return;
     const sync = () => {
-      if (paused || hovered || focused || dragging || reducedMotion || suspended || !visible || !pageVisible || api.scrollSnapList().length < 2) autoplay.stop();
+      if (paused || focused || dragging || reducedMotion || suspended || !visible || !pageVisible || api.scrollSnapList().length < 2) autoplay.stop();
       else autoplay.play();
     };
     sync();
     api.on("reInit", sync);
     return () => { api.off("reInit", sync); autoplay.stop(); };
-  }, [api, autoplay, paused, hovered, focused, dragging, reducedMotion, suspended, visible, pageVisible]);
+  }, [api, autoplay, paused, focused, dragging, reducedMotion, suspended, visible, pageVisible]);
 
   const togglePlayback = () => { setFocused(false); setPaused(value => !value); };
 
@@ -181,6 +182,8 @@ export function LogoCarouselFrame({
       data-playing={playing} data-current-logo={current}
       opts={options} plugins={plugins} setApi={setApi}
       onPointerDownCapture={(event) => {
+        // Pointer focus on an arrow or thumbnail must not latch rotation off.
+        setFocused(false);
         gestureRef.current = (event.target as Element).closest('[data-carousel-viewport]')
           ? { x: event.clientX, y: event.clientY, moved: false } : null;
       }}
@@ -188,11 +191,10 @@ export function LogoCarouselFrame({
         const gesture = gestureRef.current;
         if (gesture && Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 10) gesture.moved = true;
       }}
-      onPointerOver={(event) => {
-        if (event.pointerType === "mouse") setHovered(!contained || !!(event.target as Element).closest("[data-carousel-viewport]"));
+      onFocusCapture={(event) => {
+        const target = event.target as Element;
+        setFocused(target.matches(":focus-visible") && !target.closest("[data-playback-control]"));
       }}
-      onPointerLeave={() => setHovered(false)}
-      onFocusCapture={(event) => setFocused(!(event.target as Element).closest("[data-playback-control]"))}
       onBlurCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
       }}
