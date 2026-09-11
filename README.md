@@ -22,11 +22,14 @@ Brand libraries for independently branded gyms, with a shared dashboard for bulk
 
 - Every active logo in its original format, grouped by its saved category, including email logos, variations, themed artwork and animation.
 - Saved dividers and supporting graphics.
+- Adapted campaign examples where supplied, with source dates and a clear distinction from current offers or send-ready emails.
 - A visual PDF guide, actual font files where bundled, their licenses and source links.
 - HEX/RGB palettes as text, JSON, CSS and GPL.
 - A contents inventory with source URLs, measured file details and SHA-256 hashes.
 
 **PDF guide** downloads the same guide separately. Logo-only and filtered downloads create separate ZIPs. Required-file failures stop the export with an error instead of silently returning an incomplete archive. Same-name files receive unique archive paths.
+
+The guide presents logo placement, email treatments, color combinations, font specimens, selected graphics in context and adapted campaign compositions. It does not duplicate the complete asset catalog. The **Brand in use** panel opens examples in a compact viewer beside the existing download controls. Curated roles and example provenance live in `public/brand-examples/<gym-code>/manifest.json`; the app loads only the matching gym's presentation. Logo categories and approval remain database data. Example JPGs are design references, with editable presentation HTML alongside them; they are not email templates.
 
 The panel, editor and PDF use the pairing's saved `sample_heading`, `sample_body` and `sample_source`. Empty fields use neutral type specimens. Bundled fonts are defined in `src/lib/brandKitFonts.ts`; their originals and licenses live in `public/fonts`. An unbundled font gets an explicit source link, not a claim that its file is included.
 

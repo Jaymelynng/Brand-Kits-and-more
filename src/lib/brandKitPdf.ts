@@ -1,14 +1,14 @@
 import { jsPDF } from 'jspdf';
-import type { BrandKit, KitLogo, KitElement } from './brandKit';
+import type { BrandKit, KitLogo, KitElement, KitExample } from './brandKit';
 import { colorValues, kitInk } from './brandKit';
 import { contrast, readableOn, tint } from './shade';
 
-/** Real PDF pages, with embedded type and original logo artwork; no screenshot of the app. */
+/** A visual usage guide. The complete original-file catalog belongs in the ZIP. */
 export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4', compress: true, putOnlyUsedFonts: true });
   const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
   const M = 38, CW = W - M * 2;
-  const ink = kitInk(kit), accent = kit.palette[0], paper = '#FFFFFF';
+  const ink = kitInk(kit), accent = kit.palette[0], sky = kit.palette[2] || tint(ink, .8);
   const embedded = new Map<string, string>();
   for (const [i, font] of kit.fonts.entries()) {
     if (!font.blob || !font.file) continue;
@@ -16,184 +16,227 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     let binary = '';
     for (let n = 0; n < bytes.length; n += 8192) binary += String.fromCharCode(...bytes.subarray(n, n + 8192));
     const name = `brand-face-${i}`;
-    doc.addFileToVFS(font.file, btoa(binary));
-    doc.addFont(font.file, name, 'normal');
+    doc.addFileToVFS(font.file, btoa(binary)); doc.addFont(font.file, name, 'normal');
     embedded.set(`${font.family}:${font.weight}`, name);
   }
   const preferred = kit.pairings.find(p => p.is_preferred) || kit.pairings[0];
   const body = preferred ? embedded.get(`${preferred.body_font}:${preferred.body_weight}`) || 'helvetica' : 'helvetica';
-  const setFont = (family?: string, weight?: string) => {
-    doc.setFont(family ? embedded.get(`${family}:${weight}`) || body : body, 'normal');
-  };
-  const text = (value: string, x: number, y: number, size = 12, color = ink, width = CW, family?: string, weight?: string) => {
-    setFont(family, weight); doc.setFontSize(size); doc.setTextColor(color);
-    // Replace punctuation unsupported by standard PDF fonts only when no embedded face is available.
-    const normalized = body === 'helvetica' ? value.replace(/[’‘]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-') : value;
-    const lines = doc.splitTextToSize(normalized, width) as string[];
-    doc.text(lines, x, y, { lineHeightFactor: 1.3 });
-    return y + lines.length * size * 1.3;
+  const face = preferred ? embedded.get(`${preferred.heading_font}:${preferred.heading_weight}`) || body : body;
+  const text = (value: string, x: number, y: number, size = 13, color = ink, width = CW, font = body) => {
+    doc.setFont(font, 'normal'); doc.setFontSize(size); doc.setTextColor(color);
+    const normalized = value.replace(/[–—]/g, '-');
+    const lines = doc.splitTextToSize(font === 'helvetica' ? normalized.replace(/[’‘]/g, "'").replace(/[“”]/g, '"') : normalized, width) as string[];
+    doc.text(lines, x, y, { lineHeightFactor: 1.25 });
+    return y + lines.length * size * 1.25;
   };
   const box = (x: number, y: number, w: number, h: number, fill: string, stroke?: string) => {
-    doc.setFillColor(fill); doc.setDrawColor(stroke || fill); doc.roundedRect(x, y, w, h, 10, 10, stroke ? 'FD' : 'F');
+    doc.setFillColor(fill); doc.setDrawColor(stroke || fill);
+    doc.roundedRect(x, y, w, h, 9, 9, stroke ? 'FD' : 'F');
   };
-  const logoImage = (logo: KitLogo | KitElement, x: number, y: number, w: number, h: number) => {
-    if (!logo.preview) { text(`${logo.format} original included`, x + 12, y + h / 2, 14, ink, w - 24); return; }
-    const ratio = Math.min(w / logo.width, h / logo.height);
-    const dw = logo.width * ratio, dh = logo.height * ratio;
-    doc.addImage(logo.preview, 'PNG', x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, logo.sha256, 'FAST');
+  const photoBytes = new Map<string, Uint8Array>();
+  for (const e of kit.examples) photoBytes.set(e.sha256, new Uint8Array(await e.blob.arrayBuffer()));
+  const image = (asset: KitLogo | KitElement | KitExample | undefined, x: number, y: number, w: number, h: number) => {
+    if (!asset?.preview || !asset.width || !asset.height) return;
+    const ratio = Math.min(w / asset.width, h / asset.height), dw = asset.width * ratio, dh = asset.height * ratio;
+    const bytes = photoBytes.get(asset.sha256);
+    doc.addImage(bytes || asset.preview, bytes ? 'JPEG' : 'PNG', x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, asset.sha256, 'SLOW');
+    if ('logo' in asset) doc.link(x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, { url: asset.logo.file_url });
   };
-  const title = (eyebrow: string, heading: string, description?: string) => {
-    doc.addPage(); doc.setFillColor(paper); doc.rect(0, 0, W, H, 'F');
-    doc.setFillColor(accent); doc.rect(M, 31, 36, 4, 'F');
-    text(eyebrow.toUpperCase(), M + 48, 37, 10, ink);
-    text(heading, M, 83, 30);
-    if (description) text(description, M, 111, 12, ink, CW);
-  };
+  const role = (name: keyof NonNullable<BrandKit['presentation']>['logoRoles']) => kit.logos.find(l => l.logo.file_url === kit.presentation?.logoRoles[name]);
+  const main = kit.logos.find(l => l.logo.is_main_logo) || kit.logos[0];
+  const circle = role('circle') || main;
   const link = (label: string, url: string, x: number, y: number, width = CW) => {
-    const next = text(label, x, y, 11, ink, width);
+    const next = text(label, x, y, 12, ink, width);
     doc.link(x, y - 12, Math.min(width, doc.getTextWidth(label)), next - y + 12, { url });
     return next;
   };
-  doc.setProperties({ title: `${kit.gym.name} - Brand Guide`, subject: 'Primary logos, colors, typography and practical usage', author: kit.gym.name });
+  const title = (number: string, heading: string, description: string) => {
+    doc.addPage();
+    doc.setFillColor('#FFFFFF'); doc.rect(0, 0, W, H, 'F');
+    doc.setFillColor(accent); doc.rect(M, 30, 32, 4, 'F');
+    text(number.replace(/^\d+ \/ /, ''), M + 46, 38, 11);
+    text(heading, M, 87, 37, ink, CW, face);
+    text(description, M, 116, 13);
+  };
+  doc.setProperties({ title: `${kit.gym.name} - Brand Guide`, subject: 'Logo choices, typography, color and campaign applications', author: kit.gym.name });
 
-  // Cover: the identity, palette and two entry points, in one brand board.
+  // 1. Identity: a recognizable mark with enough scale to carry the opening.
   doc.setFillColor(ink); doc.rect(0, 0, W, H, 'F');
-  text(kit.gym.name.toUpperCase(), M, 43, 13, '#FFFFFF');
-  text('BRAND KIT', W - 150, 43, 12, '#FFFFFF', 112);
-  text('Brand essentials', M, 106, 42, '#FFFFFF');
-  text(kit.elements.length ? 'Logos. Color. Type. Dividers & graphics.' : 'Logos. Color. Type. Ready to use together.', M, 136, 15, '#FFFFFF');
-  const coverLogo = kit.logos.find(l => l.logo.is_main_logo && l.preview) || kit.logos.filter(l => l.transparent && l.colorful && l.width / l.height > 2)
-    .sort((a, b) => b.width - a.width)[0] || kit.logos.find(l => l.logo.is_main_logo) || kit.logos[0];
-  box(M, 164, CW, 192, coverLogo.lightArtwork ? ink : paper, kit.palette[2] || accent);
-  logoImage(coverLogo, M + 24, 180, CW - 48, 157);
+  text(kit.gym.name.toUpperCase(), M, 47, 14, '#FFFFFF');
+  text('BRAND GUIDE', W - 168, 47, 12, '#FFFFFF', 130);
+  text('Make it\nrecognizable.', M, 174, 65, '#FFFFFF', 400, face);
+  text(kit.examples.length ? 'Logos, color and type - with examples\nthat put them to work.' : kit.pairings.length ? 'Logos, color and type.\nReady to use together.' : 'Logos and color.\nReady to use together.', M, 337, 18, '#FFFFFF', 395);
+  box(W - M - 300, 126, 300, 290, '#FFFFFF');
+  image(circle, W - M - 282, 143, 264, 254);
   const sw = CW / kit.palette.length;
   kit.palette.forEach((c, i) => {
-    doc.setFillColor(c); doc.rect(M + i * sw, 380, sw, 60, 'F');
-    text(c, M + i * sw + 12, 417, 12, readableOn(c, ink), sw - 24);
+    doc.setFillColor(c); doc.rect(M + i * sw, 450, sw, 52, 'F');
+    text(c, M + i * sw + 12, 482, 12, readableOn(c, ink), sw - 20);
   });
-  text(`${kit.logos.length} active logos  /  ${kit.palette.length} colors  /  ${kit.pairings.length} font pairings`, M, 478, 16, '#FFFFFF');
-  text('Primary marks, email treatments, campaign artwork and original animations. All active categories are included.', M, 507, 12, '#FFFFFF', CW - 60);
+  text(['Identity', 'Color', ...(kit.pairings.length ? ['Type'] : []), ...(kit.elements.length ? ['Graphics'] : []), ...(kit.examples.length ? ['Brand in use'] : [])].join('  /  '), M, 535, 13, '#FFFFFF');
 
-  // A separate contact sheet for each saved category keeps email treatments easy to find.
-  const groups = new Map<string, KitLogo[]>();
-  kit.logos.forEach(logo => { const category = logo.logo.variant || 'Uncategorized'; groups.set(category, [...(groups.get(category) || []), logo]); });
-  const orderedGroups = [...groups].sort(([a], [b]) => a === 'Primary logos' ? -1 : b === 'Primary logos' ? 1 : a.localeCompare(b));
-  for (const [category, files] of orderedGroups) for (let offset = 0; offset < files.length; offset += 4) {
-    title('01 / Logo library', category, `${files.length} original files in Logos/${category}/. Previews of animations show one frame; the files retain their motion.`);
-    const gap = 18, cardW = (CW - gap) / 2;
-    files.slice(offset, offset + 4).forEach((l, n) => {
-      const x = M + (n % 2) * (cardW + gap), y = 136 + Math.floor(n / 2) * 193;
-      const ground = l.lightArtwork ? ink : tint(ink, 0.96);
-      box(x, y, cardW, 176, paper, tint(ink, 0.8));
-      box(x + 9, y + 9, cardW - 18, 100, ground);
-      logoImage(l, x + 20, y + 17, cardW - 40, 84);
-      text(l.logo.filename, x + 12, y + 129, 11, ink, cardW - 24);
-      const details = [l.format, l.width ? `${l.width} x ${l.height} px` : '', l.transparent === null ? '' : l.transparent ? 'Transparent' : 'Solid background'].filter(Boolean).join(' | ');
-      text(details, x + 12, y + 161, 10, ink, cardW - 24);
-    });
+  // 2. Explicit placement roles prevent a dark-background logo appearing on white.
+  const curated = [
+    { asset: role('dark'), label: 'On dark backgrounds', ground: ink, copy: 'Full color with room around the mark.' },
+    { asset: role('light'), label: 'On light backgrounds', ground: '#FFFFFF', copy: 'Keep the outline and lettering distinct.' },
+    { asset: role('black'), label: 'One color / black', ground: '#FFFFFF', copy: 'For simple, high-contrast reproduction.' },
+    { asset: role('white'), label: 'One color / white', ground: ink, copy: 'Place on a solid dark field.' },
+  ].filter(item => item.asset);
+  const choices = curated.length ? curated : kit.logos.filter(l => l.logo.variant === 'Primary logos').slice(0, 4).map((asset, i) => ({
+    asset, label: `Primary logo ${i + 1}`, ground: asset.lightArtwork ? ink : '#FFFFFF', copy: asset.transparent ? 'Transparent original included.' : 'Use the supplied background as part of this treatment.'
+  }));
+  if (!choices.length) choices.push({ asset: main, label: 'Featured logo', ground: main.lightArtwork ? ink : '#FFFFFF', copy: 'Original file included in the library.' });
+  title('01 / THE IDENTITY', 'Choose for the background', 'Use the supplied artwork and preserve its proportions.');
+  const cardW = (CW - 20) / 2;
+  choices.forEach((item, i) => {
+    const x = M + i % 2 * (cardW + 20), y = 148 + Math.floor(i / 2) * 187;
+    box(x, y, cardW, 171, '#FFFFFF', tint(ink, .8));
+    box(x + 9, y + 9, cardW - 18, 98, item.ground, tint(ink, .9));
+    image(item.asset, x + 30, y + 17, cardW - 60, 82);
+    text(item.label, x + 14, y + 129, 16, ink, cardW - 28, face);
+    text(item.copy, x + 14, y + 150, 11, ink, cardW - 28);
+  });
+  text('Click a logo to open its original. Transparent files keep clear pixels; preview backgrounds are not added.', M, 537, 12);
+
+  // 3. Distinct email treatments shown in context, without a repetitive full catalog.
+  const email = [role('circle'), role('ring'), role('square')].filter((l, i, all): l is KitLogo => !!l && all.findIndex(a => a?.sha256 === l.sha256) === i);
+  for (const l of kit.logos.filter(l => l.logo.variant === 'Email logos')) {
+    if (email.length >= 3) break;
+    if (!email.some(a => a.sha256 === l.sha256)) email.push(l);
+  }
+  if (email.length) {
+  title('02 / COMPACT PLACEMENTS', 'Email treatments', 'Circles, cards and shadow. Choose a treatment that suits the composition.');
+  const ew = (CW - 20 * (email.length - 1)) / email.length;
+  email.forEach((asset, i) => {
+    const x = M + i * (ew + 20);
+    box(x, 150, ew, 302, i === 1 ? sky : '#FFFFFF', tint(ink, .8));
+    text(['Email header', 'A framed accent', 'A compact card'][i], x + 16, 178, 19, ink, ew - 32, face);
+    image(asset, x + 25, 201, ew - 50, 154);
+    doc.setFillColor(ink); doc.rect(x + 22, 379, ew - 44, 4, 'F');
+    doc.setFillColor(tint(ink, .7)); doc.rect(x + 22, 392, ew - 64, 3, 'F');
+    box(x + 22, 411, ew - 44, 25, ink);
+    text('Header composition', x + 27, 428, 11, '#FFFFFF', ew - 54);
+  });
+  text('Keep the edge and shadow visible.', M, 487, 22, ink, CW, face);
+  text('Check the logo at the size it will appear in the email. Give the outer edge room and use a clear surrounding field. Choose a simpler treatment when the details become too small to read.', M, 512, 13, ink, CW);
   }
 
-  title('02 / Color', 'The palette', 'Exact HEX and RGB values from the saved brand colors.');
-  const colorW = (CW - 14 * (Math.min(4, kit.palette.length) - 1)) / Math.min(4, kit.palette.length);
-  // Color pages are paginated rather than shrinking an expanding palette.
+  // 4. Exact palette and readable combinations; no invented print equivalents.
   for (let offset = 0; offset < kit.palette.length; offset += 4) {
-    if (offset) title('02 / Color', 'The palette / continued');
-    kit.palette.slice(offset, offset + 4).forEach((c, n) => {
-      const x = M + n * (colorW + 14);
-      box(x, 144, colorW, 136, c, tint(ink, 0.8));
-      text(c, x + 14, 316, 19, ink, colorW - 28);
-      text(`RGB ${colorValues(c).rgb.join(' / ')}`, x + 14, 342, 11, ink, colorW - 28);
-      const on = contrast(c, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#101010';
-      text('Aa', x + 14, 237, 45, on, colorW - 28);
-      text(`${on === '#FFFFFF' ? 'White' : 'Dark'} text on this color`, x + 14, 370, 11, ink, colorW - 28);
+    title('03 / COLOR', offset ? 'The palette / continued' : 'Color with a purpose', 'Exact HEX and RGB values from the saved brand palette.');
+    const colors = kit.palette.slice(offset, offset + 4), pw = (CW - 14 * (colors.length - 1)) / colors.length;
+    colors.forEach((c, i) => {
+      const x = M + i * (pw + 14), on = contrast(c, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#101010';
+      box(x, 150, pw, 159, c, tint(ink, .8));
+      text('Aa', x + 17, 262, 60, on, pw - 34, face);
+      text(c, x, 341, 20, ink, pw, face);
+      text(`RGB ${colorValues(c).rgb.join(' / ')}`, x, 364, 12, ink, pw);
+      text(`${on === '#FFFFFF' ? 'White' : 'Dark'} text`, x, 386, 12, ink, pw);
     });
-    box(M, 403, CW, 112, tint(ink, 0.96));
-    text('Using color', M + 18, 428, 17);
-    text('Use the palette across backgrounds, type and accents. Keep text readable over every fill. Use a solid field behind a logo when a photograph makes the mark hard to see.', M + 18, 452, 12, ink, CW - 36);
-    text('Print: these are RGB/sRGB colors. Ask your printer for a color-managed conversion and proof; no CMYK or Pantone match is specified.', M + 18, 490, 11, ink, CW - 36);
+    box(M, 416, CW, 79, ink);
+    text('Use color to separate the message from the action.', M + 18, 445, 23, '#FFFFFF', CW - 36, face);
+    text('A calm reading surface gives the vivid logo, accent or button room to stand out.', M + 18, 473, 13, '#FFFFFF', CW - 36);
+    text('Print: RGB/sRGB values. Request a color-managed proof; no CMYK or Pantone match is specified.', M, 531, 11);
   }
 
-  kit.pairings.forEach(p => {
-    title('03 / Typography', p.name, p.notes || 'A starting point for campaign typography.');
-    const linkedOnly = [[p.heading_font, p.heading_weight], [p.body_font, p.body_weight]]
-      .filter(([family, weight]) => !embedded.has(`${family}:${weight}`)).map(([family]) => family);
-    text(`${p.heading_font} ${p.heading_weight} + ${p.body_font} ${p.body_weight}`, M, 149, 14);
-    box(M, 166, CW, 222, tint(ink, 0.96));
-    const heading = p.sample_heading || kit.gym.name;
-    const afterHeading = text(heading, M + 22, 212, 38, ink, CW - 44, p.heading_font, p.heading_weight);
-    text(p.sample_body || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789', M + 22, afterHeading + 12, 16, ink, CW - 44, p.body_font, p.body_weight);
-    text('ABCDEFGHIJKLM', M + 22, 366, 20, ink, CW - 44, p.heading_font, p.heading_weight);
-    let y = text(p.sample_source ? `Campaign sample: ${p.sample_source}. Wording demonstrates type; it is not a current offer.` : 'Type specimen. No campaign offer is implied.', M, 411, 11);
-    if (linkedOnly.length) y = text(`${[...new Set(linkedOnly)].join(', ')}: linked, not embedded. The sample uses the document fallback.`, M, y + 7, 11);
-    text(`Email fallback: ${p.email_fallback}`, M, Math.max(y + 8, 450), 12);
-    text('Use the real fonts in graphics and supported web layouts. In email, use the fallback stack for live text when a client cannot load web fonts.', M, 475, 12, ink, CW);
-    link(`Heading font: ${p.heading_font}`, kit.fonts.find(f => f.family === p.heading_font)?.source || kit.url, M, 520, CW / 2);
-    link(`Body font: ${p.body_font}`, kit.fonts.find(f => f.family === p.body_font)?.source || kit.url, W / 2, 520, CW / 2);
-  });
-  if (!kit.pairings.length) {
-    title('03 / Typography', 'Typography not yet supplied');
-    text('No font pairings are saved for this gym. Add them in the Fonts editor to include them in the next download.', M, 160, 16);
-  }
-
-  for (let offset = 0; offset < kit.elements.length; offset += 6) {
-    title('04 / Graphics', 'Dividers & graphics', 'Original files are included in Graphics/. Keep their proportions when fitting them to your design.');
-    const gap = 18, cardW = (CW - gap) / 2;
-    kit.elements.slice(offset, offset + 6).forEach((element, n) => {
-      const x = M + (n % 2) * (cardW + gap), y = 136 + Math.floor(n / 2) * 131;
-      box(x, y, cardW, 119, paper, tint(ink, 0.8));
-      box(x + 8, y + 8, cardW - 16, 55, element.lightArtwork && !element.colorful ? ink : paper);
-      logoImage(element, x + 16, y + 11, cardW - 32, 49);
-      text(element.element.display_name || element.element.element_type, x + 12, y + 81, 11, ink, cardW - 24);
-      text(`${element.width} x ${element.height} px`, x + 12, y + 108, 10, ink, cardW - 24);
+  // 5. Real embedded faces. Each pairing keeps the same specimen dimensions.
+  for (let offset = 0; offset < kit.pairings.length; offset += 2) {
+    title('04 / TYPOGRAPHY', 'A message and a supporting voice', 'Font pairings are starting points. Campaigns can take their own creative direction.');
+    kit.pairings.slice(offset, offset + 2).forEach((p, i) => {
+      const x = M + i * (cardW + 20), headingFace = embedded.get(`${p.heading_font}:${p.heading_weight}`) || body;
+      const bodyFace = embedded.get(`${p.body_font}:${p.body_weight}`) || body;
+      box(x, 148, cardW, 314, '#FFFFFF', tint(ink, .8));
+      text(p.name, x + 18, 177, 17, ink, cardW - 36, face);
+      const heading = p.sample_heading || kit.gym.name;
+      doc.setFont(headingFace); doc.setFontSize(36);
+      const headingLines = doc.splitTextToSize(heading, cardW - 36).length;
+      const size = headingLines > 2 ? 27 : 36;
+      const after = text(heading, x + 18, 225, size, ink, cardW - 36, headingFace);
+      text(p.sample_body || 'ABCDEFGHIJKLM', x + 18, after + 9, 14, ink, cardW - 36, bodyFace);
+      text('ABCDEFGHIJKLM', x + 18, 413, 22, ink, cardW - 36, headingFace);
+      text(`${p.heading_font} ${p.heading_weight} / ${p.body_font} ${p.body_weight}`, x + 18, 443, 11, ink, cardW - 36);
+      const font = kit.fonts.find(f => f.family === p.heading_font);
+      link(`Font source: ${p.heading_font}`, font?.source || kit.url, x, 489, cardW);
+      text(`Email fallback: ${p.email_fallback}`, x, 511, 11, ink, cardW);
+      if (!embedded.has(`${p.heading_font}:${p.heading_weight}`)) text('Font linked; specimen uses a fallback.', x, 540, 11, ink, cardW);
     });
+    text('Sample copy demonstrates type, not a current offer. Use email fallbacks where web fonts cannot load.', M, 547, 11);
   }
 
-  title(`${kit.elements.length ? '05' : '04'} / Use the kit`, 'From file to finished design', 'Practical starting points for marketing work.');
-  const rows = [
-    ['Choose the right mark', 'Use a transparent logo for flexible placement, a white mark on a dark surface, and a circle or square for compact placements. The preview background is not added to transparent files.'],
-    ['Give the logo room', 'Keep the full mark visible. Start with clear space about one quarter of the logo height, then check it in the actual design. Avoid stretching, squashing or rebuilding the lettering with a font.'],
-    ['Keep small work readable', 'Judge the logo at its final display size. For email, supply an image around twice its displayed pixel width when an original of that size is available. Preserve aspect ratio.'],
-    ['Make type do a job', 'Use the heading face for the message and the body face for the details. The saved pairings are useful starting points; a campaign can take a different direction.'],
-    ['Use the full library', 'Email treatments, themed logos and animations are included in their own folders. Keep animated originals for motion. Retired and Needs review files are excluded; Uncategorized files are unfiled.'],
-  ];
-  let y = 150;
-  rows.forEach(([head, copy], i) => {
-    box(M, y - 17, 30, 30, accent);
-    text(String(i + 1).padStart(2, '0'), M + 6, y + 3, 12, readableOn(accent, ink));
-    text(head, M + 48, y, 16);
-    const bottom = text(copy, M + 48, y + 22, 12, ink, CW - 48);
-    y = bottom + 25;
+  // 6. Selected graphics at realistic email-width proportions.
+  const selected = (kit.presentation?.featuredGraphics || []).map(name => kit.elements.find(e => e.element.display_name === name)).filter((e): e is KitElement => !!e);
+  const graphics = (selected.length ? selected : kit.elements.filter(e => e.element.element_type === 'divider')).slice(0, 2);
+  if (graphics.length) {
+    title('05 / GRAPHICS', 'Let the divider do a job', 'Use a transition to connect two sections, then leave the reading area calm.');
+    for (const [i, e] of graphics.entries()) {
+      const x = M + i * (cardW + 20), y = 150, width = cardW - 2;
+      const height = Math.min(width * e.height / e.width, 130);
+      // Match the lower panel to the existing artwork's edge, without altering the original.
+      const source = new Image(); source.src = e.preview; await source.decode();
+      const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
+      const context = canvas.getContext('2d')!;
+      context.drawImage(source, Math.floor(source.width / 2), source.height - 1, 1, 1, 0, 0, 1, 1);
+      const pixel = context.getImageData(0, 0, 1, 1).data;
+      const lower = pixel[3] > 240 ? '#' + [...pixel.slice(0, 3)].map(v => v.toString(16).padStart(2, '0')).join('') : ink;
+      box(x, y, cardW, 269, '#FFFFFF', tint(ink, .8));
+      text('A clear message', x + 19, y + 41, 23, ink, cardW - 38, face);
+      text('Space for the details.', x + 19, y + 66, 13, ink, cardW - 38);
+      doc.setFillColor(lower); doc.rect(x + 1, y + 191, width, 77, 'F');
+      image(e, x + 1, y + 191 - height, width, height);
+      text('A new section', x + 19, y + 228, 23, readableOn(lower, ink), cardW - 38, face);
+      text(e.element.display_name || e.element.element_type, x, 453, 23, ink, cardW, face);
+      text(i === 0 ? 'A more expressive transition. Let the shape reach both edges of the content area.' : 'A quieter repeat. Carry the accent through the design while keeping the message clear.', x, 480, 13, ink, cardW);
+    }
+    text('Use the original PNG at its natural proportions. View every saved graphic in the online library.', M, 544, 11);
+  }
+
+  // 7-9. Each enhanced example has a traceable historical source and a visible status.
+  kit.examples.forEach(({ example: e, ...asset }) => {
+    title('06 / BRAND IN USE', e.title, e.description);
+    image({ example: e, ...asset }, M, 145, 335, 386);
+    const x = M + 371, tw = CW - 371;
+    text('THE COMPOSITION', x, 166, 12);
+    let y = 202;
+    e.principles.forEach((principle, i) => {
+      box(x, y - 15, 27, 27, ink);
+      text(String(i + 1), x + 9, y + 3, 12, '#FFFFFF', 18);
+      y = text(principle, x + 41, y, 16, ink, tw - 41) + 24;
+    });
+    text('Adapted design example', x, 465, 19, ink, tw, face);
+    text(`Based on a campaign sent ${e.source.date}. Layout and type have been adapted; historical offers are not reproduced.`, x, 491, 12, ink, tw);
+    text('Download the full-size example in Examples/. It is a design reference, not a send-ready email.', M, 547, 11);
   });
 
-  title(`${kit.elements.length ? '06' : '05'} / Handoff`, 'What is in the download', 'Open the ZIP once. Start with the guide.');
+  // Handoff. Everything stays available; the guide is a curated route through it.
+  title('07 / HANDOFF', 'From the kit to the next design', 'The ZIP keeps the original files and their supporting information together.');
   const included = [
-    ['Brand Guide.pdf', 'The visual guide you are reading, with logo previews, colors, font samples and usage notes.'],
-    ['Logos/', `${kit.logos.length} active logos, filed by category, including email treatments and original animations.`],
-    ['Fonts/', 'Installable font files where available, family licenses, saved weights and official source links.'],
-    ['Colors/', 'HEX/RGB values as text, JSON, CSS variables and a GIMP-compatible palette.'],
-    ...(kit.elements.length ? [['Graphics/', `${kit.elements.length} dividers and supporting graphics in their original formats.`]] : []),
-    ['Contents.json', 'A file inventory with dimensions, transparency, source URLs and integrity hashes.'],
+    ['Logos/', `${kit.logos.length} active logo files, organized by saved category. Original animations keep their motion.`],
+    ['Fonts/', kit.fonts.length ? 'Installable files where available, licenses, saved weights and official sources.' : 'Font-guide.txt records that no font pairings are saved.'],
+    ['Colors/', 'Exact HEX/RGB values, CSS variables, JSON and a GIMP-compatible palette.'],
+    ...(kit.elements.length ? [['Graphics/', `${kit.elements.length} original dividers and graphics. All remain available, including treatments not featured here.`]] : []),
+    ...(kit.examples.length ? [['Examples/', `${kit.examples.length} adapted compositions, with source dates and usage notes. Design references only.`]] : []),
+    ['Contents.json', 'The complete file inventory with dimensions, source references and integrity hashes.'],
   ];
-  let iy = 153;
+  let y = 155;
   included.forEach(([name, description]) => {
-    text(name, M, iy, 16);
-    text(description, M + 170, iy, 12, ink, CW - 170);
-    iy += kit.elements.length ? 46 : 55;
+    text(name, M, y, 20, ink, 164, face);
+    text(description, M + 182, y, 13, ink, CW - 182);
+    y += 48;
   });
-  if (kit.notes.length) {
-    text('Production notes', M, 448, 16);
-    const notes = kit.notes.slice(0, 3).join(' ');
-    text(notes, M, 470, 11, ink, CW);
+  const notes = kit.notes.join(' ');
+  if (notes) {
+    text('Production note', M, 467, 19, ink, CW, face);
+    text(notes, M, 490, 12, ink, CW);
   }
-  link('Open the current online brand library', kit.url, M, 536);
+  link('Open the current online brand library', kit.url, M, 545);
 
   const count = doc.getNumberOfPages();
   for (let i = 1; i <= count; i++) {
     doc.setPage(i);
     const color = i === 1 ? '#FFFFFF' : ink;
-    doc.setDrawColor(i === 1 ? '#FFFFFF' : tint(ink, 0.7)); doc.setLineWidth(0.4); doc.line(M, H - 33, W - M, H - 33);
-    text(`${kit.gym.name}  /  Brand guide`, M, H - 17, 9, color);
-    text(`${kit.created.slice(0, 10)}  /  ${i} of ${count}`, W - M - 140, H - 17, 9, color, 140);
+    doc.setDrawColor(i === 1 ? '#FFFFFF' : tint(ink, .7)); doc.setLineWidth(.4); doc.line(M, H - 31, W - M, H - 31);
+    text(`${kit.gym.name} / Brand guide`, M, H - 14, 11, color);
+    text(`${String(i).padStart(2, '0')} / ${count}`, W - M - 65, H - 14, 11, color, 65);
   }
   return doc.output('blob');
 }

@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { contrast, luminance, shade } from '@/lib/shade';
 import { isActiveLogo } from '@/lib/logoOrder';
 import { fetchAssetFile, assetFilename, saveDownload } from '@/lib/assetFiles';
+import { BrandExamples } from './BrandExamples';
 
 export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
   const fonts = useFontPairings(gym.id);
@@ -78,6 +79,7 @@ export function BrandKitDownload({ gym }: { gym: GymWithColors }) {
       <p className="mt-2 text-center text-[15px] leading-snug text-slate-950" data-kit-contents>
         {gym.logos.filter(isActiveLogo).length} logos · {gym.elements.length} graphics · Fonts &amp; colors
       </p>
+      <BrandExamples code={gym.code} ink={darkFill} accent={accent} />
       <p role="status" aria-live="polite" className={status ? 'mt-2 text-sm leading-relaxed text-slate-950' : 'sr-only'}>
         {status}
       </p>

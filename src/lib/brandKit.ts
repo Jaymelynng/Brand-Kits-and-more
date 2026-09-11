@@ -4,6 +4,7 @@ import { bundledFont, fontSource } from './brandKitFonts';
 import { luminance } from './shade';
 import { compareLogoOrder, isActiveLogo } from './logoOrder';
 import { elementFilename, loadElementFile } from './brandElements';
+import { brandPresentation, type BrandExample, type BrandPresentation } from './brandExamples';
 import { assetFilename, fetchAssetFile, inspectAsset, safeFilename, uniqueAssetPath, type AssetInfo } from './assetFiles';
 export { safeFilename, saveDownload } from './assetFiles';
 
@@ -24,11 +25,16 @@ export interface KitFont {
 export interface KitElement extends Omit<KitLogo, 'logo'> {
   element: GymElement;
 }
+export interface KitExample extends Omit<KitLogo, 'logo'> {
+  example: BrandExample;
+}
 export interface BrandKit {
   gym: GymWithColors;
   pairings: FontPairing[];
   logos: KitLogo[];
   elements: KitElement[];
+  examples: KitExample[];
+  presentation?: BrandPresentation;
   fonts: KitFont[];
   palette: string[];
   created: string;
@@ -85,6 +91,14 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
       return { element, blob, path, sha256: [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join(''), ...preview };
     })));
   }
+  onProgress('Collecting design examples…');
+  const presentation = brandPresentation(gym.code);
+  const examples: KitExample[] = await Promise.all((presentation?.examples || []).map(async example => {
+    const blob = await fetchAssetFile(example.image, example.title);
+    const [preview, digest] = await Promise.all([inspectAsset(blob), crypto.subtle.digest('SHA-256', await blob.arrayBuffer())]);
+    return { example, blob, path: `Examples/${assetFilename(example.id, blob)}`,
+      sha256: [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join(''), ...preview };
+  }));
   onProgress('Preparing fonts…');
   const choices = pairings.flatMap(p => [
     { family: p.heading_font, weight: p.heading_weight },
@@ -105,7 +119,7 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
   if (!pairings.length) notes.push('No font pairings are saved for this gym.');
   if (!logos.some(l => l.logo.variant === 'Primary logos' && l.format === 'SVG')) notes.push('No SVG master is saved in Primary logos. A verified vector master is still needed for large signs, embroidery or other production that requires vector artwork.');
   fonts.filter(f => !f.blob).forEach(f => notes.push(`${f.family} ${f.weight}: use the source link in Fonts; its installable file is not bundled.`));
-  return { gym, pairings, logos, elements, fonts, palette, created: new Date().toISOString(),
+  return { gym, pairings, logos, elements, examples, presentation, fonts, palette, created: new Date().toISOString(),
     url: `${location.origin}/kit/${encodeURIComponent(gym.code)}`, notes };
 }
 
@@ -125,6 +139,13 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
   root.file(`${safeFilename(kit.gym.code)}-Brand-Guide.pdf`, pdf);
   kit.logos.forEach(l => root.file(l.path, l.blob));
   kit.elements.forEach(e => root.file(e.path, e.blob));
+  kit.examples.forEach(e => root.file(e.path, e.blob));
+  if (kit.examples.length) root.file('Examples/Read-me.txt', [
+    'Adapted design examples', '',
+    'These compositions demonstrate the brand in use. They are not sent campaign screenshots, live offers or send-ready email templates.',
+    'Historical discounts and countdowns are not reproduced. Verify current details and test the email implementation before sending.', '',
+    ...kit.examples.flatMap(({ example: e, path }) => [e.title, `File: ${path}`, `Based on: ${e.source.campaign.trim()} (${e.source.date})`, e.description, ...e.principles, '']),
+  ].join('\n'));
   kit.fonts.forEach(f => {
     if (f.blob && f.file) {
       root.file(`Fonts/${safeFilename(f.family)}/${f.file}`, f.blob);
@@ -152,6 +173,7 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
     'Start with the PDF guide. Logos contains every active logo, organized by its saved category and preserved in its original format.',
     'Fonts contains installable files where available, licenses, pairing weights and source links.',
     'Colors contains HEX/RGB values plus CSS, JSON and a GIMP-compatible palette.',
+    ...(kit.examples.length ? ['Examples contains adapted campaign compositions. These are design references, not current offers or send-ready email templates.'] : []),
     ...(kit.elements.length ? [`Graphics contains ${kit.elements.length} saved dividers and supporting graphics in their original formats.`, 'For email, download the PNG or copy its URL from the online kit. Preserve its proportions when sizing it to the email width.'] : []),
     'Transparent logo files have clear pixels, not a printed checkerboard. A white logo needs a dark surface.',
     'Keep logo proportions. Choose a file that reads clearly on its background. Do not enlarge raster files past a useful size.',
@@ -162,6 +184,7 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
   root.file('Contents.json', JSON.stringify({ gym: kit.gym.name, code: kit.gym.code, exported_at: kit.created, source: kit.url,
     logos: kit.logos.map(l => ({ file: l.path, name: l.logo.filename, category: l.logo.variant || 'Uncategorized', format: l.format, bytes: l.bytes, duration_seconds: l.duration, width: l.width, height: l.height, transparent: l.transparent, sha256: l.sha256, source: l.logo.file_url })),
     graphics: kit.elements.map(e => ({ file: e.path, name: e.element.display_name, type: e.element.element_type, width: e.width, height: e.height, transparent: e.transparent, sha256: e.sha256 })),
+    examples: kit.examples.map(e => ({ file: e.path, name: e.example.title, kind: e.example.kind, width: e.width, height: e.height, sha256: e.sha256, source_campaign: e.example.source })),
     pairings: kit.pairings.map(({ name, heading_font, heading_weight, body_font, body_weight, accent_font, accent_weight, email_fallback, notes, sample_heading, sample_body, sample_source }) =>
       ({ name, heading_font, heading_weight, body_font, body_weight, accent_font, accent_weight, email_fallback, notes, sample_heading, sample_body, sample_source })),
     colors, notes: kit.notes }, null, 2));

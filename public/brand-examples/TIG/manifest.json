@@ -1,0 +1,70 @@
+{
+  "logoRoles": {
+    "circle": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/gen-TIG-TIG_v00_transparent.png",
+    "dark": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-TIG-primary-ondark.png",
+    "light": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-TIG-primary-onlight.png",
+    "white": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-TIG-primary-white.png",
+    "black": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-TIG-primary-black.png",
+    "ring": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/gen-TIG-TIG_v16_circle-plus-ring__c4.png",
+    "glow": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-TIG-blue-glow-enhanced.png",
+    "holiday": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-TIG-christmas-script-circle.png",
+    "square": "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/gen-TIG-TIG_v19_brand-backdrop__c2.png"
+  },
+  "featuredGraphics": [
+    "Gloss wave",
+    "Gloss ribbon"
+  ],
+  "examples": [
+    {
+      "id": "playful",
+      "title": "Playful choices",
+      "image": "/brand-examples/TIG/playful.jpg",
+      "description": "A clear choice, with room for personality.",
+      "principles": [
+        "The round logo establishes the identity before the message.",
+        "A shaped orange band connects the headline to the choices.",
+        "Equal cards, consistent buttons and dark text make the choices easy to compare."
+      ],
+      "source": {
+        "campaign": "%FIRSTNAME% They've got energy. We've got options! ",
+        "date": "2025-09-17",
+        "sha256": "fdf2bde8002825ca0a7e4107b03dbfe6ac11494ad27d0193d67ce93ebb967b32"
+      },
+      "kind": "Adapted design example"
+    },
+    {
+      "id": "glow",
+      "title": "Glow & momentum",
+      "image": "/brand-examples/TIG/glow.jpg",
+      "description": "One vivid focal point, followed by a clear next step.",
+      "principles": [
+        "The glow belongs to the logo; the body copy has a quiet, high-contrast surface.",
+        "Orange and sky blue separate the message from the next action.",
+        "The supporting copy and the action stay visually separate from the glow."
+      ],
+      "source": {
+        "campaign": "TIG - CAMP TO CLASS 2026",
+        "date": "2026-08-25",
+        "sha256": "936357d1c6bb3e8f0bfcfdf99b7401515c9c6f251cb8d8b7c4528bedfc26e64f"
+      },
+      "kind": "Adapted design example"
+    },
+    {
+      "id": "holiday",
+      "title": "Seasonal celebration",
+      "image": "/brand-examples/TIG/holiday.jpg",
+      "description": "A seasonal palette with the TIGAR identity still in focus.",
+      "principles": [
+        "The gold circle anchors the seasonal design.",
+        "The headline, logo and single action have distinct places in the composition.",
+        "The red and gold come from the supplied holiday artwork and sent gift-card campaign."
+      ],
+      "source": {
+        "campaign": "New Campaign",
+        "date": "2025-11-11",
+        "sha256": "754bf7d7b936da314224c6e89ba9c5f5f312197a73e759ad3e1412d2a300a1ad"
+      },
+      "kind": "Adapted design example"
+    }
+  ]
+}
