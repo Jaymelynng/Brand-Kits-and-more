@@ -1618,7 +1618,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   <div className="grid grid-cols-1 gap-[clamp(12px,1.5vw,24px)] lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-stretch" data-brand-showcase>
                     <div className="flex min-w-0 flex-col">
                       <div className="mb-2 flex items-center justify-between gap-2">
-                        <CardTitle className="text-2xl text-white">Primary logos</CardTitle>
+                        <CardTitle className="flex-1 text-center text-2xl text-white">Primary logos</CardTitle>
                         {!solo && (isAdmin ? <Button className="h-10 cursor-pointer whitespace-nowrap px-3 text-[15px] font-semibold hover:brightness-110"
                           style={{ background: primaryColor, color: contrast(primaryColor, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111' }}
                           onClick={() => setOrderEditor({ logos: primaries, label: 'Primary logos' })}>Change order</Button>
