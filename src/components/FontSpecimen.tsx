@@ -14,6 +14,11 @@ interface FontSpecimenProps {
   canEdit: boolean;
 }
 
+const weightLabel = (weight: string) => {
+  const names: Record<string, string> = { "300": "Light", "400": "Regular", "500": "Medium", "600": "Semibold", "700": "Bold", "800": "Extra bold", "900": "Black" };
+  return names[weight] ? `${names[weight]} · ${weight}` : `Weight ${weight}`;
+};
+
 /**
  * The type specimen, sized to sit beside the logo carousel rather than under
  * it as another full-width block.
@@ -114,22 +119,17 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         boxShadow: `0 10px 30px rgba(0,0,0,0.28), inset 0 0 0 2px ${accent}`,
       }}
     >
-      <div className="mb-2 flex flex-wrap items-center gap-2">
-        <span
-          className="text-[15px] font-extrabold uppercase tracking-wider"
-          style={{ color: ink }}
-        >
-          Typeface
-        </span>
-        <span className="text-[15px] font-bold" style={{ color: ink }}>
-          {p.name}
-        </span>
-        {p.is_preferred && (
-          <Star className="h-3 w-3 shrink-0" style={{ color: accent }} aria-label="Everyday pairing" />
-        )}
+      <div className="font-specimen-header flex items-center justify-between gap-3 border-b pb-3" style={{ borderColor: `${ink}22` }}>
+        <div className="min-w-0">
+          <div className="text-[15px] font-semibold" style={{ color: ink }}>Font pairing</div>
+          <div className="flex items-center gap-2">
+            <strong className="break-words text-[20px] leading-tight" style={{ color: ink }}>{p.name}</strong>
+            {p.is_preferred && <Star className="h-4 w-4 shrink-0" style={{ color: ink, fill: accent }} aria-label="Everyday pairing" />}
+          </div>
+        </div>
 
         {pairings.length > 1 && (
-          <div className="ml-auto flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1">
             <button
               onClick={() => setIndex(i => (i - 1 + pairings.length) % pairings.length)}
               className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full hover:brightness-90"
@@ -155,83 +155,46 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
         )}
       </div>
 
-      {/* Size type against this column, and balance the saved email copy
-          without inserting hard line breaks that fail at another width. */}
-      <div className="font-specimen-sample flex flex-1 flex-col justify-center gap-4 py-5">
-        <div
-          className="break-words leading-[1.02]"
-          style={{
-            fontFamily: `'${p.heading_font}', sans-serif`,
-            fontWeight: Number(p.heading_weight),
-            fontSize: p.sample_heading ? "clamp(30px, 11cqi, 58px)" : "clamp(42px, 12cqi, 82px)",
-            textWrap: "balance",
-            color: ink,
-          }}
-        >
-          {p.sample_heading || gymName}
-        </div>
-        <div
-          style={{
-            fontFamily: `'${p.body_font}', sans-serif`,
-            fontWeight: Number(p.body_weight),
-            fontSize: "clamp(16px, 4cqi, 19px)",
-            lineHeight: 1.6,
-            textWrap: "balance",
-            color: ink,
-            opacity: 0.88,
-          }}
-        >
-          {p.sample_body || "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789"}
-        </div>
-        {/* A short sample keeps the letterforms visible without another row. */}
-        <div
-          className="break-all tracking-wide"
-          style={{
-            fontFamily: `'${p.heading_font}', sans-serif`,
-            fontWeight: Number(p.heading_weight),
-            fontSize: "clamp(15px, 5cqi, 24px)",
-            color: accent,
-            opacity: 1,
-          }}
-        >
-          ABCDEFGHIJKLM
-        </div>
-        {p.accent_font && (
-          <div
-            className="mt-2"
-            style={{
-              fontFamily: `'${p.accent_font}', cursive`,
-              fontWeight: Number(p.accent_weight || 400),
-              fontSize: 20,
-              color: accent,
-            }}
-          >
-            Aa Bb Cc 0123456789
-          </div>
-        )}
-        {p.sample_source && <p className="border-l-2 pl-3 text-[15px] leading-snug" style={{ color: ink, borderColor: accent, textWrap: 'balance' }}>Campaign example · {p.sample_source}</p>}
+      {/* Put the identity next to the sample it describes. Each family name
+          and campaign example renders in that family's actual saved weight. */}
+      <div className="font-specimen-sample flex flex-1 flex-col justify-center gap-4 py-4">
+        {[
+          { role: "Heading", font: p.heading_font, weight: p.heading_weight, sample: p.sample_heading || gymName },
+          { role: "Body", font: p.body_font, weight: p.body_weight, sample: p.sample_body || "Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm" },
+          ...(p.accent_font ? [{ role: "Accent", font: p.accent_font, weight: p.accent_weight || "400", sample: "Aa Bb Cc 0123456789" }] : []),
+        ].map((face, faceIndex) => (
+          <section key={face.role} data-font-role={face.role.toLowerCase()}
+            className={faceIndex ? "min-w-0 border-t pt-4" : "min-w-0"}
+            style={{ borderColor: `${ink}22` }} aria-label={`${face.role} font: ${face.font}`}>
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[15px] leading-snug">
+              <strong style={{ color: ink }}>{face.role} font</strong>
+              <span style={{ color: ink }}>{weightLabel(face.weight)}</span>
+            </div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div data-font-name className="min-w-0 break-words leading-tight"
+                style={{ fontFamily: `'${face.font}', sans-serif`, fontWeight: Number(face.weight), fontSize: "clamp(28px, 8cqi, 38px)", color: ink }}>
+                {face.font}
+              </div>
+              <button type="button" onClick={() => copy(`${face.font} ${face.weight}`, face.font)}
+                className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg hover:brightness-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{ background: `${ink}14`, color: ink }} aria-label={`Copy ${face.role.toLowerCase()} font: ${face.font}`} title={`Copy ${face.font}`}>
+                <Copy className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+            <div data-font-example className="break-words"
+              style={{ fontFamily: `'${face.font}', sans-serif`, fontWeight: Number(face.weight), fontSize: face.role === "Heading" ? "clamp(24px, 6cqi, 32px)" : "clamp(17px, 4cqi, 19px)", lineHeight: face.role === "Heading" ? 1.2 : 1.5, textWrap: "pretty", color: ink }}>
+              {face.sample}
+            </div>
+            {face.role === "Heading" && <div className="mt-2 break-words tracking-wide"
+              style={{ fontFamily: `'${face.font}', sans-serif`, fontWeight: Number(face.weight), fontSize: "clamp(18px, 4.5cqi, 22px)", color: ink }}>
+              ABCDEFGHIJKLM
+            </div>}
+          </section>
+        ))}
       </div>
+      {p.sample_source && <p className="mb-3 border-l-2 pl-3 text-[15px] leading-snug" style={{ color: ink, borderColor: accent, textWrap: "pretty" }}>Email example: {p.sample_source}</p>}
 
-      {/* Names and controls, compact, under the sample. */}
-      <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t pt-2.5" style={{ borderColor: `${ink}22` }}>
-        <button
-          onClick={() => copy(`${p.heading_font} ${p.heading_weight}`, p.heading_font)}
-          className="min-h-11 cursor-pointer rounded-lg px-2.5 py-2 text-[15px] font-bold hover:brightness-90"
-          style={{ background: `${ink}14`, color: ink }}
-          title="Copy heading font"
-        >
-          {p.heading_font} {p.heading_weight}
-        </button>
-        <button
-          onClick={() => copy(`${p.body_font} ${p.body_weight}`, p.body_font)}
-          className="min-h-11 cursor-pointer rounded-lg px-2.5 py-2 text-[15px] font-bold hover:brightness-90"
-          style={{ background: `${ink}14`, color: ink }}
-          title="Copy body font"
-        >
-          {p.body_font} {p.body_weight}
-        </button>
-
-        <div className="ml-auto flex items-center gap-1.5">
+      <div className="font-specimen-actions mt-auto flex flex-wrap items-center justify-end gap-2 border-t pt-3" style={{ borderColor: `${ink}22` }}>
           <button
             onClick={() =>
               copy(
@@ -248,10 +211,9 @@ export const FontSpecimen = ({ gymId, gymName, palette, canEdit }: FontSpecimenP
             style={{ background: accent, color: onAccent }}
             title="Copy all font names"
           >
-            <Copy className="h-3 w-3" /> Copy
+            <Copy className="h-4 w-4" aria-hidden="true" /> Copy pairing
           </button>
           {canEdit && editor}
-        </div>
       </div>
     </div>
     ))}
