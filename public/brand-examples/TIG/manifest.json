@@ -12,7 +12,9 @@
   },
   "usageNotes": {
     "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-review-TIG_Logo_DarkBlueBG_OrangeLetters.png": "Horizontal layouts with a navy background",
-    "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-0.45365681789627166.png": "Square layouts with a navy background"
+    "https://fwkiadhkxqnlnvmzpgnw.supabase.co/storage/v1/object/public/gym-logos/82b34218-da57-4d72-92f4-206b6d3289eb-0.45365681789627166.png": "Square layouts with a navy background",
+    "https://brandkits.mygymtools.com/brand-elements/TIG/TIG_logo-vector-black.svg": "Scalable black artwork · vector reconstruction",
+    "https://brandkits.mygymtools.com/brand-elements/TIG/TIG_logo-vector-white.svg": "Scalable white artwork · vector reconstruction"
   },
   "featuredGraphics": [
     "Gloss wave",
@@ -70,5 +72,6 @@
       },
       "kind": "Adapted design example"
     }
-  ]
+  ],
+  "vectorNote": "The black and white SVG logos are vector reconstructions of the supplied artwork, not original designer masters. Confirm the final production proof with your supplier; embroidery requires a separate stitch file."
 }

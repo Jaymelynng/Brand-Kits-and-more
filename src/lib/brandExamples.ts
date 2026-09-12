@@ -12,6 +12,7 @@ export interface BrandPresentation {
   logoRoles: Partial<Record<'circle' | 'dark' | 'light' | 'white' | 'black' | 'ring' | 'square' | 'glow' | 'holiday', string>>;
   featuredGraphics: string[];
   usageNotes?: Record<string, string>;
+  vectorNote?: string;
   examples: BrandExample[];
 }
 

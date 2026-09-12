@@ -394,7 +394,7 @@ All colors MUST be HSL.
   .gym-profile [data-brand-elements] button { min-height: 44px; }
   .gym-profile [data-graphic-view="grid"] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .gym-profile [data-graphic-view="grid"] > article { padding: 8px; }
-  .gym-profile [data-graphic-view="grid"] > article > button { height: 90px; }
+  .gym-profile [data-graphic-view="grid"] > article > button { height: 120px; padding-bottom: 30px; }
   .gym-profile [data-graphic-view="grid"] > article > button > span { inset: auto 4px 4px auto; padding: 3px 5px; }
   .gym-profile [data-graphic-view="grid"] > article h3 { font-size: 15px; }
   .gym-profile [data-graphic-view="grid"] > article .mt-auto { grid-template-columns: 1fr; }

@@ -1,11 +1,14 @@
 import type { GymElement } from '@/hooks/useGyms';
+import { inspectAsset } from './assetFiles';
 
-export const elementTypes = ['divider', 'banner', 'shape', 'background', 'icon', 'other'];
+export const elementTypes = ['divider', 'banner', 'shape', 'background', 'icon', 'social', 'other'];
+
+export const elementTypeLabel = (type: string) => type === 'social' ? 'Social icons' : type;
 
 /** Name the saved collection by its contents, without promising absent asset types. */
 export function elementCollectionName(elements: readonly Pick<GymElement, 'element_type'>[], plural = true) {
   const types = [...new Set(elements.map(element => element.element_type))];
-  const names: Record<string, string> = { divider: 'Divider', banner: 'Banner', shape: 'Shape', background: 'Background', icon: 'Icon' };
+  const names: Record<string, string> = { divider: 'Divider', banner: 'Banner', shape: 'Shape', background: 'Background', icon: 'Icon', social: 'Social icon' };
   const name = types.length === 1 ? names[types[0]] || 'Graphic' : 'Graphic';
   return plural ? `${name}s` : name;
 }
@@ -33,4 +36,11 @@ export async function loadElementFile(element: GymElement) {
   const blob = await response.blob();
   if (!blob.size || !blob.type.startsWith('image/')) throw new Error(`${element.display_name || element.element_type} did not return an image.`);
   return blob;
+}
+
+/** Email-friendly PNG companion, rendered from the exact SVG on a clear canvas. */
+export async function elementPng(blob: Blob): Promise<Blob> {
+  if (blob.type !== 'image/svg+xml') throw new Error('PNG conversion requires an SVG original.');
+  const info = await inspectAsset(blob);
+  return (await fetch(info.preview)).blob();
 }

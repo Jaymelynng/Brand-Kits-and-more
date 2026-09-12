@@ -10,7 +10,7 @@ import { cn, scrollToSection } from '@/lib/utils';
 import { LogoPreview, type PreviewAsset } from '@/components/LogoPreview';
 import { contrast, luminance } from '@/lib/shade';
 import { copyText } from '@/lib/copyText';
-import { elementCollectionName, elementFilename, elementSource, elementTypes, isInlineSvg, loadElementFile } from '@/lib/brandElements';
+import { elementCollectionName, elementFilename, elementSource, elementTypes, elementTypeLabel, elementPng, isInlineSvg, loadElementFile } from '@/lib/brandElements';
 import { safeFilename, saveDownload } from '@/lib/brandKit';
 import { isActiveLogo } from '@/lib/logoOrder';
 
@@ -34,7 +34,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
   const ink = [...gym.colors].sort((a, b) => luminance(a.color_hex) - luminance(b.color_hex))[0]?.color_hex || '#111827';
   const darkFill = contrast(ink, '#FFFFFF') >= 4.5 ? ink : '#111827';
   const accentText = contrast(accent, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111';
-  const typeOrder: Record<string, number> = { icon: 0, shape: 1, banner: 2, background: 3, divider: 4 };
+  const typeOrder: Record<string, number> = { icon: 0, social: 1, shape: 2, banner: 3, background: 4, divider: 5 };
   const orderedElements = [...gym.elements].sort((a, b) => (typeOrder[a.element_type] ?? 5) - (typeOrder[b.element_type] ?? 5));
   const types = [...new Set(orderedElements.map(e => e.element_type))];
   const collectionName = elementCollectionName(gym.elements);
@@ -48,11 +48,14 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
   const actionStyle = { backgroundColor: accent, color: accentText };
   const secondaryStyle = { backgroundColor: darkFill, color: '#FFFFFF' };
 
-  const download = async (elements: GymElement[], zipped = false) => {
+  const download = async (elements: GymElement[], zipped = false, png = false) => {
     if (busy) return;
     setBusy(zipped ? 'zip' : elements[0].id);
     try {
-      if (!zipped) saveDownload(await loadElementFile(elements[0]), elementFilename(elements[0]));
+      if (!zipped) {
+        const blob = await loadElementFile(elements[0]);
+        saveDownload(png ? await elementPng(blob) : blob, png ? elementFilename(elements[0]).replace(/\.svg$/i, '.png') : elementFilename(elements[0]));
+      }
       else {
         const { default: JSZip } = await import('jszip');
         const zip = new JSZip();
@@ -66,6 +69,13 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
             while (used.has(name.toLowerCase())) name = original.replace(/(\.[^.]+)$/, `-${n++}$1`);
             used.add(name.toLowerCase());
             zip.file(`${folder}/${name}`, blob);
+            if (blob.type === 'image/svg+xml') {
+              const base = name.replace(/\.svg$/i, '.png');
+              let companion = base, suffix = 2;
+              while (used.has(companion.toLowerCase())) companion = base.replace(/\.png$/i, `-${suffix++}.png`);
+              used.add(companion.toLowerCase());
+              zip.file(`${folder}/${companion}`, await elementPng(blob));
+            }
           }
         }
         saveDownload(await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }), `${folder}.zip`);
@@ -97,7 +107,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
         <div className="flex flex-wrap gap-2" role="group" aria-label="Graphic categories">
           {['all', ...types].map(type => <Button key={type} aria-pressed={filter === type} onClick={() => setFilter(type)}
             className={cn(buttonClass, 'capitalize')} style={filter === type ? actionStyle : secondaryStyle}>
-            {type === 'all' ? 'All' : type} · {type === 'all' ? gym.elements.length : gym.elements.filter(e => e.element_type === type).length}
+            {type === 'all' ? 'All' : elementTypeLabel(type)} · {type === 'all' ? gym.elements.length : gym.elements.filter(e => e.element_type === type).length}
           </Button>)}
         </div>
         <div className="flex gap-2" role="group" aria-label="Graphic views">
@@ -111,7 +121,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
     </CardHeader>
     <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
       {!gym.elements.length ? <p className="text-base text-slate-950">Add dividers, banners, backgrounds or icons to this kit.</p> :
-        <div data-graphic-view={view} className={cn(view === 'strip' ? 'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4' : 'grid auto-rows-fr gap-4', view === 'grid' && 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3')}>
+        <div data-graphic-view={view} className={cn(view === 'strip' ? 'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4' : 'grid auto-rows-fr gap-4', view === 'grid' && (filter === 'social' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'))}>
           {visible.map(element => <article key={element.id} data-element-id={element.id} data-activity-asset={element.display_name || element.element_type} className={cn('flex min-w-0 flex-col rounded-xl border-2 bg-white p-4 shadow-md', view === 'strip' && 'w-[min(90%,440px)] shrink-0 snap-start', view === 'list' && 'sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-5')} style={{ borderColor: `${accent}55` }}>
             <button type="button" aria-label={`Preview ${elementCollectionName([element], false).toLowerCase()}: ${element.display_name || element.element_type}`} onClick={() => setPreviewId(element.id)}
               className="group relative flex h-40 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-300 p-2 transition-shadow hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2" style={{ backgroundColor: darkPreview ? darkFill : '#FFFFFF' }}>
@@ -122,8 +132,9 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
               <h3 className="my-3 break-words text-base font-bold text-slate-950">
                 {isAdmin ? <InlineRename value={element.display_name || element.element_type} onSave={name => onRename(element.id, name)} /> : element.display_name || element.element_type}
               </h3>
-              <div className="mt-auto grid grid-cols-2 gap-2">
-                <Button disabled={!!busy} onClick={() => download([element])} className={buttonClass} style={actionStyle}><Download className="hidden h-4 w-4 shrink-0 sm:block" />Download</Button>
+              <div className={cn('mt-auto grid gap-2', /\.svg$/i.test(elementFilename(element)) ? 'grid-cols-3' : 'grid-cols-2')}>
+                <Button disabled={!!busy} onClick={() => download([element])} className={buttonClass} style={actionStyle}><Download className="hidden h-4 w-4 shrink-0 sm:block" />{/\.svg$/i.test(elementFilename(element)) ? 'SVG' : 'Download'}</Button>
+                {/\.svg$/i.test(elementFilename(element)) && <Button disabled={!!busy} onClick={() => download([element], false, true)} className={buttonClass} style={secondaryStyle}>PNG</Button>}
                 <Button onClick={async () => {
                   const value = isInlineSvg(element.svg_data) ? element.svg_data : new URL(element.svg_data, window.location.origin).href;
                   const ok = await copyText(value);
@@ -133,7 +144,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
               {isAdmin && <div className="mt-2 flex gap-2">
                 <Select value={element.element_type} onValueChange={type => onTypeChange(element.id, type)}>
                   <SelectTrigger aria-label="Graphic category" className="min-w-0 flex-1 capitalize text-slate-950"><SelectValue /></SelectTrigger>
-                  <SelectContent>{[...new Set([...elementTypes, element.element_type])].map(type => <SelectItem key={type} value={type} className="capitalize">{type}</SelectItem>)}</SelectContent>
+                  <SelectContent>{[...new Set([...elementTypes, element.element_type])].map(type => <SelectItem key={type} value={type} className="capitalize">{elementTypeLabel(type)}</SelectItem>)}</SelectContent>
                 </Select>
                 <Button onClick={() => onDelete(element.id, element.display_name || element.element_type)} aria-label={`Delete ${element.display_name || element.element_type}`} className={buttonClass} style={{ backgroundColor: '#b91c1c', color: '#FFFFFF' }}><Trash2 className="h-4 w-4" /></Button>
               </div>}

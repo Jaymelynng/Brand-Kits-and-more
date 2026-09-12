@@ -103,6 +103,20 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
   });
   text('Click a logo to open its original. Transparent files keep clear pixels; preview backgrounds are not added.', M, 537, 12);
 
+  const vectors = kit.logos.filter(l => l.format === 'SVG');
+  for (let offset = 0; offset < vectors.length; offset += 4) {
+    title('01 / THE IDENTITY', 'Scalable logo files' + (offset ? ' / continued' : ''), 'SVG artwork stays sharp when resized. Click a logo to open its vector file.');
+    const batch = vectors.slice(offset, offset + 4), spacious = batch.length <= 2;
+    batch.forEach((asset, i) => {
+      const x = M + i % 2 * (cardW + 20), y = 148 + Math.floor(i / 2) * 170;
+      box(x, y, cardW, spacious ? 310 : 152, '#FFFFFF', tint(ink, .8));
+      box(x + 10, y + 10, cardW - 20, spacious ? 248 : 100, asset.lightArtwork ? ink : '#FFFFFF');
+      image(asset, x + 24, y + 22, cardW - 48, spacious ? 224 : 76);
+      text(asset.logo.filename.replace(/\.svg$/i, ''), x + 14, y + (spacious ? 286 : 132), 16, ink, cardW - 28, face);
+    });
+    text(kit.presentation?.vectorNote || 'Preserve the artwork proportions and choose a version that contrasts with its background.', M, 516, 12, ink, CW);
+  }
+
   // 3. Distinct email treatments shown in context, without a repetitive full catalog.
   const email = [role('circle'), role('ring'), role('square')].filter((l, i, all): l is KitLogo => !!l && all.findIndex(a => a?.sha256 === l.sha256) === i);
   for (const l of kit.logos.filter(l => l.logo.variant === 'Email logos')) {
@@ -199,7 +213,8 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
   // Show every icon and supporting shape, with links to the original artwork.
   const graphicGroups = [
     { name: 'Icons', items: kit.elements.filter(e => e.element.element_type === 'icon') },
-    { name: 'Shapes & social graphics', items: kit.elements.filter(e => !['icon', 'divider'].includes(e.element.element_type)) },
+    { name: 'Social icons', items: kit.elements.filter(e => e.element.element_type === 'social') },
+    { name: 'Shapes & social graphics', items: kit.elements.filter(e => !['icon', 'social', 'divider'].includes(e.element.element_type)) },
   ];
   for (const group of graphicGroups) {
     for (let offset = 0; offset < group.items.length; offset += 4) {
@@ -210,7 +225,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
         image(asset, x + 16, y + 10, cardW - 32, 125);
         text(asset.element.display_name || asset.element.element_type, x + 16, y + 155, 16, ink, cardW - 32, face);
       });
-      text('Keep the artwork in proportion. Use the original files from the kit when placing graphics in a design.', M, 544, 11);
+      text(group.name === 'Social icons' ? 'SVG and transparent PNG files are included in the ZIP. Use PNG for email and SVG for scalable design.' : 'Keep the artwork in proportion. Use the original files from the kit when placing graphics in a design.', M, 544, 11);
     }
   }
 

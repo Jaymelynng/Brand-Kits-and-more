@@ -118,7 +118,8 @@ export async function prepareBrandKit(gym: GymWithColors, pairings: FontPairing[
   }));
   const notes: string[] = [];
   if (!pairings.length) notes.push('No font pairings are saved for this gym.');
-  if (!logos.some(l => l.logo.variant === 'Primary logos' && l.format === 'SVG')) notes.push('No SVG master is included in Primary logos. Confirm artwork and color requirements with your production supplier. Embroidery requires a separate digitized stitch file.');
+  if (!logos.some(l => l.format === 'SVG')) notes.push('No SVG logo artwork is included. Confirm artwork and color requirements with your production supplier. Embroidery requires a separate digitized stitch file.');
+  else if (presentation?.vectorNote) notes.push(presentation.vectorNote);
   fonts.filter(f => !f.blob).forEach(f => notes.push(`${f.family} ${f.weight}: use the source link in Fonts; its installable file is not bundled.`));
   return { gym, pairings, logos, elements, examples, presentation, fonts, palette, created: new Date().toISOString(),
     url: `${location.origin}/kit/${encodeURIComponent(gym.code)}`, notes };
@@ -141,6 +142,10 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
   root.file(`${safeFilename(kit.gym.code)}-Brand-Guide.pdf`, pdf);
   kit.logos.forEach(l => root.file(l.path, l.blob));
   kit.elements.forEach(e => root.file(e.path, e.blob));
+  const graphicPaths = new Set(kit.elements.map(e => e.path.toLowerCase()));
+  for (const e of kit.elements.filter(e => e.format === 'SVG')) {
+    root.file(uniqueAssetPath(e.path.replace(/\.svg$/i, '.png'), graphicPaths), await (await fetch(e.preview)).blob());
+  }
   kit.examples.forEach(e => root.file(e.path, e.blob));
   if (kit.examples.length) root.file('Examples/Read-me.txt', [
     'Adapted design examples', '',
@@ -177,6 +182,7 @@ export async function createBrandKitZip(kit: BrandKit, pdf: Blob) {
     'Colors contains HEX/RGB values plus CSS, JSON and a GIMP-compatible palette.',
     ...(kit.examples.length ? ['Examples contains adapted campaign compositions. These are design references, not current offers or send-ready email templates.'] : []),
     ...(kit.elements.length ? [`${elementFolder} contains ${kit.elements.length} saved ${elementFolder.toLowerCase()} in their original formats.`, 'For email, download the PNG or copy its URL from the online kit. Preserve its proportions when sizing it to the email width.'] : []),
+    ...(kit.elements.some(e => e.format === 'SVG') ? ['SVG graphics also include transparent PNG companions for email. Social-platform symbols are provided as artwork; use them only with your own account links and follow the platform brand guidelines. Glyph sources and licenses are recorded inside the SVG files.'] : []),
     'Transparent logo files have clear pixels, not a printed checkerboard. A white logo needs a dark surface.',
     'Keep logo proportions. Choose a file that reads clearly on its background. Do not enlarge raster files past a useful size.',
     'Email logos, variations, themed artwork and animations are included when saved. Retired and Needs review artwork are excluded. Uncategorized is an unfiled category, not a claim of approval.',
