@@ -34,9 +34,11 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
   const ink = [...gym.colors].sort((a, b) => luminance(a.color_hex) - luminance(b.color_hex))[0]?.color_hex || '#111827';
   const darkFill = contrast(ink, '#FFFFFF') >= 4.5 ? ink : '#111827';
   const accentText = contrast(accent, '#FFFFFF') >= 4.5 ? '#FFFFFF' : '#111111';
-  const types = [...new Set(gym.elements.map(e => e.element_type))];
+  const typeOrder: Record<string, number> = { icon: 0, shape: 1, banner: 2, background: 3, divider: 4 };
+  const orderedElements = [...gym.elements].sort((a, b) => (typeOrder[a.element_type] ?? 5) - (typeOrder[b.element_type] ?? 5));
+  const types = [...new Set(orderedElements.map(e => e.element_type))];
   const collectionName = elementCollectionName(gym.elements);
-  const visible = filter === 'all' ? gym.elements : gym.elements.filter(e => e.element_type === filter);
+  const visible = filter === 'all' ? orderedElements : orderedElements.filter(e => e.element_type === filter);
   const previewAssets: PreviewAsset[] = visible.map(element => ({
     id: element.id, filename: elementFilename(element), file_url: elementSource(element), variant: element.element_type,
   }));
@@ -112,7 +114,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
         <div data-graphic-view={view} className={cn(view === 'strip' ? 'flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4' : 'grid auto-rows-fr gap-4', view === 'grid' && 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3')}>
           {visible.map(element => <article key={element.id} data-element-id={element.id} data-activity-asset={element.display_name || element.element_type} className={cn('flex min-w-0 flex-col rounded-xl border-2 bg-white p-4 shadow-md', view === 'strip' && 'w-[min(90%,440px)] shrink-0 snap-start', view === 'list' && 'sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-5')} style={{ borderColor: `${accent}55` }}>
             <button type="button" aria-label={`Preview ${elementCollectionName([element], false).toLowerCase()}: ${element.display_name || element.element_type}`} onClick={() => setPreviewId(element.id)}
-              className="group relative flex h-28 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-300 p-2 transition-shadow hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2" style={{ backgroundColor: darkPreview ? darkFill : '#FFFFFF' }}>
+              className="group relative flex h-40 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-300 p-2 transition-shadow hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2" style={{ backgroundColor: darkPreview ? darkFill : '#FFFFFF' }}>
               <img src={elementSource(element)} alt={element.display_name || element.element_type} className="max-h-full w-full object-contain" loading="lazy" />
               <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full px-2 py-1 text-[15px] font-semibold shadow-md" style={secondaryStyle}><Eye className="h-4 w-4" />Preview</span>
             </button>

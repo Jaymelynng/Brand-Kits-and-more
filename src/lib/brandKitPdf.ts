@@ -43,6 +43,9 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     const bytes = photoBytes.get(asset.sha256);
     doc.addImage(bytes || asset.preview, bytes ? 'JPEG' : 'PNG', x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, asset.sha256, 'SLOW');
     if ('logo' in asset) doc.link(x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, { url: asset.logo.file_url });
+    if ('element' in asset && !asset.element.svg_data.trimStart().startsWith('<')) {
+      doc.link(x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, { url: new URL(asset.element.svg_data, kit.url).href });
+    }
   };
   const role = (name: keyof NonNullable<BrandKit['presentation']>['logoRoles']) => kit.logos.find(l => l.logo.file_url === kit.presentation?.logoRoles[name]);
   const main = kit.logos.find(l => l.logo.is_main_logo) || kit.logos[0];
@@ -193,7 +196,25 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
     text(`Use the original PNG at its natural proportions. View all saved ${elementCollection.toLowerCase()} in the online library.`, M, 544, 11);
   }
 
-  // 7-9. Each enhanced example has a traceable historical source and a visible status.
+  // Show every icon and supporting shape, with links to the original artwork.
+  const graphicGroups = [
+    { name: 'Icons', items: kit.elements.filter(e => e.element.element_type === 'icon') },
+    { name: 'Shapes & social graphics', items: kit.elements.filter(e => !['icon', 'divider'].includes(e.element.element_type)) },
+  ];
+  for (const group of graphicGroups) {
+    for (let offset = 0; offset < group.items.length; offset += 4) {
+      title('05 / GRAPHICS', group.name + (offset ? ' / continued' : ''), 'Reusable artwork for email and social designs. Click an image to open its original.');
+      group.items.slice(offset, offset + 4).forEach((asset, i) => {
+        const x = M + i % 2 * (cardW + 20), y = 148 + Math.floor(i / 2) * 191;
+        box(x, y, cardW, 178, '#FFFFFF', tint(ink, .8));
+        image(asset, x + 16, y + 10, cardW - 32, 125);
+        text(asset.element.display_name || asset.element.element_type, x + 16, y + 155, 16, ink, cardW - 32, face);
+      });
+      text('Keep the artwork in proportion. Use the original files from the kit when placing graphics in a design.', M, 544, 11);
+    }
+  }
+
+  // Campaign provenance remains in the downloadable manifest.
   kit.examples.forEach(({ example: e, ...asset }) => {
     title('06 / BRAND IN USE', e.title, e.description);
     image({ example: e, ...asset }, M, 145, 335, 386);
@@ -206,7 +227,7 @@ export async function createBrandGuide(kit: BrandKit): Promise<Blob> {
       y = text(principle, x + 41, y, 16, ink, tw - 41) + 24;
     });
     text('Adapted design example', x, 465, 19, ink, tw, face);
-    text(`Based on a campaign sent ${e.source.date}. Layout and type have been adapted; historical offers are not reproduced.`, x, 491, 12, ink, tw);
+    text(`Shows how ${kit.gym.name}'s logo, colors and fonts work together.`, x, 491, 12, ink, tw);
     text('Download the full-size example in Examples/. It is a design reference, not a send-ready email.', M, 547, 11);
   });
 
