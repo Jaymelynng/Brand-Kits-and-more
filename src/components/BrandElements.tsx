@@ -139,7 +139,7 @@ export function BrandElements({ gym, isAdmin, onUpload, onRename, onTypeChange, 
                   const value = isInlineSvg(element.svg_data) ? element.svg_data : new URL(element.svg_data, window.location.origin).href;
                   const ok = await copyText(value);
                   toast({ variant: ok ? 'default' : 'destructive', description: ok ? 'Copied.' : 'Could not copy. Please try again.' });
-                }} className={buttonClass} style={secondaryStyle}><Copy className="hidden h-4 w-4 shrink-0 sm:block" />{isInlineSvg(element.svg_data) ? 'Copy SVG' : 'Copy URL'}</Button>
+                }} className={buttonClass} style={secondaryStyle}>{!/\.svg$/i.test(elementFilename(element)) && <Copy className="hidden h-4 w-4 shrink-0 sm:block" />}{isInlineSvg(element.svg_data) ? 'Copy SVG' : 'Copy URL'}</Button>
               </div>
               {isAdmin && <div className="mt-2 flex gap-2">
                 <Select value={element.element_type} onValueChange={type => onTypeChange(element.id, type)}>
