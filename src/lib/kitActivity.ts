@@ -48,6 +48,7 @@ export interface ActivityRow {
 }
 export interface ActivityReport {
   total:number; sessions:number; visits:number; previews:number; downloads:number; rows:ActivityRow[];
+  own_activity?: { hidden:boolean; ips:string[] };
 }
 export const activityNames: Record<ActivityKind,string> = {
   visit:'Kit visit', click:'Clicked', preview:'Preview opened', download_ready:'Download prepared',

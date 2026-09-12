@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { RefreshCw, ArrowLeft, ArrowRight, X } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { RefreshCw, ArrowLeft, ArrowRight, EyeOff, X } from 'lucide-react';
 import { useGyms } from '@/hooks/useGyms';
 import { supabase } from '@/integrations/supabase/client';
 import { activityNames, type ActivityKind, type ActivityReport, type ActivityRow } from '@/lib/kitActivity';
 
 export function KitActivityPanel() {
+  const queryClient = useQueryClient();
   const { data: gyms = [] } = useGyms();
   const [gymId, setGymId] = useState<string | null>(null);
   const [days, setDays] = useState(7);
@@ -22,11 +23,34 @@ export function KitActivityPanel() {
     }, refetchInterval: 30000, refetchIntervalInBackground: false });
   const reset = () => setOffset(0);
   const data = report.data;
+  const ownActivity = data?.own_activity;
+  const ownFilter = useMutation({
+    mutationFn: async (hidden: boolean) => {
+      const { data: saved, error } = await supabase.rpc('set_kit_activity_filter', { p_hide_own: hidden });
+      if (error || saved !== hidden) throw new Error('Your activity filter could not be saved. Please try again.');
+    },
+    onSuccess: async () => {
+      reset();
+      await queryClient.invalidateQueries({ queryKey: ['kit-activity'] });
+    },
+  });
   const stamp = (row: ActivityRow) => <time dateTime={row.created_at} title={new Date(row.created_at).toISOString()}>{new Date(row.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' })}</time>;
   const session = (row: ActivityRow) => <button title="Show this browsing session" className="admin-session" onClick={() => { setSessionId(row.session_id); reset(); }}>{row.session_id.slice(0, 8)}</button>;
   return <section aria-label="Kit activity" className="admin-panel admin-activity">
     <div className="admin-panel-heading"><div><h2>Kit activity</h2><p>Visits, previews and downloads by browsing session.</p></div><button onClick={() => void report.refetch()} disabled={report.isFetching} aria-label="Refresh activity" className="admin-action admin-refresh"><RefreshCw className={report.isFetching ? 'animate-spin' : ''} size={17} /><span>Refresh</span></button></div>
     <div className="admin-activity-filters">
+      {ownActivity && <div className="admin-own-activity">
+        <button type="button" role="switch" aria-checked={ownActivity.hidden} aria-label="Hide my activity"
+          aria-describedby="own-activity-description" className="admin-action admin-own-toggle"
+          disabled={ownFilter.isPending || report.isFetching || !ownActivity.ips.length}
+          onClick={() => ownFilter.mutate(!ownActivity.hidden)}>
+          <EyeOff size={17} aria-hidden="true" />Hide my activity<strong>{ownFilter.isPending ? 'Saving…' : ownActivity.hidden ? 'On' : 'Off'}</strong>
+        </button>
+        <p id="own-activity-description">{ownActivity.ips.length
+          ? `${ownActivity.hidden ? 'Hidden from this report' : 'Included in this report'}: ${ownActivity.ips.join(', ')}`
+          : 'No personal IP addresses saved.'}</p>
+      </div>}
+      {ownFilter.error && <p role="alert" className="admin-error">{ownFilter.error.message}</p>}
       <div className="admin-filter-row" role="group" aria-label="Activity date range">{[1, 7, 30].map(value => <button key={value} aria-label={value === 1 ? 'Last 24 hours' : `Last ${value} days`} aria-pressed={days === value} onClick={() => { setDays(value); reset(); }}>{value === 1 ? '24 hours' : `${value} days`}</button>)}</div>
       <div className="admin-filter-row admin-gym-filter" role="group" aria-label="Activity gym"><button aria-label="All gyms" aria-pressed={!gymId} onClick={() => { setGymId(null); reset(); }}>All</button>{gyms.map(gym => <button key={gym.id} title={gym.name} aria-pressed={gymId === gym.id} onClick={() => { setGymId(gym.id); reset(); }}>{gym.code}</button>)}</div>
       <div className="admin-filter-row" role="group" aria-label="Activity type"><button aria-pressed={!kind} onClick={() => { setKind(null); reset(); }}>All actions</button>{([{ kind: 'visit', label: 'Visits' }, { kind: 'click', label: 'Clicks' }, { kind: 'preview', label: 'Previews' }, { kind: 'download_ready', label: 'Downloads' }] as const).map(item => <button key={item.kind} aria-pressed={kind === item.kind} onClick={() => { setKind(item.kind); reset(); }}>{item.label}</button>)}{sessionId && <button aria-label="Clear session filter" aria-pressed="true" onClick={() => { setSessionId(null); reset(); }}>Session {sessionId.slice(0, 8)} <X size={15} /></button>}</div>
@@ -39,7 +63,7 @@ export function KitActivityPanel() {
       </>}
       {!!data.total && <div className="admin-pagination"><span>{offset + 1}–{Math.min(offset + 100, data.total)} of {data.total.toLocaleString()}</span><div><button disabled={!offset} className="admin-action" onClick={() => setOffset(Math.max(0, offset - 100))}><ArrowLeft size={16} />Previous</button><button disabled={offset + 100 >= data.total} className="admin-action" onClick={() => setOffset(offset + 100)}>Next<ArrowRight size={16} /></button></div></div>}
     </>}
-    <details className="admin-activity-help"><summary>About this report</summary><p>Sessions are browsing sessions, not identified people. IP addresses may be shared or changed by office connections, mobile networks and VPNs; they do not reveal a visitor’s name.</p><p>“Download prepared” means the site handed a file to the browser. It does not prove that it was saved or read. Direct file links, offline PDFs and recording blocked by privacy tools are outside coverage.</p><p>Administrator-only · 30-day reporting window · Older records deleted daily.</p></details>
+    <details className="admin-activity-help"><summary>About this report</summary><p>“Hide my activity” excludes your saved IP addresses from both the records and the totals. Your choice is saved to your administrator account. Turn it off to include those records again; the filter does not delete history.</p><p>Sessions are browsing sessions, not identified people. IP addresses may be shared or changed by office connections, mobile networks and VPNs; they do not reveal a visitor’s name. This filter matches the saved network address, including anyone else using it.</p><p>“Download prepared” means the site handed a file to the browser. It does not prove that it was saved or read. Direct file links, offline PDFs and recording blocked by privacy tools are outside coverage.</p><p>Administrator-only · 30-day reporting window · Older records deleted daily.</p></details>
     <p className="admin-footnote">Private activity · 30-day retention{report.dataUpdatedAt ? ` · Updated ${new Date(report.dataUpdatedAt).toLocaleTimeString()}` : ''}</p>
   </section>;
 }

@@ -53,7 +53,7 @@ The QR tables and components remain in the repository, but there is no current `
 
 ## Kit activity
 
-Settings → **Kit Activity** reports visits, labeled button clicks, opened logo/graphic/example previews and prepared downloads. Filters cover all gyms or one gym, 24 hours / 7 days / 30 days, action type and one browsing session. Results use server totals and 100-row pages, refresh every 30 seconds while the panel is open, and show an explicit empty or error state.
+Settings → **Kit Activity** reports visits, labeled button clicks, opened logo/graphic/example previews and prepared downloads. Filters cover all gyms or one gym, 24 hours / 7 days / 30 days, action type and one browsing session. **Hide my activity** excludes the administrator's privately saved IP addresses from both rows and totals; turning it off restores their inclusion without deleting events. The preference is saved per administrator account and applies across devices. Results use server totals and 100-row pages, refresh every 30 seconds while the panel is open, and show an explicit empty or error state.
 
 Collection starts when this feature is deployed; historical visits cannot be recovered. The public kit and working gym pages record anonymous activity, except signed-in administrators. A session ID lives in session storage, expires after 30 minutes of inactivity and is not a person identifier. No names, emails, input values, full user agents, query strings or referrer URLs are collected. Events record only gym, action/item label, server timestamp, temporary session ID, coarse device type and gateway IP. Direct Storage URLs, offline PDFs and actions blocked by privacy tools are outside coverage. A prepared download means a file was handed to the browser, not that it was saved or read.
 
@@ -77,7 +77,7 @@ This app uses Supabase project **`fwkiadhkxqnlnvmzpgnw` (BRAND KIT)**. It is sep
 | `user_roles`, `admin_pins`, `user_profiles` | Access roles, PIN hashes and user profiles |
 | `personal_brand_info`, `personal_brand_colors`, `personal_brand_images` | Personal brand |
 | `kit_auth_attempts` | Service-only PIN attempt counters, no raw PINs or IP addresses |
-| `kit_activity`, `kit_activity_limits` | Private visitor activity and service-only collection limits |
+| `kit_activity`, `kit_activity_limits`, `kit_activity_preferences` | Private visitor activity, service-only collection limits and per-administrator report filters |
 | `gym_icon_urls` | View of gym icon URLs, evaluated with caller permissions |
 
 Public brand downloads are intentional. Anonymous users cannot write application tables or upload/update/delete storage objects. Administrator mutations require the current authenticated role. Comments are visible to their author or an administrator; decoded QR notes are administrator-only. Role checks operate with caller permissions.

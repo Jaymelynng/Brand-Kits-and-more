@@ -711,6 +711,24 @@ export type Database = {
         }
         Relationships: []
       }
+      kit_activity_preferences: {
+        Row: {
+          hidden_ips: unknown[]
+          hide_own_activity: boolean
+          user_id: string
+        }
+        Insert: {
+          hidden_ips?: unknown[]
+          hide_own_activity?: boolean
+          user_id: string
+        }
+        Update: {
+          hidden_ips?: unknown[]
+          hide_own_activity?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       kit_auth_attempts: {
         Row: {
           attempts: number
@@ -1092,6 +1110,10 @@ export type Database = {
       set_featured_gym_logo: {
         Args: { p_gym_id: string; p_logo_id: string }
         Returns: undefined
+      }
+      set_kit_activity_filter: {
+        Args: { p_hide_own: boolean }
+        Returns: boolean
       }
     }
     Enums: {

@@ -137,6 +137,12 @@
 }
 @media(prefers-reduced-motion:reduce) { .admin-shell *, .admin-drawer * { transition:none !important; animation:none !important; } }
 .admin-activity-filters { display:flex; flex-direction:column; gap:10px; padding-bottom:17px; margin-bottom:17px; border-bottom:1px solid #d6e0e9; }
+.admin-own-activity { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; }
+.admin-own-activity p { flex:1 1 230px; min-width:0; font-size:15px; color:#172433; overflow-wrap:anywhere; }
+.admin-own-toggle { min-height:44px; background:#e8edf2; }
+.admin-own-toggle[aria-checked=true] { background:#172433; color:#fff; border-color:#172433; box-shadow:0 3px 0 #00000028,0 5px 10px #17243318; }
+.admin-own-toggle[aria-checked=true]:hover { background:#30475e; }
+.admin-own-toggle strong { border-radius:5px; padding:3px 7px; background:#fff; color:#172433; font-size:14px; }
 .admin-filter-row { display:flex; flex-wrap:wrap; gap:6px; }
 .admin-filter-row button { display:inline-flex; align-items:center; gap:5px; min-height:36px; padding:7px 11px; font-size:15px; line-height:1.2; font-weight:650; border:1px solid #b7c6d4; border-radius:7px; background:#f6f8fa; color:#172433; }
 .admin-filter-row button:hover { background:#dfe8f0; }
