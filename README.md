@@ -61,6 +61,8 @@ Collection starts when this feature is deployed; historical visits cannot be rec
 
 Activity reports cover the last 30 days. The `prune-kit-activity` database cron job deletes older rows and expired rate counters daily. IPs never appear on the public kit. The rate-counter table deliberately has RLS with no browser policies. `tests/kit-activity-access.sql` verifies role boundaries, pagination, date filters, rate limits and deduplication inside a transaction that rolls back all fixtures. The Edge Function and migration must be deployed before the frontend. Disabling the collector can never block previews or downloads; delivery is best effort.
 
+**Approx. location** appears beside each IP on desktop and within each mobile record. The administrator-only `kit-activity-locations` Edge Function looks up only addresses already recorded within the reporting window, using [IPWho.is](https://ipwhois.io/documentation). Only the IP is sent to that provider; city, region, country and network are retained, without coordinates or the complete provider response. These are current network estimates, not historical proof of a visitor's location. Successful results are cached for seven days; unavailable results retry after an hour, and provider rate limits extend that cooldown. The provider's free endpoint currently permits commercial use and 1,000 requests daily per source IP, with no SLA. Batches contain up to 20 addresses and use four concurrent requests with 3.5-second timeouts. Lookup failures do not prevent loading activity. The daily `prune-kit-activity-locations` job removes estimates older than 30 days or no longer associated with retained events.
+
 ## Database and access
 
 This app uses Supabase project **`fwkiadhkxqnlnvmzpgnw` (BRAND KIT)**. It is separate from the canonical gym-data project used by other tools.
@@ -78,6 +80,7 @@ This app uses Supabase project **`fwkiadhkxqnlnvmzpgnw` (BRAND KIT)**. It is sep
 | `personal_brand_info`, `personal_brand_colors`, `personal_brand_images` | Personal brand |
 | `kit_auth_attempts` | Service-only PIN attempt counters, no raw PINs or IP addresses |
 | `kit_activity`, `kit_activity_limits`, `kit_activity_preferences` | Private visitor activity, service-only collection limits and per-administrator report filters |
+| `kit_activity_locations` | Private, temporary IP location estimates; server writes only |
 | `gym_icon_urls` | View of gym icon URLs, evaluated with caller permissions |
 
 Public brand downloads are intentional. Anonymous users cannot write application tables or upload/update/delete storage objects. Administrator mutations require the current authenticated role. Comments are visible to their author or an administrator; decoded QR notes are administrator-only. Role checks operate with caller permissions.

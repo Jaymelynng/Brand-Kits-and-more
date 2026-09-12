@@ -50,6 +50,10 @@ export interface ActivityReport {
   total:number; sessions:number; visits:number; previews:number; downloads:number; rows:ActivityRow[];
   own_activity?: { hidden:boolean; ips:string[] };
 }
+export interface ActivityLocation {
+  city:string|null; region:string|null; country:string|null; country_code:string|null;
+  network:string|null; checked_at:string;
+}
 export const activityNames: Record<ActivityKind,string> = {
   visit:'Kit visit', click:'Clicked', preview:'Preview opened', download_ready:'Download prepared',
 };

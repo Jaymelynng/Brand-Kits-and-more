@@ -152,6 +152,9 @@
 .admin-activity-totals span { margin-left:16px; }
 .admin-activity-table { max-height:52dvh; overflow:auto; border:1px solid #ccd5de; border-radius:10px; }
 .admin-activity-table table { width:100%; min-width:760px; font-size:15px; }
+.admin-location { display:grid; gap:4px; min-width:140px; overflow-wrap:anywhere; }
+.admin-location > span { font-size:15px; color:#172433; }
+.admin-footnote a { color:inherit; text-decoration:underline; }
 .admin-activity-table :is(th,td) { padding:12px; text-align:left; vertical-align:top; }
 .admin-activity-table th { background:#172433; color:#fff; position:sticky; top:0; z-index:1; }
 .admin-activity-table td { border-top:1px solid #d6e0e9; max-width:360px; overflow-wrap:anywhere; }
@@ -184,6 +187,8 @@
   .admin-activity-cards dl { display:flex; flex-direction:column; gap:8px; border-top:1px solid #ccd5de; padding-top:10px; }
   .admin-activity-cards dl > div { display:flex; align-items:center; justify-content:space-between; gap:15px; }
   .admin-activity-cards dd { text-align:right; }
+  .admin-activity-cards dl > .admin-location-detail { align-items:flex-start; flex-direction:column; gap:4px; }
+  .admin-activity-cards .admin-location-detail dd { text-align:left; }
   .admin-activity .admin-state { padding:18px; gap:9px; }
 }
 .admin-category-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr)); gap:12px; }

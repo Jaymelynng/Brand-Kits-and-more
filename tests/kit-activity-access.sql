@@ -4,6 +4,8 @@ create temp table activity_checks(name text, passed boolean);
 grant select,insert on activity_checks to anon,authenticated,service_role;
 create temp table activity_fixture as select id,code,gen_random_uuid() as session_id from public.gyms order by id limit 1;
 grant select on activity_fixture to anon,authenticated,service_role;
+insert into public.kit_activity_locations(ip_address,city,checked_at,retry_after)
+ values ('192.0.2.1','Verification fixture',now(),now()+interval '1 hour');
 
 set local role anon;
 do $$ begin
@@ -12,6 +14,8 @@ do $$ begin
   begin perform public.get_kit_activity(); raise exception 'Public report access was allowed';
   exception when insufficient_privilege then null; end;
   begin perform * from public.kit_activity_preferences; raise exception 'Public preferences access was allowed';
+  exception when insufficient_privilege then null; end;
+  begin perform * from public.kit_activity_locations; raise exception 'Public location access was allowed';
   exception when insufficient_privilege then null; end;
   begin perform public.set_kit_activity_filter(true); raise exception 'Public filter write was allowed';
   exception when insufficient_privilege then null; end;
@@ -24,6 +28,9 @@ set local role authenticated;
 do $$ begin
   if exists(select 1 from public.kit_activity) then raise exception 'Non-admin activity access'; end if;
   if exists(select 1 from public.kit_activity_preferences) then raise exception 'Non-admin preference access'; end if;
+  if exists(select 1 from public.kit_activity_locations) then raise exception 'Non-admin location access'; end if;
+  begin perform public.get_kit_activity_location_ips(array['192.0.2.1'::inet]); raise exception 'Browser enrichment access';
+  exception when insufficient_privilege then null; end;
   begin perform public.set_kit_activity_filter(true); raise exception 'Non-admin filter write';
   exception when insufficient_privilege then null; end;
   begin perform public.get_kit_activity(); raise exception 'Non-admin report access';
@@ -42,6 +49,9 @@ insert into public.kit_activity(id,created_at,gym_id,session_id,event_kind,label
 do $$ begin perform set_config('request.jwt.claim.sub',(select user_id::text from public.user_roles where role='admin' limit 1),true); end $$;
 set local role authenticated;
 do $$ declare r jsonb; s uuid; begin
+  if not exists(select 1 from public.kit_activity_locations where ip_address='192.0.2.1') then raise exception 'Admin location access failed'; end if;
+  begin insert into public.kit_activity_locations(ip_address,city,checked_at,retry_after) values ('192.0.2.2','Disallowed',now(),now());
+  raise exception 'Browser could fabricate locations'; exception when insufficient_privilege then null; end;
   select session_id into s from activity_fixture;
   r:=public.get_kit_activity(30,null,null,s,0);
   if (r->>'total')::int<>205 or jsonb_array_length(r->'rows')<>100 then raise exception 'Bad report or retention filter'; end if;
@@ -95,6 +105,8 @@ reset role;
 set local role service_role;
 do $$ declare f record; i int; ok boolean; event_id uuid:=gen_random_uuid(); begin
   select * into f from activity_fixture;
+  if (select count(*) from public.get_kit_activity_location_ips(array['192.0.2.1'::inet,'192.0.2.99'::inet]))<>1 then
+    raise exception 'Location enrichment accepted an unrecorded address'; end if;
   for i in 1..121 loop
     ok:=public.record_kit_activity(event_id,f.id,f.session_id,'click','Rate test','/kit/'||f.code,'192.0.2.1','Desktop',repeat('a',64));
     if ok is distinct from (i<=120) then raise exception 'Rate limit failed at %',i; end if;

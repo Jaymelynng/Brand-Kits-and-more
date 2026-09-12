@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.record-kit-activity]
 verify_jwt = true
+
+[functions.kit-activity-locations]
+verify_jwt = true

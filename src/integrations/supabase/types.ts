@@ -711,6 +711,39 @@ export type Database = {
         }
         Relationships: []
       }
+      kit_activity_locations: {
+        Row: {
+          checked_at: string
+          city: string | null
+          country: string | null
+          country_code: string | null
+          ip_address: unknown
+          network: string | null
+          region: string | null
+          retry_after: string
+        }
+        Insert: {
+          checked_at: string
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          ip_address: unknown
+          network?: string | null
+          region?: string | null
+          retry_after: string
+        }
+        Update: {
+          checked_at?: string
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          ip_address?: unknown
+          network?: string | null
+          region?: string | null
+          retry_after?: string
+        }
+        Relationships: []
+      }
       kit_activity_preferences: {
         Row: {
           hidden_ips: unknown[]
@@ -1077,6 +1110,12 @@ export type Database = {
           p_session_id?: string
         }
         Returns: Json
+      }
+      get_kit_activity_location_ips: {
+        Args: { p_ips: unknown[] }
+        Returns: {
+          ip_address: string
+        }[]
       }
       has_role: {
         Args: {
