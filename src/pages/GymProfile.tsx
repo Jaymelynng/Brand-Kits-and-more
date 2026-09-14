@@ -85,6 +85,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   const gym = gyms.find(g => g.code === gymCode || g.id === gymCode);
   const elementCollection = elementCollectionName(gym?.elements || []);
   const activeLogos = useMemo(() => gym?.logos.filter(isActiveLogo) || [], [gym]);
+  const raisedLogoCount = useMemo(() => activeLogos.filter(logo => /raised/i.test(logo.treatment || '')).length, [activeLogos]);
   const [orderEditor, setOrderEditor] = useState<{ logos: GymLogo[]; label: string } | null>(null);
   
   // Asset system hooks
@@ -1904,6 +1905,22 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
                   <Search className="absolute left-3 top-3 h-4 w-4 text-slate-600" />
                   <Input aria-label="Search logos" value={logoSearch} onChange={e => setLogoSearch(e.target.value)} placeholder="Search logos, colors, styles…" className="h-10 bg-white pl-9 text-[15px] text-slate-950 placeholder:text-slate-600" />
                 </label>
+                {raisedLogoCount > 0 && <Button
+                  type="button"
+                  aria-pressed={logoSearch === 'raised' && activeCategories.length === 0 && activeTags.length === 0}
+                  className="min-h-10 cursor-pointer gap-2 bg-white text-[15px] font-bold text-slate-950 shadow-md hover:bg-slate-200 aria-pressed:bg-slate-950 aria-pressed:text-white"
+                  onClick={() => {
+                    setLogoSearch(logoSearch === 'raised' ? '' : 'raised');
+                    setActiveCategories([]);
+                    setActiveTags([]);
+                    setViewMode('grid');
+                    clearSelection();
+                  }}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Textured &amp; raised
+                  <span className="rounded-full bg-slate-200 px-2 text-[13px] text-slate-950">{raisedLogoCount}</span>
+                </Button>}
                 {(logoSearch || activeTags.length > 0 || activeCategories.length > 0) && <Button className="h-10 cursor-pointer bg-slate-900 text-[15px] text-white hover:bg-slate-700" onClick={() => { setLogoSearch(''); setActiveTags([]); setActiveCategories([]); clearSelection(); }}>Clear filters</Button>}
               </div>
               <p className="mt-2 text-[15px] text-white md:hidden">Tap a logo to open the full preview.</p>
