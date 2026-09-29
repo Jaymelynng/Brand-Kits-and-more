@@ -13,6 +13,7 @@ interface BulkActionBarProps {
   /** Hidden admin gesture: five taps on the gym counter. */
   onSecretTap?: () => void;
   tapsLeft?: number | null;
+  onOpenInventory?: () => void;
 }
 
 /** Three things she actually copies. Not six combinations of two questions. */
@@ -36,6 +37,7 @@ export const BulkActionBar = ({
   onClearAll,
   onSecretTap,
   tapsLeft,
+  onOpenInventory,
 }: BulkActionBarProps) => {
   const [format, setFormat] = useState(FORMATS[0]);
   const [justCopied, setJustCopied] = useState(false);
@@ -100,6 +102,7 @@ export const BulkActionBar = ({
           </div>
         </div>
 
+        {onOpenInventory && <button className="cursor-pointer rounded-xl bg-slate-900 px-4 py-2.5 text-[15px] font-bold text-white shadow-md hover:bg-slate-700" onClick={onOpenInventory}>Logo manager</button>}
         {/* Pick them all, or none */}
         <div className="flex gap-2">
           <button

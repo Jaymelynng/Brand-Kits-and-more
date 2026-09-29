@@ -276,6 +276,7 @@ const Index = () => {
         onClearAll={deselectAllGyms}
         onSecretTap={onSecretTap}
         tapsLeft={tapsLeft}
+        onOpenInventory={isAdmin ? () => navigate('/admin?tab=inventory') : undefined}
       />
 
       <div className="min-w-0 flex-1" style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d6c5bf 100%)' }}>

@@ -21,6 +21,7 @@ export const useAuth = () => {
         void queryClient.resetQueries({ queryKey: ['gyms'] });
         queryClient.removeQueries({ queryKey: ['kit-activity'] });
         queryClient.removeQueries({ queryKey: ['admin-users'] });
+        queryClient.removeQueries({ queryKey: ['admin-inventory'] });
       }
       identity = nextIdentity;
       setSession(next); setUser(next?.user ?? null);

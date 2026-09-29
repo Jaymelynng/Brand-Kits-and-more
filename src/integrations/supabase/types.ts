@@ -1100,6 +1100,7 @@ export type Database = {
       }
     }
     Functions: {
+      edit_inventory_items: { Args: { p_changes: Json }; Returns: number }
       consume_pin_attempt: { Args: { p_client_key: string }; Returns: number }
       get_kit_activity: {
         Args: {

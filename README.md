@@ -42,14 +42,23 @@ PNG/JPEG artwork remains raster artwork. Export never labels an embedded raster 
 | `/` | Dashboard and bulk brand actions |
 | `/kit/:gymCode` | Focused public share page |
 | `/gym/:gymCode` | Gym profile and authorized editing |
-| `/assets`, `/themes` | Cross-gym asset and theme library |
+| `/assets`, `/themes` | Redirect to dashboard |
 | `/themes/:categoryId` | Theme detail |
 | `/admin` | Administration |
+| `/admin?tab=inventory` | Cross-gym logo and asset manager (administrator only) |
 | `/review` | Asset review |
 | `/my-brand` | Personal brand settings |
 | `/auth` | Administrator sign-in |
 
 The QR tables and components remain in the repository, but there is no current `/qr-studio` route.
+
+## Logo and asset inventory
+
+The signed-in dashboard's **Logo manager** button and administration's **Logo & asset inventory** open one paginated workspace for `gym_logos`, `gym_elements` and `gym_assets`, including distinct gym-specific assignment URLs. Counts distinguish saved records from distinct source URLs; they are loaded from the database, not from storage-object totals or locally staged artwork. The roster and category filters are data-driven. Grid/list views, live search, multiple gym/category filters, light/dark previews and a selected-only view share the same selection across pages. All matching records can be selected, with any selections outside current filters explicitly counted.
+
+Copy URLs deduplicates hosted URLs. Inline SVG artwork has no hosted URL and is explicitly excluded from copying. CSV exports retain each record. ZIP exports preserve original bytes in one flat directory, include one file per distinct source URL, avoid filename collisions and include a CSV mapping all selected records to their downloaded files. A failed fetch or cancellation saves no partial archive. Browser ZIP preparation is capped at 512 MB; larger selections must be downloaded in smaller groups.
+
+Individual names and source-specific metadata can be edited in place. Bulk edits offer literal find/replace for names, logo category/treatment/colorway, graphic type, or library category/description. The preview shows each before/after value. `edit_inventory_items` checks the current administrator role, existing RLS policies and expected field values before committing the entire batch. Files, URLs, gym assignments and featured-logo choices cannot be edited through this function. Undo restores only the last batch's touched fields and rejects intervening changes; it is available while this manager remains open. `tests/inventory-access.sql` validates atomic edits, rollback, undo and access denial inside a transaction that retains no test data.
 
 ## Kit activity
 

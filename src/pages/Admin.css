@@ -117,7 +117,7 @@
   .admin-my-brand::after { content:none; }
   .admin-nav { padding:6px; gap:0; border-bottom:1px solid #31455b; }
   .admin-nav-caption,.admin-nav-note,.admin-nav-long { display:none; }
-  .admin-nav-items { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:3px; }
+  .admin-nav-items { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:3px; }
   .admin-nav-item { min-height:54px; padding:5px 2px; flex-direction:column; justify-content:center; gap:3px; text-align:center; border-radius:7px; }
   .admin-nav-short { display:block; font-size:15px; line-height:1.1; }
   .admin-main { padding:12px; scrollbar-gutter:auto; }

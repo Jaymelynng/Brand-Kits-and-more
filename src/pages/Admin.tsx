@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AddGymModal } from '@/components/AddGymModal';
 import { LogoCategoryManager } from '@/components/LogoCategoryManager';
 import { KitActivityPanel } from '@/components/KitActivityPanel';
+import { InventoryManager } from '@/components/InventoryManager';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 import { copyText } from '@/lib/copyText';
 import { saveDownload } from '@/lib/assetFiles';
@@ -17,6 +18,7 @@ import { gymDataCsv } from '@/lib/adminData';
 import './Admin.css';
 
 const tabs = [
+  { id: 'inventory', label: 'Logo & asset inventory', short: 'Assets', icon: Copy },
   { id: 'gyms', label: 'Manage gyms', short: 'Gyms', icon: Building2 },
   { id: 'categories', label: 'Categories & tags', short: 'Labels', icon: Tags },
   { id: 'users', label: 'Users & roles', short: 'Users', icon: Users },
@@ -100,6 +102,7 @@ export default function Admin() {
       <p className="admin-nav-note">Your public brand kits keep their own gym branding.</p>
     </nav>
     <main ref={main} className="admin-main" id="admin-content" aria-label={tabs.find(tab => tab.id === activeTab)?.label}>
+      {activeTab === 'inventory' && <InventoryManager />}
       {activeTab === 'gyms' && <section className="admin-panel admin-gym-panel">
         <div className="admin-panel-heading"><div><h2>Manage gyms</h2><p>Contact details, brand colors and profile access.</p></div><button className="admin-action admin-action-primary" onClick={() => setAdding(true)}><Plus size={18} />Add gym</button></div>
         <div className="admin-list-tools"><div className="admin-search"><Search size={18} /><input aria-label="Search gyms" placeholder="Search by name or code" value={search} onChange={event => setSearch(event.target.value)} />{search && <button onClick={() => setSearch('')} aria-label="Clear search">×</button>}</div><span>{filtered.length} of {gyms.length} gyms</span></div>

@@ -53,6 +53,7 @@ export const AdminToolkit = ({
         </SheetHeader>
 
         <div className="mt-8 space-y-6">
+          <Button className="w-full bg-slate-900 text-white hover:bg-slate-700" onClick={() => { navigate('/admin?tab=inventory'); onClose(); }}>Open logo & asset manager</Button>
           {/* Admin Dashboard Link */}
           <div className="p-4 border rounded-lg" style={{ borderColor: 'hsl(var(--brand-rose-gold) / 0.3)' }}>
             <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
