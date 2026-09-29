@@ -1,6 +1,6 @@
-import { GymWithColors } from "@/hooks/useGyms";
+import type { GymWithColors } from "@/hooks/useGyms";
 
-export type CopyWhat = "colors" | "logos" | "both";
+export type CopyWhat = "colors" | "logos" | "both" | "colors-main";
 export type CopyStyle = "named" | "bare";
 
 const sortedLogos = (gym: GymWithColors) =>
@@ -12,11 +12,20 @@ const sortedLogos = (gym: GymWithColors) =>
 export const buildCopyText = (
   gyms: GymWithColors[],
   what: CopyWhat,
-  style: CopyStyle
+  style: CopyStyle,
+  origin?: string
 ): string => {
   const blocks = gyms.map((gym) => {
     const lines: string[] = [];
     const heading = `${gym.name} (${gym.code}):`;
+
+    if (what === "colors-main") {
+      const main = (gym.logos || []).find((logo) => logo.is_main_logo);
+      const url = main?.file_url;
+      const mainUrl = url && origin ? new URL(url, origin).href : url;
+      return [heading, "Colors:", ...(gym.colors || []).map((c) => c.color_hex),
+        `Main logo URL: ${mainUrl || "Not set"}`].join("\n");
+    }
 
     if (what === "colors" || what === "both") {
       const hexes = (gym.colors || []).map((c) => c.color_hex);
@@ -50,6 +59,8 @@ export const countCopy = (gyms: GymWithColors[], what: CopyWhat) => {
   const colors =
     what === "logos" ? 0 : gyms.reduce((n, g) => n + (g.colors?.length || 0), 0);
   const logos =
-    what === "colors" ? 0 : gyms.reduce((n, g) => n + (g.logos?.length || 0), 0);
+    what === "colors" ? 0 : gyms.reduce((n, g) => n + (what === "colors-main"
+      ? Number(!!g.logos?.some((logo) => logo.is_main_logo && logo.file_url))
+      : (g.logos?.length || 0)), 0);
   return { gyms: gyms.length, colors, logos };
 };

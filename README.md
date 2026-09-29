@@ -35,6 +35,12 @@ The panel, editor and PDF use the pairing's saved `sample_heading`, `sample_body
 
 PNG/JPEG artwork remains raster artwork. Export never labels an embedded raster as a vector master. The guide flags a missing SVG master and does not invent Pantone, CMYK or manufacturing specifications.
 
+### Artwork preparation for other kits
+
+The icon library is organized in `public/brand-elements/<kit-code>/`. Separate Vault, Bars, Beam and Floor PNGs are deployed and registered as named icons in `gym_elements` for every current kit. The 52 additions were checked against their live file hashes, and database readback confirmed each kit has the four apparatus icons; TIGAR's existing set was preserved. Shared brand palettes use matching artwork with separate files for each kit. These raster icons feed the existing gallery, guide and download exports. Facebook, Instagram, YouTube and TikTok SVG/PNG pairs remain locally staged and unpublished. `scripts/brand-element-batch.json` records gym identity, palette sources, generated-image provenance and per-file validation; it is a batch record, not a permanent gym roster.
+
+`scripts/build-tigar-social-icons.mjs --manifest <manifest.json> --renderer <sharp-module-path>` creates the social files from the supplied inventory; `scripts/stage-brand-elements.mjs` accepts the same arguments and checks generated PNG dimensions, transparent alpha, copied hashes and the complete expected file list. Both refuse to replace different existing artwork. Neither script writes to Supabase or deploys the site. Refresh the live inventory and palettes before preparing a later batch; the manifest is a batch record, not a permanent gym roster.
+
 ## Routes
 
 | Path | Purpose |

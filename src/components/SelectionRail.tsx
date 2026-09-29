@@ -26,12 +26,14 @@ const STYLE_LABEL: Record<CopyWhat, Record<CopyStyle, string>> = {
   colors: { bare: "Hex codes only", named: "Hex + gym name" },
   logos: { bare: "Links only", named: "Links + gym name" },
   both: { bare: "Values only", named: "With gym names" },
+  "colors-main": { bare: "With gym names", named: "With gym names" },
 };
 
 const ACTION_WORD: Record<CopyWhat, string> = {
   colors: "hex codes",
   logos: "logo links",
   both: "colors + logos",
+  "colors-main": "colors + main logo URL",
 };
 
 const SHELL = "#161C24";

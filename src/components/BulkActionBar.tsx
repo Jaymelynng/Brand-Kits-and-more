@@ -3,7 +3,8 @@ import { Check, CheckCheck, ChevronDown, Copy, X } from "lucide-react";
 import { GymWithColors } from "@/hooks/useGyms";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { buildCopyText, countCopy, CopyWhat, CopyStyle } from "@/lib/copyFormats";
+import { buildCopyText, CopyWhat, CopyStyle } from "@/lib/copyFormats";
+import { copyText } from "@/lib/copyText";
 
 interface BulkActionBarProps {
   gyms: GymWithColors[];
@@ -16,20 +17,15 @@ interface BulkActionBarProps {
   onOpenInventory?: () => void;
 }
 
-/** Three things she actually copies. Not six combinations of two questions. */
 const FORMATS: { label: string; what: CopyWhat; style: CopyStyle }[] = [
-  { label: "Hex codes", what: "colors", style: "bare" },
-  { label: "Hex codes + gym name", what: "colors", style: "named" },
-  { label: "Logo links", what: "logos", style: "bare" },
+  { label: "Copy colors", what: "colors", style: "named" },
+  { label: "Colors + main logo URL", what: "colors-main", style: "named" },
+  { label: "All logo URLs + gym names", what: "logos", style: "named" },
 ];
 
 const ACCENT = "#16B8A0";
 
-/**
- * The action, not a control panel. Which gyms are picked is already said by
- * the lit logos above, so this is one button — the format lives behind its
- * chevron, the same way the gym cards do it.
- */
+/** Copy actions always use the gyms selected in the strip above. */
 export const BulkActionBar = ({
   gyms,
   selectedCodes,
@@ -39,26 +35,24 @@ export const BulkActionBar = ({
   tapsLeft,
   onOpenInventory,
 }: BulkActionBarProps) => {
-  const [format, setFormat] = useState(FORMATS[0]);
-  const [justCopied, setJustCopied] = useState(false);
+  const [justCopied, setJustCopied] = useState<CopyWhat | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const { toast } = useToast();
 
   const selected = gyms.filter((g) => selectedCodes.has(g.code));
-  const counts = countCopy(selected, format.what);
-
-  const copy = (f: typeof format) => {
-    const text = buildCopyText(selected, f.what, f.style);
+  const copy = async (f: (typeof FORMATS)[number]) => {
+    const text = buildCopyText(selected, f.what, f.style, window.location.origin);
     if (!text.trim()) {
       toast({ description: "No gyms picked", variant: "destructive", duration: 2000 });
       return;
     }
-    navigator.clipboard.writeText(text).then(() => {
-      setFormat(f);
-      setJustCopied(true);
-      setTimeout(() => setJustCopied(false), 1800);
-      toast({ description: `${f.label} copied from ${selected.length} gyms`, duration: 2000 });
-    });
+    if (!await copyText(text)) {
+      toast({ description: "Could not copy. Please try again.", variant: "destructive" });
+      return;
+    }
+    setJustCopied(f.what);
+    setTimeout(() => setJustCopied(null), 1800);
+    toast({ description: `Copied with gym names for ${selected.length} ${selected.length === 1 ? "gym" : "gyms"}`, duration: 2000 });
   };
 
   return (
@@ -75,7 +69,7 @@ export const BulkActionBar = ({
       }}
     >
       <div
-        className="flex w-full flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-2xl px-7 py-3.5 transition-all duration-300"
+        className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-2xl px-5 py-3.5 transition-all duration-300"
         style={{
           background: "#FFFFFF",
           border: "1px solid #E2E7ED",
@@ -91,14 +85,14 @@ export const BulkActionBar = ({
           >
             {selected.length} {selected.length === 1 ? "gym" : "gyms"}
           </div>
-          <div className="text-[11px] font-semibold text-slate-400">
+          <div className="text-[15px] font-semibold text-slate-700">
             {typeof tapsLeft === "number" && tapsLeft > 0
               ? `${tapsLeft} more`
               : selected.length === 0
                 ? "tap a logo above"
                 : selected.length === gyms.length
-                  ? `every gym · ${format.label.toLowerCase()}`
-                  : format.label.toLowerCase()}
+                  ? "all selected"
+                  : "selected above"}
           </div>
         </div>
 
@@ -135,12 +129,20 @@ export const BulkActionBar = ({
           </button>
         </div>
 
-        {/* One button. The format lives behind the chevron. */}
-        <div className="flex">
+        <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => copy(format)}
+            onClick={() => copy(FORMATS[1])}
             disabled={selected.length === 0}
-            className="flex items-center gap-2 rounded-l-xl py-3 pl-5 pr-4 text-[13px] font-extrabold transition-all duration-150 hover:-translate-y-0.5 active:translate-y-[3px] active:shadow-none disabled:translate-y-0"
+            className="flex cursor-pointer items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-[15px] font-extrabold text-white shadow-md transition-colors hover:bg-slate-700 disabled:cursor-default disabled:opacity-50"
+          >
+            {justCopied === "colors-main" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {justCopied === "colors-main" ? "Copied colors + main logo URL" : FORMATS[1].label}
+          </button>
+          <div className="flex">
+          <button
+            onClick={() => copy(FORMATS[0])}
+            disabled={selected.length === 0}
+            className="flex cursor-pointer items-center gap-2 rounded-l-xl py-3 pl-5 pr-4 text-[15px] font-extrabold transition-all duration-150 hover:-translate-y-0.5 active:translate-y-[3px] active:shadow-none disabled:translate-y-0"
             style={{
               background: selected.length === 0 ? "#8FA3B4" : justCopied ? "#2F9E6F" : ACCENT,
               color: selected.length === 0 ? "#F4F7FA" : "#06231F",
@@ -148,7 +150,7 @@ export const BulkActionBar = ({
               boxShadow: `0 4px 0 ${selected.length === 0 ? "#66798A" : justCopied ? "#1C6B4A" : "#0E8C79"}, 0 8px 18px rgba(22,28,36,0.3)`,
             }}
           >
-            {justCopied ? (
+            {justCopied === "colors" ? (
               <>
                 <Check className="h-4 w-4 animate-in zoom-in duration-200" strokeWidth={3} />
                 Copied
@@ -156,7 +158,7 @@ export const BulkActionBar = ({
             ) : (
               <>
                 <Copy className="h-4 w-4" strokeWidth={3} />
-                Copy {counts.gyms}
+                Copy colors
               </>
             )}
           </button>
@@ -166,6 +168,7 @@ export const BulkActionBar = ({
               <button
                 disabled={selected.length === 0}
                 title="Copy something else"
+                aria-label="More copy options"
                 className="flex items-center rounded-r-xl border-l px-2.5 py-3 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-[3px] active:shadow-none disabled:translate-y-0"
                 style={{
                   background: selected.length === 0 ? "#8FA3B4" : justCopied ? "#2F9E6F" : ACCENT,
@@ -181,23 +184,24 @@ export const BulkActionBar = ({
               </button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-56 p-1.5">
-              {FORMATS.map((f) => (
+              {FORMATS.slice(2).map((f) => (
                 <button
                   key={f.label}
                   onClick={() => {
                     setMenuOpen(false);
                     copy(f);
                   }}
-                  className="flex w-full items-center justify-between rounded px-2 py-2.5 text-left text-xs font-semibold hover:bg-muted"
+                  className="flex w-full cursor-pointer items-center justify-between rounded px-2 py-2.5 text-left text-[15px] font-semibold hover:bg-muted"
                 >
                   {f.label}
-                  {f.label === format.label && (
+                  {f.what === justCopied && (
                     <Check className="h-3.5 w-3.5" strokeWidth={3} style={{ color: ACCENT }} />
                   )}
                 </button>
               ))}
             </PopoverContent>
           </Popover>
+          </div>
         </div>
       </div>
     </div>
