@@ -1086,6 +1086,150 @@ export type Database = {
         }
         Relationships: []
       }
+      variation_assets: {
+        Row: {
+          bytes: number
+          created_at: string
+          file_url: string
+          filename: string
+          gym_id: string
+          has_alpha: boolean
+          height: number
+          id: string
+          sha256: string
+          thumbnail_url: string
+          width: number
+        }
+        Insert: {
+          bytes: number
+          created_at?: string
+          file_url: string
+          filename: string
+          gym_id: string
+          has_alpha: boolean
+          height: number
+          id?: string
+          sha256: string
+          thumbnail_url: string
+          width: number
+        }
+        Update: {
+          bytes?: number
+          created_at?: string
+          file_url?: string
+          filename?: string
+          gym_id?: string
+          has_alpha?: boolean
+          height?: number
+          id?: string
+          sha256?: string
+          thumbnail_url?: string
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variation_assets_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "variation_assets_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variation_galleries: {
+        Row: {
+          created_at: string
+          description: string
+          gym_id: string
+          id: string
+          is_published: boolean
+          slug: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          gym_id: string
+          id?: string
+          is_published?: boolean
+          slug: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          gym_id?: string
+          id?: string
+          is_published?: boolean
+          slug?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variation_galleries_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gym_icon_urls"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "variation_galleries_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variation_gallery_items: {
+        Row: {
+          asset_id: string
+          gallery_id: string
+          gym_id: string
+          is_reference: boolean
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          asset_id: string
+          gallery_id: string
+          gym_id: string
+          is_reference?: boolean
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          asset_id?: string
+          gallery_id?: string
+          gym_id?: string
+          is_reference?: boolean
+          sort_order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variation_gallery_items_asset_id_gym_id_fkey"
+            columns: ["asset_id", "gym_id"]
+            isOneToOne: false
+            referencedRelation: "variation_assets"
+            referencedColumns: ["id", "gym_id"]
+          },
+          {
+            foreignKeyName: "variation_gallery_items_gallery_id_gym_id_fkey"
+            columns: ["gallery_id", "gym_id"]
+            isOneToOne: false
+            referencedRelation: "variation_galleries"
+            referencedColumns: ["id", "gym_id"]
+          },
+        ]
+      }
     }
     Views: {
       gym_icon_urls: {
@@ -1100,8 +1244,12 @@ export type Database = {
       }
     }
     Functions: {
-      edit_inventory_items: { Args: { p_changes: Json }; Returns: number }
+      add_variation_gallery_assets: {
+        Args: { p_assets: Json; p_gallery_id: string }
+        Returns: number
+      }
       consume_pin_attempt: { Args: { p_client_key: string }; Returns: number }
+      edit_inventory_items: { Args: { p_changes: Json }; Returns: number }
       get_kit_activity: {
         Args: {
           p_days?: number

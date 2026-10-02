@@ -18,6 +18,18 @@ Brand libraries for independently branded gyms, with a shared dashboard for bulk
 
 ## Downloads
 
+### Named variation galleries
+
+**Variation galleries** is a section inside each gym's kit and working profile. Each named collection has its own `/kit/:gymCode/variations/:gallerySlug` share link. A visitor can browse, filter by real transparency/background or reference role, select across pages, compare two to four images, preview original files and download one image or a selected/full ZIP. The page adapts to one, two or four images per page to keep browsing compact. Galleries are separate from `gym_logos`: inclusion does not approve artwork, change the featured logo, or add review options to the normal brand-kit PDF/ZIP.
+
+Administrators use **New gallery** on a working gym page, name the collection, add multiple PNG/JPG/WebP files, edit its details and make it shareable. New collections start as drafts. Read-only kit routes hide editing even for an administrator. Draft collection records are admin-only, but files in public Storage or repository paths remain public by URL. Returning a gallery to draft does not revoke those original URLs.
+
+`variation_galleries` owns gym, stable slug, title, description and visibility. `variation_assets` owns each original's URL, thumbnail URL, SHA-256, byte count, measured dimensions and alpha information, deduplicated per gym by checksum. `variation_gallery_items` owns membership, display title, order and reference role; composite foreign keys prevent cross-gym attachment. `add_variation_gallery_assets` saves the entire attachment batch atomically. Storage uploads precede this transaction; a failed save reports the failure, and retrying the same files reuses verified immutable bytes rather than replacing them. Uploads are limited to 100 files per batch and 30 MB per file. Gallery ZIPs are capped at 512 MB and reject a failed fetch or checksum mismatch without saving a partial archive.
+
+TIGAR's **GYMNASTICS wordmark options** collection contains the 22 unique originals from the 25 supplied attachments: three exact duplicate copies were identified by SHA-256 and shown once. One comparison board is labeled as a reference. Originals total 28,697,070 bytes; prepared previews total 758,114 bytes. The transfer ledger preserves source provenance. `assets/generated/tig-gymnastics-wordmarks-gallery.json` records this preparation batch, not a live roster or substitute for current assignments. `scripts/stage-variation-gallery.py` stages declared sources with Pillow, preserves originals, refuses conflicting destinations and retains existing batch captions/order on reruns. It does not register or deploy assets. New in-app uploads use the existing `gym-logos` Storage bucket under immutable `variations/<gym-id>/<sha256>/` paths.
+
+Implementation: `VariationGalleriesSection.tsx`, `pages/VariationGallery.tsx`, `hooks/useVariationGalleries.ts` and `lib/variationGalleryFiles.ts`. Access/atomicity verification lives in `tests/variation-gallery-access.sql` and rolls back every fixture. The local rendered gallery, comparison, filters, page selection and selected/full ZIPs were checked; all 22 downloaded original hashes matched the saved batch. Administrator batch-saving and role boundaries were tested through SQL; the browser upload/create controls still require a signed-in administrator smoke test. This addition leaves the separately disputed inventory-manager redesign open.
+
 **Download brand kit** exports one ZIP with:
 
 - Every active logo in its original format, grouped by its saved category, including email logos, variations, themed artwork and animation.
@@ -48,6 +60,9 @@ The icon library is organized in `public/brand-elements/<kit-code>/`. Separate V
 | `/` | Dashboard and bulk brand actions |
 | `/kit/:gymCode` | Focused public share page |
 | `/gym/:gymCode` | Gym profile and authorized editing |
+| `/kit/:gymCode/variations`, `/gym/:gymCode/variations` | Named variation collections for this gym |
+| `/kit/:gymCode/variations/:gallerySlug` | Read-only, shareable collection |
+| `/gym/:gymCode/variations/:gallerySlug` | Collection with authorized editing |
 | `/assets`, `/themes` | Redirect to dashboard |
 | `/themes/:categoryId` | Theme detail |
 | `/admin` | Administration |
@@ -87,6 +102,7 @@ This app uses Supabase project **`fwkiadhkxqnlnvmzpgnw` (BRAND KIT)**. It is sep
 | `gyms`, `brands`, `gym_colors` | Gym records, shared brand families and ordered palettes |
 | `gym_logos`, `logo_categories`, `logo_tags`, `gym_logo_tags` | Logos, display selection, order, categories and tags |
 | `gym_font_pairings` | Font choices, weights, samples, usage notes and preference |
+| `variation_galleries`, `variation_assets`, `variation_gallery_items` | Named variation collections, original-file facts and same-gym membership |
 | `gym_elements` | Supporting graphics and dividers |
 | `asset_types`, `asset_categories`, `gym_assets`, `gym_asset_assignments` | Cross-gym asset library and assignments |
 | `theme_tags`, `asset_theme_tags`, `asset_comments` | Themes and private comments |

@@ -42,6 +42,8 @@ import { LogoPreview } from '@/components/LogoPreview';
 import { Search, Eye } from 'lucide-react';
 import { HeroLogo } from "@/components/HeroLogo";
 import { VariationBrowser } from "@/components/VariationBrowser";
+import { VariationGalleriesSection } from "@/components/VariationGalleriesSection";
+import { useVariationGalleries } from "@/hooks/useVariationGalleries";
 import { useSecretTap } from "@/hooks/useSecretTap";
 import { useBackgroundRemoval } from "@/hooks/useBackgroundRemoval";
 import { Pencil } from "lucide-react";
@@ -83,6 +85,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
   
   // Find gym
   const gym = gyms.find(g => g.code === gymCode || g.id === gymCode);
+  const variationGalleries = useVariationGalleries(gym?.id, isAdmin);
   const elementCollection = elementCollectionName(gym?.elements || []);
   const activeLogos = useMemo(() => gym?.logos.filter(isActiveLogo) || [], [gym]);
   const raisedLogoCount = useMemo(() => activeLogos.filter(logo => /raised/i.test(logo.treatment || '')).length, [activeLogos]);
@@ -1219,6 +1222,7 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
         <nav className="kit-mobile-navigation" aria-label="Jump to kit section" style={{ background: showcaseInk }}>
           {[
             ...(activeLogos.length ? [{ id: 'logo-gallery', label: 'Logos' }] : []),
+            ...(isAdmin || variationGalleries.data?.length ? [{ id: 'variation-galleries', label: 'Variation galleries' }] : []),
             ...(gym.elements.length ? [{ id: 'brand-elements', label: elementCollection }] : []),
             { id: 'brand-colors', label: 'Colors' },
             ...(activeLogos.some(logo => logo.variant === 'Primary logos') ? [{ id: 'brand-fonts', label: 'Fonts' }] : []),
@@ -1770,6 +1774,8 @@ const GymProfile = ({ solo = false }: GymProfileProps) => {
             </CardContent>
           </Card>
         )}
+
+        <VariationGalleriesSection gymId={gym.id} gymCode={gym.code} isAdmin={isAdmin} solo={solo} />
 
         {/* Logo Gallery */}
         {visibleLogos.length > 0 && (

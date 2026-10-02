@@ -9,7 +9,7 @@ import { contrast, luminance } from '@/lib/shade';
 import { LogoMedia } from './LogoMedia';
 import { trackKitActivity } from '@/lib/kitActivity';
 
-export type PreviewAsset = Pick<GymLogo, 'id' | 'filename' | 'file_url' | 'variant'>;
+export type PreviewAsset = Pick<GymLogo, 'id' | 'filename' | 'file_url' | 'variant'> & { thumbnail_url?: string };
 
 interface Props<T extends PreviewAsset> {
   logo: T;
@@ -115,7 +115,7 @@ export function LogoPreview<T extends PreviewAsset>({ logo, logos, palette, onCh
         </div>
         {copyFallback && <label className="block text-[15px]">{copyLabel === 'Copy SVG' ? 'Copy this SVG:' : 'Copy this link:'}<textarea readOnly value={copyValue ?? logo.file_url} onFocus={e => e.target.select()} className="mt-1 w-full rounded-lg border border-slate-400 p-2 text-[15px]" /></label>}
         {logos.length > 1 && <div className="flex gap-2 overflow-x-auto py-2" aria-label={kind === 'graphic' ? 'Graphic thumbnails' : 'Logo thumbnails'}>
-          {logos.map(item => <button ref={item.id === logo.id ? selectedThumb : undefined} key={item.id} title={item.filename} aria-label={`Preview ${item.filename}`} aria-current={item.id === logo.id ? 'true' : undefined} onClick={() => onChoose(item)} className="flex h-16 w-20 shrink-0 cursor-pointer items-center justify-center rounded-lg border-2 bg-slate-100 p-1 shadow-sm hover:border-slate-900" style={{ borderColor: item.id === logo.id ? accent : undefined, backgroundColor: darkThumbs[item.file_url] ? dark : undefined }}><LogoMedia onContrast={prefer => setDarkThumbs(previous => previous[item.file_url] === prefer ? previous : { ...previous, [item.file_url]: prefer })} url={item.file_url} alt="" className="h-full w-full object-contain" /></button>)}
+          {logos.map(item => <button ref={item.id === logo.id ? selectedThumb : undefined} key={item.id} title={item.filename} aria-label={`Preview ${item.filename}`} aria-current={item.id === logo.id ? 'true' : undefined} onClick={() => onChoose(item)} className="flex h-16 w-20 shrink-0 cursor-pointer items-center justify-center rounded-lg border-2 bg-slate-100 p-1 shadow-sm hover:border-slate-900" style={{ borderColor: item.id === logo.id ? accent : undefined, backgroundColor: darkThumbs[item.file_url] ? dark : undefined }}><LogoMedia onContrast={prefer => setDarkThumbs(previous => previous[item.file_url] === prefer ? previous : { ...previous, [item.file_url]: prefer })} url={item.thumbnail_url ?? item.file_url} alt="" className="h-full w-full object-contain" /></button>)}
         </div>}
         {children}
       </div>

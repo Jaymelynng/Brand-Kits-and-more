@@ -22,6 +22,8 @@ export const useAuth = () => {
         queryClient.removeQueries({ queryKey: ['kit-activity'] });
         queryClient.removeQueries({ queryKey: ['admin-users'] });
         queryClient.removeQueries({ queryKey: ['admin-inventory'] });
+        queryClient.removeQueries({ queryKey: ['variation-galleries'] });
+        queryClient.removeQueries({ queryKey: ['variation-items'] });
       }
       identity = nextIdentity;
       setSession(next); setUser(next?.user ?? null);

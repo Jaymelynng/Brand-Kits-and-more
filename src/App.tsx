@@ -16,6 +16,7 @@ const ThemeDetail = lazy(() => import("./pages/ThemeDetail"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Review = lazy(() => import("./pages/Review"));
 const MyBrand = lazy(() => import("./pages/MyBrand"));
+const VariationGallery = lazy(() => import("./pages/VariationGallery"));
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,10 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/gym/:gymCode" element={<GymProfile />} />
+              <Route path="/gym/:gymCode/variations" element={<VariationGallery />} />
+              <Route path="/gym/:gymCode/variations/:gallerySlug" element={<VariationGallery />} />
+              <Route path="/kit/:gymCode/variations" element={<VariationGallery solo />} />
+              <Route path="/kit/:gymCode/variations/:gallerySlug" element={<VariationGallery solo />} />
               {/* Public share link: visible gym-logo strip, no editing or routes out. */}
               <Route path="/kit/:gymCode" element={<GymProfile solo />} />
               <Route path="/auth" element={<Auth />} />
